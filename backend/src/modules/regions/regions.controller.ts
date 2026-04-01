@@ -2,6 +2,15 @@ import { Response } from 'express'
 import { AuthRequest } from '../../middlewares/auth.middleware'
 import * as service from './regions.service'
 
+export const recalculate = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await service.recalculateAllRegions()
+    res.json(result)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
 export const getAll = async (req: AuthRequest, res: Response) => {
   try {
     const regions = await service.getAllRegions()

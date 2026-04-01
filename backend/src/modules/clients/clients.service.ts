@@ -66,6 +66,17 @@ export const updateClient = async (
   const client = await prisma.client.findUnique({ where: { id } })
   if (!client) throw new Error('Cliente no encontrado')
 
+  // Si cambió la región, actualizar también los pedidos activos del cliente
+  if (data.regionId !== undefined && data.regionId !== client.regionId) {
+    await prisma.order.updateMany({
+      where: {
+        clientId: id,
+        status: { in: ['pendiente', 'aceptado', 'asignado'] }
+      },
+      data: { regionId: data.regionId }
+    })
+  }
+
   return prisma.client.update({
     where: { id },
     data,

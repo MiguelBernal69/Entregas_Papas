@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [postgis]
 }
 
 enum Role {
@@ -52,9 +54,10 @@ model Region {
   createdBy Int
   createdAt DateTime @default(now())
 
-  creator User     @relation(fields: [createdBy], references: [id])
+  creator User                                    @relation(fields: [createdBy], references: [id])
   clients Client[]
   orders  Order[]
+  polygon Unsupported("geometry(Polygon, 4326)")?
 }
 
 model Client {
