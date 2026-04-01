@@ -1,0 +1,111 @@
+import { Response } from 'express'
+import { AuthRequest } from '../../middlewares/auth.middleware'
+import * as service from './orders.service'
+import { OrderStatus } from '../../generated/prisma'
+
+export const getAll = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, regionId, preventistaId } = req.query
+
+    // Preventista solo ve sus propios pedidos
+    const filters = {
+      status: status as OrderStatus | undefined,
+      regionId: regionId ? Number(regionId) : undefined,
+      preventistaId: req.user?.role === 'preventista'
+        ? req.user.id
+        : preventistaId ? Number(preventistaId) : undefined
+    }
+
+    const orders = await service.getAllOrders(filters)
+    res.json(orders)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+export const getOne = async (req: AuthRequest, res: Response) => {
+  try {
+    const order = await service.getOrderById(Number(req.params.id))
+    res.json(order)
+  } catch (error: any) {
+    res.status(404).json({ message: error.message })
+  }
+}
+
+export const getMap = async (req: AuthRequest, res: Response) => {
+  try {
+    const orders = await service.getOrdersForMap()
+    res.json(orders)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+export const create = async (req: AuthRequest, res: Response) => {
+  try {
+    const { clientId, notes, items } = req.body
+
+    if (!clientId || !items) {
+      res.status(400).json({ message: 'clientId e items son requeridos' })
+      return
+    }
+
+    const order = await service.createOrder(
+      { clientId: Number(clientId), notes, items },
+      req.user!.id
+    )
+    res.status(201).json(order)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const update = async (req: AuthRequest, res: Response) => {
+  try {
+    const order = await service.updateOrder(
+      Number(req.params.id),
+      req.body,
+      req.user!.id
+    )
+    res.json(order)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const changeStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.body
+    const validStatuses: OrderStatus[] = ['pendiente', 'aceptado', 'asignado', 'entregado']
+
+    if (!validStatuses.includes(status)) {
+      res.status(400).json({ message: 'Estado inválido' })
+      return
+    }
+
+    const order = await service.changeOrderStatus(
+      Number(req.params.id),
+      status,
+      req.user!.id
+    )
+    res.json(order)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const assign = async (req: AuthRequest, res: Response) => {
+  try {
+    const { orderIds, distributorId } = req.body
+
+    if (!orderIds || !distributorId || !Array.isArray(orderIds)) {
+      res.status(400).json({ message: 'orderIds (array) y distributorId son requeridos' })
+      return
+    }
+
+    const result = await service.assignOrders(orderIds, Number(distributorId), req.user!.id)
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
