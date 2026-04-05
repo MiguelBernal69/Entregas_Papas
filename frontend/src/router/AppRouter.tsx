@@ -13,6 +13,8 @@ import AdminOrders from '../pages/admin/Orders'
 import AdminMap from '../pages/admin/Map'
 import AdminRegions from '../pages/admin/Regions'
 import AdminHistory from '../pages/admin/History'
+import AdminClients from '../pages/admin/Clients'
+import AssignRegions from '../pages/admin/AssignRegions'
 
 // Preventista
 import PreventistaClients from '../pages/preventista/Clients'
@@ -40,7 +42,8 @@ export const AppRouter = () => {
         <Route path="/admin/map" element={<ProtectedRoute roles={['admin']}><AdminMap /></ProtectedRoute>} />
         <Route path="/admin/regions" element={<ProtectedRoute roles={['admin', 'preventista']}><AdminRegions /></ProtectedRoute>} />
         <Route path="/admin/history" element={<ProtectedRoute roles={['admin']}><AdminHistory /></ProtectedRoute>} />
-
+        <Route path="/admin/clients" element={<ProtectedRoute roles={['admin']}><AdminClients /></ProtectedRoute>} />
+        <Route path="/admin/assign-regions" element={<ProtectedRoute roles={['admin']}><AssignRegions /></ProtectedRoute>} />
         {/* Preventista */}
         <Route path="/preventista/clients" element={<ProtectedRoute roles={['preventista']}><PreventistaClients /></ProtectedRoute>} />
         <Route path="/preventista/orders" element={<ProtectedRoute roles={['preventista']}><PreventistaOrders /></ProtectedRoute>} />

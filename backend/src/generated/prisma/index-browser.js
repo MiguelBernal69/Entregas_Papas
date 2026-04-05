@@ -184,6 +184,13 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   unitPrice: 'unitPrice'
 };
 
+exports.Prisma.UserRegionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  regionId: 'regionId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.OrderHistoryScalarFieldEnum = {
   id: 'id',
   orderId: 'orderId',
@@ -247,6 +254,7 @@ exports.Prisma.ModelName = {
   Product: 'Product',
   Order: 'Order',
   OrderItem: 'OrderItem',
+  UserRegion: 'UserRegion',
   OrderHistory: 'OrderHistory'
 };
 

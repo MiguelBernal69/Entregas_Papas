@@ -44,6 +44,11 @@ export type Order = $Result.DefaultSelection<Prisma.$OrderPayload>
  */
 export type OrderItem = $Result.DefaultSelection<Prisma.$OrderItemPayload>
 /**
+ * Model UserRegion
+ * 
+ */
+export type UserRegion = $Result.DefaultSelection<Prisma.$UserRegionPayload>
+/**
  * Model OrderHistory
  * 
  */
@@ -276,6 +281,16 @@ export class PrismaClient<
     * ```
     */
   get orderItem(): Prisma.OrderItemDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userRegion`: Exposes CRUD operations for the **UserRegion** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserRegions
+    * const userRegions = await prisma.userRegion.findMany()
+    * ```
+    */
+  get userRegion(): Prisma.UserRegionDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.orderHistory`: Exposes CRUD operations for the **OrderHistory** model.
@@ -726,6 +741,7 @@ export namespace Prisma {
     Product: 'Product',
     Order: 'Order',
     OrderItem: 'OrderItem',
+    UserRegion: 'UserRegion',
     OrderHistory: 'OrderHistory'
   };
 
@@ -742,7 +758,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "region" | "client" | "product" | "order" | "orderItem" | "orderHistory"
+      modelProps: "user" | "region" | "client" | "product" | "order" | "orderItem" | "userRegion" | "orderHistory"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1190,6 +1206,80 @@ export namespace Prisma {
           }
         }
       }
+      UserRegion: {
+        payload: Prisma.$UserRegionPayload<ExtArgs>
+        fields: Prisma.UserRegionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserRegionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserRegionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>
+          }
+          findFirst: {
+            args: Prisma.UserRegionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserRegionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>
+          }
+          findMany: {
+            args: Prisma.UserRegionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>[]
+          }
+          create: {
+            args: Prisma.UserRegionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>
+          }
+          createMany: {
+            args: Prisma.UserRegionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserRegionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>[]
+          }
+          delete: {
+            args: Prisma.UserRegionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>
+          }
+          update: {
+            args: Prisma.UserRegionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserRegionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserRegionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserRegionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserRegionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserRegionPayload>
+          }
+          aggregate: {
+            args: Prisma.UserRegionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserRegion>
+          }
+          groupBy: {
+            args: Prisma.UserRegionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserRegionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserRegionCountArgs<ExtArgs>
+            result: $Utils.Optional<UserRegionCountAggregateOutputType> | number
+          }
+        }
+      }
       OrderHistory: {
         payload: Prisma.$OrderHistoryPayload<ExtArgs>
         fields: Prisma.OrderHistoryFieldRefs
@@ -1378,6 +1468,7 @@ export namespace Prisma {
     product?: ProductOmit
     order?: OrderOmit
     orderItem?: OrderItemOmit
+    userRegion?: UserRegionOmit
     orderHistory?: OrderHistoryOmit
   }
 
@@ -1464,6 +1555,7 @@ export namespace Prisma {
     ordersDelivery: number
     historyActions: number
     regionsCreated: number
+    assignedRegions: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1472,6 +1564,7 @@ export namespace Prisma {
     ordersDelivery?: boolean | UserCountOutputTypeCountOrdersDeliveryArgs
     historyActions?: boolean | UserCountOutputTypeCountHistoryActionsArgs
     regionsCreated?: boolean | UserCountOutputTypeCountRegionsCreatedArgs
+    assignedRegions?: boolean | UserCountOutputTypeCountAssignedRegionsArgs
   }
 
   // Custom InputTypes
@@ -1520,6 +1613,13 @@ export namespace Prisma {
     where?: RegionWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAssignedRegionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserRegionWhereInput
+  }
+
 
   /**
    * Count Type RegionCountOutputType
@@ -1528,11 +1628,13 @@ export namespace Prisma {
   export type RegionCountOutputType = {
     clients: number
     orders: number
+    assignedUsers: number
   }
 
   export type RegionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     clients?: boolean | RegionCountOutputTypeCountClientsArgs
     orders?: boolean | RegionCountOutputTypeCountOrdersArgs
+    assignedUsers?: boolean | RegionCountOutputTypeCountAssignedUsersArgs
   }
 
   // Custom InputTypes
@@ -1558,6 +1660,13 @@ export namespace Prisma {
    */
   export type RegionCountOutputTypeCountOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OrderWhereInput
+  }
+
+  /**
+   * RegionCountOutputType without action
+   */
+  export type RegionCountOutputTypeCountAssignedUsersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserRegionWhereInput
   }
 
 
@@ -1894,6 +2003,7 @@ export namespace Prisma {
     ordersDelivery?: boolean | User$ordersDeliveryArgs<ExtArgs>
     historyActions?: boolean | User$historyActionsArgs<ExtArgs>
     regionsCreated?: boolean | User$regionsCreatedArgs<ExtArgs>
+    assignedRegions?: boolean | User$assignedRegionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1937,6 +2047,7 @@ export namespace Prisma {
     ordersDelivery?: boolean | User$ordersDeliveryArgs<ExtArgs>
     historyActions?: boolean | User$historyActionsArgs<ExtArgs>
     regionsCreated?: boolean | User$regionsCreatedArgs<ExtArgs>
+    assignedRegions?: boolean | User$assignedRegionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1950,6 +2061,7 @@ export namespace Prisma {
       ordersDelivery: Prisma.$OrderPayload<ExtArgs>[]
       historyActions: Prisma.$OrderHistoryPayload<ExtArgs>[]
       regionsCreated: Prisma.$RegionPayload<ExtArgs>[]
+      assignedRegions: Prisma.$UserRegionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2359,6 +2471,7 @@ export namespace Prisma {
     ordersDelivery<T extends User$ordersDeliveryArgs<ExtArgs> = {}>(args?: Subset<T, User$ordersDeliveryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     historyActions<T extends User$historyActionsArgs<ExtArgs> = {}>(args?: Subset<T, User$historyActionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     regionsCreated<T extends User$regionsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, User$regionsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assignedRegions<T extends User$assignedRegionsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignedRegionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2909,6 +3022,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.assignedRegions
+   */
+  export type User$assignedRegionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    where?: UserRegionWhereInput
+    orderBy?: UserRegionOrderByWithRelationInput | UserRegionOrderByWithRelationInput[]
+    cursor?: UserRegionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserRegionScalarFieldEnum | UserRegionScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3132,6 +3269,7 @@ export namespace Prisma {
     creator?: boolean | UserDefaultArgs<ExtArgs>
     clients?: boolean | Region$clientsArgs<ExtArgs>
     orders?: boolean | Region$ordersArgs<ExtArgs>
+    assignedUsers?: boolean | Region$assignedUsersArgs<ExtArgs>
     _count?: boolean | RegionCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["region"]>
 
@@ -3166,6 +3304,7 @@ export namespace Prisma {
     creator?: boolean | UserDefaultArgs<ExtArgs>
     clients?: boolean | Region$clientsArgs<ExtArgs>
     orders?: boolean | Region$ordersArgs<ExtArgs>
+    assignedUsers?: boolean | Region$assignedUsersArgs<ExtArgs>
     _count?: boolean | RegionCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type RegionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3181,6 +3320,7 @@ export namespace Prisma {
       creator: Prisma.$UserPayload<ExtArgs>
       clients: Prisma.$ClientPayload<ExtArgs>[]
       orders: Prisma.$OrderPayload<ExtArgs>[]
+      assignedUsers: Prisma.$UserRegionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -3585,6 +3725,7 @@ export namespace Prisma {
     creator<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     clients<T extends Region$clientsArgs<ExtArgs> = {}>(args?: Subset<T, Region$clientsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     orders<T extends Region$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Region$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assignedUsers<T extends Region$assignedUsersArgs<ExtArgs> = {}>(args?: Subset<T, Region$assignedUsersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4065,6 +4206,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OrderScalarFieldEnum | OrderScalarFieldEnum[]
+  }
+
+  /**
+   * Region.assignedUsers
+   */
+  export type Region$assignedUsersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    where?: UserRegionWhereInput
+    orderBy?: UserRegionOrderByWithRelationInput | UserRegionOrderByWithRelationInput[]
+    cursor?: UserRegionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserRegionScalarFieldEnum | UserRegionScalarFieldEnum[]
   }
 
   /**
@@ -8893,6 +9058,1106 @@ export namespace Prisma {
 
 
   /**
+   * Model UserRegion
+   */
+
+  export type AggregateUserRegion = {
+    _count: UserRegionCountAggregateOutputType | null
+    _avg: UserRegionAvgAggregateOutputType | null
+    _sum: UserRegionSumAggregateOutputType | null
+    _min: UserRegionMinAggregateOutputType | null
+    _max: UserRegionMaxAggregateOutputType | null
+  }
+
+  export type UserRegionAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    regionId: number | null
+  }
+
+  export type UserRegionSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    regionId: number | null
+  }
+
+  export type UserRegionMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    regionId: number | null
+    createdAt: Date | null
+  }
+
+  export type UserRegionMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    regionId: number | null
+    createdAt: Date | null
+  }
+
+  export type UserRegionCountAggregateOutputType = {
+    id: number
+    userId: number
+    regionId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type UserRegionAvgAggregateInputType = {
+    id?: true
+    userId?: true
+    regionId?: true
+  }
+
+  export type UserRegionSumAggregateInputType = {
+    id?: true
+    userId?: true
+    regionId?: true
+  }
+
+  export type UserRegionMinAggregateInputType = {
+    id?: true
+    userId?: true
+    regionId?: true
+    createdAt?: true
+  }
+
+  export type UserRegionMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    regionId?: true
+    createdAt?: true
+  }
+
+  export type UserRegionCountAggregateInputType = {
+    id?: true
+    userId?: true
+    regionId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type UserRegionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserRegion to aggregate.
+     */
+    where?: UserRegionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserRegions to fetch.
+     */
+    orderBy?: UserRegionOrderByWithRelationInput | UserRegionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserRegionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserRegions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserRegions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserRegions
+    **/
+    _count?: true | UserRegionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserRegionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserRegionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserRegionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserRegionMaxAggregateInputType
+  }
+
+  export type GetUserRegionAggregateType<T extends UserRegionAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserRegion]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserRegion[P]>
+      : GetScalarType<T[P], AggregateUserRegion[P]>
+  }
+
+
+
+
+  export type UserRegionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserRegionWhereInput
+    orderBy?: UserRegionOrderByWithAggregationInput | UserRegionOrderByWithAggregationInput[]
+    by: UserRegionScalarFieldEnum[] | UserRegionScalarFieldEnum
+    having?: UserRegionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserRegionCountAggregateInputType | true
+    _avg?: UserRegionAvgAggregateInputType
+    _sum?: UserRegionSumAggregateInputType
+    _min?: UserRegionMinAggregateInputType
+    _max?: UserRegionMaxAggregateInputType
+  }
+
+  export type UserRegionGroupByOutputType = {
+    id: number
+    userId: number
+    regionId: number
+    createdAt: Date
+    _count: UserRegionCountAggregateOutputType | null
+    _avg: UserRegionAvgAggregateOutputType | null
+    _sum: UserRegionSumAggregateOutputType | null
+    _min: UserRegionMinAggregateOutputType | null
+    _max: UserRegionMaxAggregateOutputType | null
+  }
+
+  type GetUserRegionGroupByPayload<T extends UserRegionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserRegionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserRegionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserRegionGroupByOutputType[P]>
+            : GetScalarType<T[P], UserRegionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserRegionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    regionId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    region?: boolean | RegionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userRegion"]>
+
+  export type UserRegionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    regionId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    region?: boolean | RegionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userRegion"]>
+
+  export type UserRegionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    regionId?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    region?: boolean | RegionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userRegion"]>
+
+  export type UserRegionSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    regionId?: boolean
+    createdAt?: boolean
+  }
+
+  export type UserRegionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "regionId" | "createdAt", ExtArgs["result"]["userRegion"]>
+  export type UserRegionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    region?: boolean | RegionDefaultArgs<ExtArgs>
+  }
+  export type UserRegionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    region?: boolean | RegionDefaultArgs<ExtArgs>
+  }
+  export type UserRegionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    region?: boolean | RegionDefaultArgs<ExtArgs>
+  }
+
+  export type $UserRegionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserRegion"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      region: Prisma.$RegionPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      regionId: number
+      createdAt: Date
+    }, ExtArgs["result"]["userRegion"]>
+    composites: {}
+  }
+
+  type UserRegionGetPayload<S extends boolean | null | undefined | UserRegionDefaultArgs> = $Result.GetResult<Prisma.$UserRegionPayload, S>
+
+  type UserRegionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserRegionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserRegionCountAggregateInputType | true
+    }
+
+  export interface UserRegionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserRegion'], meta: { name: 'UserRegion' } }
+    /**
+     * Find zero or one UserRegion that matches the filter.
+     * @param {UserRegionFindUniqueArgs} args - Arguments to find a UserRegion
+     * @example
+     * // Get one UserRegion
+     * const userRegion = await prisma.userRegion.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserRegionFindUniqueArgs>(args: SelectSubset<T, UserRegionFindUniqueArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserRegion that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserRegionFindUniqueOrThrowArgs} args - Arguments to find a UserRegion
+     * @example
+     * // Get one UserRegion
+     * const userRegion = await prisma.userRegion.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserRegionFindUniqueOrThrowArgs>(args: SelectSubset<T, UserRegionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserRegion that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionFindFirstArgs} args - Arguments to find a UserRegion
+     * @example
+     * // Get one UserRegion
+     * const userRegion = await prisma.userRegion.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserRegionFindFirstArgs>(args?: SelectSubset<T, UserRegionFindFirstArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserRegion that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionFindFirstOrThrowArgs} args - Arguments to find a UserRegion
+     * @example
+     * // Get one UserRegion
+     * const userRegion = await prisma.userRegion.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserRegionFindFirstOrThrowArgs>(args?: SelectSubset<T, UserRegionFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserRegions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserRegions
+     * const userRegions = await prisma.userRegion.findMany()
+     * 
+     * // Get first 10 UserRegions
+     * const userRegions = await prisma.userRegion.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userRegionWithIdOnly = await prisma.userRegion.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserRegionFindManyArgs>(args?: SelectSubset<T, UserRegionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserRegion.
+     * @param {UserRegionCreateArgs} args - Arguments to create a UserRegion.
+     * @example
+     * // Create one UserRegion
+     * const UserRegion = await prisma.userRegion.create({
+     *   data: {
+     *     // ... data to create a UserRegion
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserRegionCreateArgs>(args: SelectSubset<T, UserRegionCreateArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserRegions.
+     * @param {UserRegionCreateManyArgs} args - Arguments to create many UserRegions.
+     * @example
+     * // Create many UserRegions
+     * const userRegion = await prisma.userRegion.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserRegionCreateManyArgs>(args?: SelectSubset<T, UserRegionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserRegions and returns the data saved in the database.
+     * @param {UserRegionCreateManyAndReturnArgs} args - Arguments to create many UserRegions.
+     * @example
+     * // Create many UserRegions
+     * const userRegion = await prisma.userRegion.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserRegions and only return the `id`
+     * const userRegionWithIdOnly = await prisma.userRegion.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserRegionCreateManyAndReturnArgs>(args?: SelectSubset<T, UserRegionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserRegion.
+     * @param {UserRegionDeleteArgs} args - Arguments to delete one UserRegion.
+     * @example
+     * // Delete one UserRegion
+     * const UserRegion = await prisma.userRegion.delete({
+     *   where: {
+     *     // ... filter to delete one UserRegion
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserRegionDeleteArgs>(args: SelectSubset<T, UserRegionDeleteArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserRegion.
+     * @param {UserRegionUpdateArgs} args - Arguments to update one UserRegion.
+     * @example
+     * // Update one UserRegion
+     * const userRegion = await prisma.userRegion.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserRegionUpdateArgs>(args: SelectSubset<T, UserRegionUpdateArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserRegions.
+     * @param {UserRegionDeleteManyArgs} args - Arguments to filter UserRegions to delete.
+     * @example
+     * // Delete a few UserRegions
+     * const { count } = await prisma.userRegion.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserRegionDeleteManyArgs>(args?: SelectSubset<T, UserRegionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserRegions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserRegions
+     * const userRegion = await prisma.userRegion.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserRegionUpdateManyArgs>(args: SelectSubset<T, UserRegionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserRegions and returns the data updated in the database.
+     * @param {UserRegionUpdateManyAndReturnArgs} args - Arguments to update many UserRegions.
+     * @example
+     * // Update many UserRegions
+     * const userRegion = await prisma.userRegion.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserRegions and only return the `id`
+     * const userRegionWithIdOnly = await prisma.userRegion.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserRegionUpdateManyAndReturnArgs>(args: SelectSubset<T, UserRegionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserRegion.
+     * @param {UserRegionUpsertArgs} args - Arguments to update or create a UserRegion.
+     * @example
+     * // Update or create a UserRegion
+     * const userRegion = await prisma.userRegion.upsert({
+     *   create: {
+     *     // ... data to create a UserRegion
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserRegion we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserRegionUpsertArgs>(args: SelectSubset<T, UserRegionUpsertArgs<ExtArgs>>): Prisma__UserRegionClient<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserRegions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionCountArgs} args - Arguments to filter UserRegions to count.
+     * @example
+     * // Count the number of UserRegions
+     * const count = await prisma.userRegion.count({
+     *   where: {
+     *     // ... the filter for the UserRegions we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserRegionCountArgs>(
+      args?: Subset<T, UserRegionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserRegionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserRegion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserRegionAggregateArgs>(args: Subset<T, UserRegionAggregateArgs>): Prisma.PrismaPromise<GetUserRegionAggregateType<T>>
+
+    /**
+     * Group by UserRegion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserRegionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserRegionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserRegionGroupByArgs['orderBy'] }
+        : { orderBy?: UserRegionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserRegionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserRegionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserRegion model
+   */
+  readonly fields: UserRegionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserRegion.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserRegionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    region<T extends RegionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RegionDefaultArgs<ExtArgs>>): Prisma__RegionClient<$Result.GetResult<Prisma.$RegionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserRegion model
+   */
+  interface UserRegionFieldRefs {
+    readonly id: FieldRef<"UserRegion", 'Int'>
+    readonly userId: FieldRef<"UserRegion", 'Int'>
+    readonly regionId: FieldRef<"UserRegion", 'Int'>
+    readonly createdAt: FieldRef<"UserRegion", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserRegion findUnique
+   */
+  export type UserRegionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserRegion to fetch.
+     */
+    where: UserRegionWhereUniqueInput
+  }
+
+  /**
+   * UserRegion findUniqueOrThrow
+   */
+  export type UserRegionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserRegion to fetch.
+     */
+    where: UserRegionWhereUniqueInput
+  }
+
+  /**
+   * UserRegion findFirst
+   */
+  export type UserRegionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserRegion to fetch.
+     */
+    where?: UserRegionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserRegions to fetch.
+     */
+    orderBy?: UserRegionOrderByWithRelationInput | UserRegionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserRegions.
+     */
+    cursor?: UserRegionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserRegions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserRegions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserRegions.
+     */
+    distinct?: UserRegionScalarFieldEnum | UserRegionScalarFieldEnum[]
+  }
+
+  /**
+   * UserRegion findFirstOrThrow
+   */
+  export type UserRegionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserRegion to fetch.
+     */
+    where?: UserRegionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserRegions to fetch.
+     */
+    orderBy?: UserRegionOrderByWithRelationInput | UserRegionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserRegions.
+     */
+    cursor?: UserRegionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserRegions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserRegions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserRegions.
+     */
+    distinct?: UserRegionScalarFieldEnum | UserRegionScalarFieldEnum[]
+  }
+
+  /**
+   * UserRegion findMany
+   */
+  export type UserRegionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserRegions to fetch.
+     */
+    where?: UserRegionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserRegions to fetch.
+     */
+    orderBy?: UserRegionOrderByWithRelationInput | UserRegionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserRegions.
+     */
+    cursor?: UserRegionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserRegions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserRegions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserRegions.
+     */
+    distinct?: UserRegionScalarFieldEnum | UserRegionScalarFieldEnum[]
+  }
+
+  /**
+   * UserRegion create
+   */
+  export type UserRegionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserRegion.
+     */
+    data: XOR<UserRegionCreateInput, UserRegionUncheckedCreateInput>
+  }
+
+  /**
+   * UserRegion createMany
+   */
+  export type UserRegionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserRegions.
+     */
+    data: UserRegionCreateManyInput | UserRegionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserRegion createManyAndReturn
+   */
+  export type UserRegionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserRegions.
+     */
+    data: UserRegionCreateManyInput | UserRegionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserRegion update
+   */
+  export type UserRegionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserRegion.
+     */
+    data: XOR<UserRegionUpdateInput, UserRegionUncheckedUpdateInput>
+    /**
+     * Choose, which UserRegion to update.
+     */
+    where: UserRegionWhereUniqueInput
+  }
+
+  /**
+   * UserRegion updateMany
+   */
+  export type UserRegionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserRegions.
+     */
+    data: XOR<UserRegionUpdateManyMutationInput, UserRegionUncheckedUpdateManyInput>
+    /**
+     * Filter which UserRegions to update
+     */
+    where?: UserRegionWhereInput
+    /**
+     * Limit how many UserRegions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserRegion updateManyAndReturn
+   */
+  export type UserRegionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * The data used to update UserRegions.
+     */
+    data: XOR<UserRegionUpdateManyMutationInput, UserRegionUncheckedUpdateManyInput>
+    /**
+     * Filter which UserRegions to update
+     */
+    where?: UserRegionWhereInput
+    /**
+     * Limit how many UserRegions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserRegion upsert
+   */
+  export type UserRegionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserRegion to update in case it exists.
+     */
+    where: UserRegionWhereUniqueInput
+    /**
+     * In case the UserRegion found by the `where` argument doesn't exist, create a new UserRegion with this data.
+     */
+    create: XOR<UserRegionCreateInput, UserRegionUncheckedCreateInput>
+    /**
+     * In case the UserRegion was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserRegionUpdateInput, UserRegionUncheckedUpdateInput>
+  }
+
+  /**
+   * UserRegion delete
+   */
+  export type UserRegionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+    /**
+     * Filter which UserRegion to delete.
+     */
+    where: UserRegionWhereUniqueInput
+  }
+
+  /**
+   * UserRegion deleteMany
+   */
+  export type UserRegionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserRegions to delete
+     */
+    where?: UserRegionWhereInput
+    /**
+     * Limit how many UserRegions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserRegion without action
+   */
+  export type UserRegionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserRegion
+     */
+    select?: UserRegionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserRegion
+     */
+    omit?: UserRegionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserRegionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model OrderHistory
    */
 
@@ -10136,6 +11401,16 @@ export namespace Prisma {
   export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
 
 
+  export const UserRegionScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    regionId: 'regionId',
+    createdAt: 'createdAt'
+  };
+
+  export type UserRegionScalarFieldEnum = (typeof UserRegionScalarFieldEnum)[keyof typeof UserRegionScalarFieldEnum]
+
+
   export const OrderHistoryScalarFieldEnum: {
     id: 'id',
     orderId: 'orderId',
@@ -10334,6 +11609,7 @@ export namespace Prisma {
     ordersDelivery?: OrderListRelationFilter
     historyActions?: OrderHistoryListRelationFilter
     regionsCreated?: RegionListRelationFilter
+    assignedRegions?: UserRegionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -10350,6 +11626,7 @@ export namespace Prisma {
     ordersDelivery?: OrderOrderByRelationAggregateInput
     historyActions?: OrderHistoryOrderByRelationAggregateInput
     regionsCreated?: RegionOrderByRelationAggregateInput
+    assignedRegions?: UserRegionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -10369,6 +11646,7 @@ export namespace Prisma {
     ordersDelivery?: OrderListRelationFilter
     historyActions?: OrderHistoryListRelationFilter
     regionsCreated?: RegionListRelationFilter
+    assignedRegions?: UserRegionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -10413,6 +11691,7 @@ export namespace Prisma {
     creator?: XOR<UserScalarRelationFilter, UserWhereInput>
     clients?: ClientListRelationFilter
     orders?: OrderListRelationFilter
+    assignedUsers?: UserRegionListRelationFilter
   }
 
   export type RegionOrderByWithRelationInput = {
@@ -10424,6 +11703,7 @@ export namespace Prisma {
     creator?: UserOrderByWithRelationInput
     clients?: ClientOrderByRelationAggregateInput
     orders?: OrderOrderByRelationAggregateInput
+    assignedUsers?: UserRegionOrderByRelationAggregateInput
   }
 
   export type RegionWhereUniqueInput = Prisma.AtLeast<{
@@ -10438,6 +11718,7 @@ export namespace Prisma {
     creator?: XOR<UserScalarRelationFilter, UserWhereInput>
     clients?: ClientListRelationFilter
     orders?: OrderListRelationFilter
+    assignedUsers?: UserRegionListRelationFilter
   }, "id">
 
   export type RegionOrderByWithAggregationInput = {
@@ -10781,6 +12062,62 @@ export namespace Prisma {
     unitPrice?: FloatWithAggregatesFilter<"OrderItem"> | number
   }
 
+  export type UserRegionWhereInput = {
+    AND?: UserRegionWhereInput | UserRegionWhereInput[]
+    OR?: UserRegionWhereInput[]
+    NOT?: UserRegionWhereInput | UserRegionWhereInput[]
+    id?: IntFilter<"UserRegion"> | number
+    userId?: IntFilter<"UserRegion"> | number
+    regionId?: IntFilter<"UserRegion"> | number
+    createdAt?: DateTimeFilter<"UserRegion"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    region?: XOR<RegionScalarRelationFilter, RegionWhereInput>
+  }
+
+  export type UserRegionOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    region?: RegionOrderByWithRelationInput
+  }
+
+  export type UserRegionWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    userId_regionId?: UserRegionUserIdRegionIdCompoundUniqueInput
+    AND?: UserRegionWhereInput | UserRegionWhereInput[]
+    OR?: UserRegionWhereInput[]
+    NOT?: UserRegionWhereInput | UserRegionWhereInput[]
+    userId?: IntFilter<"UserRegion"> | number
+    regionId?: IntFilter<"UserRegion"> | number
+    createdAt?: DateTimeFilter<"UserRegion"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    region?: XOR<RegionScalarRelationFilter, RegionWhereInput>
+  }, "id" | "userId_regionId">
+
+  export type UserRegionOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+    createdAt?: SortOrder
+    _count?: UserRegionCountOrderByAggregateInput
+    _avg?: UserRegionAvgOrderByAggregateInput
+    _max?: UserRegionMaxOrderByAggregateInput
+    _min?: UserRegionMinOrderByAggregateInput
+    _sum?: UserRegionSumOrderByAggregateInput
+  }
+
+  export type UserRegionScalarWhereWithAggregatesInput = {
+    AND?: UserRegionScalarWhereWithAggregatesInput | UserRegionScalarWhereWithAggregatesInput[]
+    OR?: UserRegionScalarWhereWithAggregatesInput[]
+    NOT?: UserRegionScalarWhereWithAggregatesInput | UserRegionScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"UserRegion"> | number
+    userId?: IntWithAggregatesFilter<"UserRegion"> | number
+    regionId?: IntWithAggregatesFilter<"UserRegion"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"UserRegion"> | Date | string
+  }
+
   export type OrderHistoryWhereInput = {
     AND?: OrderHistoryWhereInput | OrderHistoryWhereInput[]
     OR?: OrderHistoryWhereInput[]
@@ -10869,6 +12206,7 @@ export namespace Prisma {
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -10885,6 +12223,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -10900,6 +12239,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -10916,6 +12256,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -10957,6 +12298,7 @@ export namespace Prisma {
     creator: UserCreateNestedOneWithoutRegionsCreatedInput
     clients?: ClientCreateNestedManyWithoutRegionInput
     orders?: OrderCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionCreateNestedManyWithoutRegionInput
   }
 
   export type RegionUncheckedCreateInput = {
@@ -10967,6 +12309,7 @@ export namespace Prisma {
     createdAt?: Date | string
     clients?: ClientUncheckedCreateNestedManyWithoutRegionInput
     orders?: OrderUncheckedCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionUncheckedCreateNestedManyWithoutRegionInput
   }
 
   export type RegionUpdateInput = {
@@ -10976,6 +12319,7 @@ export namespace Prisma {
     creator?: UserUpdateOneRequiredWithoutRegionsCreatedNestedInput
     clients?: ClientUpdateManyWithoutRegionNestedInput
     orders?: OrderUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUpdateManyWithoutRegionNestedInput
   }
 
   export type RegionUncheckedUpdateInput = {
@@ -10986,6 +12330,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     clients?: ClientUncheckedUpdateManyWithoutRegionNestedInput
     orders?: OrderUncheckedUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUncheckedUpdateManyWithoutRegionNestedInput
   }
 
   export type RegionCreateManyInput = {
@@ -11321,6 +12666,50 @@ export namespace Prisma {
     unitPrice?: FloatFieldUpdateOperationsInput | number
   }
 
+  export type UserRegionCreateInput = {
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutAssignedRegionsInput
+    region: RegionCreateNestedOneWithoutAssignedUsersInput
+  }
+
+  export type UserRegionUncheckedCreateInput = {
+    id?: number
+    userId: number
+    regionId: number
+    createdAt?: Date | string
+  }
+
+  export type UserRegionUpdateInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAssignedRegionsNestedInput
+    region?: RegionUpdateOneRequiredWithoutAssignedUsersNestedInput
+  }
+
+  export type UserRegionUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    regionId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserRegionCreateManyInput = {
+    id?: number
+    userId: number
+    regionId: number
+    createdAt?: Date | string
+  }
+
+  export type UserRegionUpdateManyMutationInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserRegionUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    regionId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrderHistoryCreateInput = {
     action: $Enums.OrderAction
     previousStatus?: $Enums.OrderStatus | null
@@ -11481,6 +12870,12 @@ export namespace Prisma {
     none?: RegionWhereInput
   }
 
+  export type UserRegionListRelationFilter = {
+    every?: UserRegionWhereInput
+    some?: UserRegionWhereInput
+    none?: UserRegionWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -11499,6 +12894,10 @@ export namespace Prisma {
   }
 
   export type RegionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserRegionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -11990,6 +13389,49 @@ export namespace Prisma {
     unitPrice?: SortOrder
   }
 
+  export type RegionScalarRelationFilter = {
+    is?: RegionWhereInput
+    isNot?: RegionWhereInput
+  }
+
+  export type UserRegionUserIdRegionIdCompoundUniqueInput = {
+    userId: number
+    regionId: number
+  }
+
+  export type UserRegionCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserRegionAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+  }
+
+  export type UserRegionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserRegionMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserRegionSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    regionId?: SortOrder
+  }
+
   export type EnumOrderActionFilter<$PrismaModel = never> = {
     equals?: $Enums.OrderAction | EnumOrderActionFieldRefInput<$PrismaModel>
     in?: $Enums.OrderAction[] | ListEnumOrderActionFieldRefInput<$PrismaModel>
@@ -12151,6 +13593,13 @@ export namespace Prisma {
     connect?: RegionWhereUniqueInput | RegionWhereUniqueInput[]
   }
 
+  export type UserRegionCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserRegionCreateWithoutUserInput, UserRegionUncheckedCreateWithoutUserInput> | UserRegionCreateWithoutUserInput[] | UserRegionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutUserInput | UserRegionCreateOrConnectWithoutUserInput[]
+    createMany?: UserRegionCreateManyUserInputEnvelope
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+  }
+
   export type ClientUncheckedCreateNestedManyWithoutCreatorInput = {
     create?: XOR<ClientCreateWithoutCreatorInput, ClientUncheckedCreateWithoutCreatorInput> | ClientCreateWithoutCreatorInput[] | ClientUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutCreatorInput | ClientCreateOrConnectWithoutCreatorInput[]
@@ -12184,6 +13633,13 @@ export namespace Prisma {
     connectOrCreate?: RegionCreateOrConnectWithoutCreatorInput | RegionCreateOrConnectWithoutCreatorInput[]
     createMany?: RegionCreateManyCreatorInputEnvelope
     connect?: RegionWhereUniqueInput | RegionWhereUniqueInput[]
+  }
+
+  export type UserRegionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserRegionCreateWithoutUserInput, UserRegionUncheckedCreateWithoutUserInput> | UserRegionCreateWithoutUserInput[] | UserRegionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutUserInput | UserRegionCreateOrConnectWithoutUserInput[]
+    createMany?: UserRegionCreateManyUserInputEnvelope
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -12276,6 +13732,20 @@ export namespace Prisma {
     deleteMany?: RegionScalarWhereInput | RegionScalarWhereInput[]
   }
 
+  export type UserRegionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserRegionCreateWithoutUserInput, UserRegionUncheckedCreateWithoutUserInput> | UserRegionCreateWithoutUserInput[] | UserRegionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutUserInput | UserRegionCreateOrConnectWithoutUserInput[]
+    upsert?: UserRegionUpsertWithWhereUniqueWithoutUserInput | UserRegionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserRegionCreateManyUserInputEnvelope
+    set?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    disconnect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    delete?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    update?: UserRegionUpdateWithWhereUniqueWithoutUserInput | UserRegionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserRegionUpdateManyWithWhereWithoutUserInput | UserRegionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -12354,6 +13824,20 @@ export namespace Prisma {
     deleteMany?: RegionScalarWhereInput | RegionScalarWhereInput[]
   }
 
+  export type UserRegionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserRegionCreateWithoutUserInput, UserRegionUncheckedCreateWithoutUserInput> | UserRegionCreateWithoutUserInput[] | UserRegionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutUserInput | UserRegionCreateOrConnectWithoutUserInput[]
+    upsert?: UserRegionUpsertWithWhereUniqueWithoutUserInput | UserRegionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserRegionCreateManyUserInputEnvelope
+    set?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    disconnect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    delete?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    update?: UserRegionUpdateWithWhereUniqueWithoutUserInput | UserRegionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserRegionUpdateManyWithWhereWithoutUserInput | UserRegionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutRegionsCreatedInput = {
     create?: XOR<UserCreateWithoutRegionsCreatedInput, UserUncheckedCreateWithoutRegionsCreatedInput>
     connectOrCreate?: UserCreateOrConnectWithoutRegionsCreatedInput
@@ -12374,6 +13858,13 @@ export namespace Prisma {
     connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
   }
 
+  export type UserRegionCreateNestedManyWithoutRegionInput = {
+    create?: XOR<UserRegionCreateWithoutRegionInput, UserRegionUncheckedCreateWithoutRegionInput> | UserRegionCreateWithoutRegionInput[] | UserRegionUncheckedCreateWithoutRegionInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutRegionInput | UserRegionCreateOrConnectWithoutRegionInput[]
+    createMany?: UserRegionCreateManyRegionInputEnvelope
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+  }
+
   export type ClientUncheckedCreateNestedManyWithoutRegionInput = {
     create?: XOR<ClientCreateWithoutRegionInput, ClientUncheckedCreateWithoutRegionInput> | ClientCreateWithoutRegionInput[] | ClientUncheckedCreateWithoutRegionInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutRegionInput | ClientCreateOrConnectWithoutRegionInput[]
@@ -12386,6 +13877,13 @@ export namespace Prisma {
     connectOrCreate?: OrderCreateOrConnectWithoutRegionInput | OrderCreateOrConnectWithoutRegionInput[]
     createMany?: OrderCreateManyRegionInputEnvelope
     connect?: OrderWhereUniqueInput | OrderWhereUniqueInput[]
+  }
+
+  export type UserRegionUncheckedCreateNestedManyWithoutRegionInput = {
+    create?: XOR<UserRegionCreateWithoutRegionInput, UserRegionUncheckedCreateWithoutRegionInput> | UserRegionCreateWithoutRegionInput[] | UserRegionUncheckedCreateWithoutRegionInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutRegionInput | UserRegionCreateOrConnectWithoutRegionInput[]
+    createMany?: UserRegionCreateManyRegionInputEnvelope
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
   }
 
   export type UserUpdateOneRequiredWithoutRegionsCreatedNestedInput = {
@@ -12424,6 +13922,20 @@ export namespace Prisma {
     deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
   }
 
+  export type UserRegionUpdateManyWithoutRegionNestedInput = {
+    create?: XOR<UserRegionCreateWithoutRegionInput, UserRegionUncheckedCreateWithoutRegionInput> | UserRegionCreateWithoutRegionInput[] | UserRegionUncheckedCreateWithoutRegionInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutRegionInput | UserRegionCreateOrConnectWithoutRegionInput[]
+    upsert?: UserRegionUpsertWithWhereUniqueWithoutRegionInput | UserRegionUpsertWithWhereUniqueWithoutRegionInput[]
+    createMany?: UserRegionCreateManyRegionInputEnvelope
+    set?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    disconnect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    delete?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    update?: UserRegionUpdateWithWhereUniqueWithoutRegionInput | UserRegionUpdateWithWhereUniqueWithoutRegionInput[]
+    updateMany?: UserRegionUpdateManyWithWhereWithoutRegionInput | UserRegionUpdateManyWithWhereWithoutRegionInput[]
+    deleteMany?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
+  }
+
   export type ClientUncheckedUpdateManyWithoutRegionNestedInput = {
     create?: XOR<ClientCreateWithoutRegionInput, ClientUncheckedCreateWithoutRegionInput> | ClientCreateWithoutRegionInput[] | ClientUncheckedCreateWithoutRegionInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutRegionInput | ClientCreateOrConnectWithoutRegionInput[]
@@ -12450,6 +13962,20 @@ export namespace Prisma {
     update?: OrderUpdateWithWhereUniqueWithoutRegionInput | OrderUpdateWithWhereUniqueWithoutRegionInput[]
     updateMany?: OrderUpdateManyWithWhereWithoutRegionInput | OrderUpdateManyWithWhereWithoutRegionInput[]
     deleteMany?: OrderScalarWhereInput | OrderScalarWhereInput[]
+  }
+
+  export type UserRegionUncheckedUpdateManyWithoutRegionNestedInput = {
+    create?: XOR<UserRegionCreateWithoutRegionInput, UserRegionUncheckedCreateWithoutRegionInput> | UserRegionCreateWithoutRegionInput[] | UserRegionUncheckedCreateWithoutRegionInput[]
+    connectOrCreate?: UserRegionCreateOrConnectWithoutRegionInput | UserRegionCreateOrConnectWithoutRegionInput[]
+    upsert?: UserRegionUpsertWithWhereUniqueWithoutRegionInput | UserRegionUpsertWithWhereUniqueWithoutRegionInput[]
+    createMany?: UserRegionCreateManyRegionInputEnvelope
+    set?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    disconnect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    delete?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+    update?: UserRegionUpdateWithWhereUniqueWithoutRegionInput | UserRegionUpdateWithWhereUniqueWithoutRegionInput[]
+    updateMany?: UserRegionUpdateManyWithWhereWithoutRegionInput | UserRegionUpdateManyWithWhereWithoutRegionInput[]
+    deleteMany?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
   }
 
   export type RegionCreateNestedOneWithoutClientsInput = {
@@ -12760,6 +14286,34 @@ export namespace Prisma {
     upsert?: ProductUpsertWithoutOrderItemsInput
     connect?: ProductWhereUniqueInput
     update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutOrderItemsInput, ProductUpdateWithoutOrderItemsInput>, ProductUncheckedUpdateWithoutOrderItemsInput>
+  }
+
+  export type UserCreateNestedOneWithoutAssignedRegionsInput = {
+    create?: XOR<UserCreateWithoutAssignedRegionsInput, UserUncheckedCreateWithoutAssignedRegionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssignedRegionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type RegionCreateNestedOneWithoutAssignedUsersInput = {
+    create?: XOR<RegionCreateWithoutAssignedUsersInput, RegionUncheckedCreateWithoutAssignedUsersInput>
+    connectOrCreate?: RegionCreateOrConnectWithoutAssignedUsersInput
+    connect?: RegionWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutAssignedRegionsNestedInput = {
+    create?: XOR<UserCreateWithoutAssignedRegionsInput, UserUncheckedCreateWithoutAssignedRegionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssignedRegionsInput
+    upsert?: UserUpsertWithoutAssignedRegionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssignedRegionsInput, UserUpdateWithoutAssignedRegionsInput>, UserUncheckedUpdateWithoutAssignedRegionsInput>
+  }
+
+  export type RegionUpdateOneRequiredWithoutAssignedUsersNestedInput = {
+    create?: XOR<RegionCreateWithoutAssignedUsersInput, RegionUncheckedCreateWithoutAssignedUsersInput>
+    connectOrCreate?: RegionCreateOrConnectWithoutAssignedUsersInput
+    upsert?: RegionUpsertWithoutAssignedUsersInput
+    connect?: RegionWhereUniqueInput
+    update?: XOR<XOR<RegionUpdateToOneWithWhereWithoutAssignedUsersInput, RegionUpdateWithoutAssignedUsersInput>, RegionUncheckedUpdateWithoutAssignedUsersInput>
   }
 
   export type OrderCreateNestedOneWithoutHistoryInput = {
@@ -13250,6 +14804,7 @@ export namespace Prisma {
     createdAt?: Date | string
     clients?: ClientCreateNestedManyWithoutRegionInput
     orders?: OrderCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionCreateNestedManyWithoutRegionInput
   }
 
   export type RegionUncheckedCreateWithoutCreatorInput = {
@@ -13259,6 +14814,7 @@ export namespace Prisma {
     createdAt?: Date | string
     clients?: ClientUncheckedCreateNestedManyWithoutRegionInput
     orders?: OrderUncheckedCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionUncheckedCreateNestedManyWithoutRegionInput
   }
 
   export type RegionCreateOrConnectWithoutCreatorInput = {
@@ -13268,6 +14824,27 @@ export namespace Prisma {
 
   export type RegionCreateManyCreatorInputEnvelope = {
     data: RegionCreateManyCreatorInput | RegionCreateManyCreatorInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserRegionCreateWithoutUserInput = {
+    createdAt?: Date | string
+    region: RegionCreateNestedOneWithoutAssignedUsersInput
+  }
+
+  export type UserRegionUncheckedCreateWithoutUserInput = {
+    id?: number
+    regionId: number
+    createdAt?: Date | string
+  }
+
+  export type UserRegionCreateOrConnectWithoutUserInput = {
+    where: UserRegionWhereUniqueInput
+    create: XOR<UserRegionCreateWithoutUserInput, UserRegionUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserRegionCreateManyUserInputEnvelope = {
+    data: UserRegionCreateManyUserInput | UserRegionCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -13409,6 +14986,32 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Region"> | Date | string
   }
 
+  export type UserRegionUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserRegionWhereUniqueInput
+    update: XOR<UserRegionUpdateWithoutUserInput, UserRegionUncheckedUpdateWithoutUserInput>
+    create: XOR<UserRegionCreateWithoutUserInput, UserRegionUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserRegionUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserRegionWhereUniqueInput
+    data: XOR<UserRegionUpdateWithoutUserInput, UserRegionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserRegionUpdateManyWithWhereWithoutUserInput = {
+    where: UserRegionScalarWhereInput
+    data: XOR<UserRegionUpdateManyMutationInput, UserRegionUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserRegionScalarWhereInput = {
+    AND?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
+    OR?: UserRegionScalarWhereInput[]
+    NOT?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
+    id?: IntFilter<"UserRegion"> | number
+    userId?: IntFilter<"UserRegion"> | number
+    regionId?: IntFilter<"UserRegion"> | number
+    createdAt?: DateTimeFilter<"UserRegion"> | Date | string
+  }
+
   export type UserCreateWithoutRegionsCreatedInput = {
     name: string
     email: string
@@ -13421,6 +15024,7 @@ export namespace Prisma {
     ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRegionsCreatedInput = {
@@ -13436,6 +15040,7 @@ export namespace Prisma {
     ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRegionsCreatedInput = {
@@ -13517,6 +15122,27 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserRegionCreateWithoutRegionInput = {
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutAssignedRegionsInput
+  }
+
+  export type UserRegionUncheckedCreateWithoutRegionInput = {
+    id?: number
+    userId: number
+    createdAt?: Date | string
+  }
+
+  export type UserRegionCreateOrConnectWithoutRegionInput = {
+    where: UserRegionWhereUniqueInput
+    create: XOR<UserRegionCreateWithoutRegionInput, UserRegionUncheckedCreateWithoutRegionInput>
+  }
+
+  export type UserRegionCreateManyRegionInputEnvelope = {
+    data: UserRegionCreateManyRegionInput | UserRegionCreateManyRegionInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutRegionsCreatedInput = {
     update: XOR<UserUpdateWithoutRegionsCreatedInput, UserUncheckedUpdateWithoutRegionsCreatedInput>
     create: XOR<UserCreateWithoutRegionsCreatedInput, UserUncheckedCreateWithoutRegionsCreatedInput>
@@ -13540,6 +15166,7 @@ export namespace Prisma {
     ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRegionsCreatedInput = {
@@ -13555,6 +15182,7 @@ export namespace Prisma {
     ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ClientUpsertWithWhereUniqueWithoutRegionInput = {
@@ -13589,12 +15217,29 @@ export namespace Prisma {
     data: XOR<OrderUpdateManyMutationInput, OrderUncheckedUpdateManyWithoutRegionInput>
   }
 
+  export type UserRegionUpsertWithWhereUniqueWithoutRegionInput = {
+    where: UserRegionWhereUniqueInput
+    update: XOR<UserRegionUpdateWithoutRegionInput, UserRegionUncheckedUpdateWithoutRegionInput>
+    create: XOR<UserRegionCreateWithoutRegionInput, UserRegionUncheckedCreateWithoutRegionInput>
+  }
+
+  export type UserRegionUpdateWithWhereUniqueWithoutRegionInput = {
+    where: UserRegionWhereUniqueInput
+    data: XOR<UserRegionUpdateWithoutRegionInput, UserRegionUncheckedUpdateWithoutRegionInput>
+  }
+
+  export type UserRegionUpdateManyWithWhereWithoutRegionInput = {
+    where: UserRegionScalarWhereInput
+    data: XOR<UserRegionUpdateManyMutationInput, UserRegionUncheckedUpdateManyWithoutRegionInput>
+  }
+
   export type RegionCreateWithoutClientsInput = {
     name: string
     color?: string
     createdAt?: Date | string
     creator: UserCreateNestedOneWithoutRegionsCreatedInput
     orders?: OrderCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionCreateNestedManyWithoutRegionInput
   }
 
   export type RegionUncheckedCreateWithoutClientsInput = {
@@ -13604,6 +15249,7 @@ export namespace Prisma {
     createdBy: number
     createdAt?: Date | string
     orders?: OrderUncheckedCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionUncheckedCreateNestedManyWithoutRegionInput
   }
 
   export type RegionCreateOrConnectWithoutClientsInput = {
@@ -13623,6 +15269,7 @@ export namespace Prisma {
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutClientsCreatedInput = {
@@ -13638,6 +15285,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutClientsCreatedInput = {
@@ -13697,6 +15345,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     creator?: UserUpdateOneRequiredWithoutRegionsCreatedNestedInput
     orders?: OrderUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUpdateManyWithoutRegionNestedInput
   }
 
   export type RegionUncheckedUpdateWithoutClientsInput = {
@@ -13706,6 +15355,7 @@ export namespace Prisma {
     createdBy?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orders?: OrderUncheckedUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUncheckedUpdateManyWithoutRegionNestedInput
   }
 
   export type UserUpsertWithoutClientsCreatedInput = {
@@ -13731,6 +15381,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutClientsCreatedInput = {
@@ -13746,6 +15397,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrderUpsertWithWhereUniqueWithoutClientInput = {
@@ -13860,6 +15512,7 @@ export namespace Prisma {
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrdersCreatedInput = {
@@ -13875,6 +15528,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrdersCreatedInput = {
@@ -13894,6 +15548,7 @@ export namespace Prisma {
     ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrdersDeliveryInput = {
@@ -13909,6 +15564,7 @@ export namespace Prisma {
     ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrdersDeliveryInput = {
@@ -13922,6 +15578,7 @@ export namespace Prisma {
     createdAt?: Date | string
     creator: UserCreateNestedOneWithoutRegionsCreatedInput
     clients?: ClientCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionCreateNestedManyWithoutRegionInput
   }
 
   export type RegionUncheckedCreateWithoutOrdersInput = {
@@ -13931,6 +15588,7 @@ export namespace Prisma {
     createdBy: number
     createdAt?: Date | string
     clients?: ClientUncheckedCreateNestedManyWithoutRegionInput
+    assignedUsers?: UserRegionUncheckedCreateNestedManyWithoutRegionInput
   }
 
   export type RegionCreateOrConnectWithoutOrdersInput = {
@@ -14053,6 +15711,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersCreatedInput = {
@@ -14068,6 +15727,7 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutOrdersDeliveryInput = {
@@ -14093,6 +15753,7 @@ export namespace Prisma {
     ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersDeliveryInput = {
@@ -14108,6 +15769,7 @@ export namespace Prisma {
     ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type RegionUpsertWithoutOrdersInput = {
@@ -14127,6 +15789,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     creator?: UserUpdateOneRequiredWithoutRegionsCreatedNestedInput
     clients?: ClientUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUpdateManyWithoutRegionNestedInput
   }
 
   export type RegionUncheckedUpdateWithoutOrdersInput = {
@@ -14136,6 +15799,7 @@ export namespace Prisma {
     createdBy?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     clients?: ClientUncheckedUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUncheckedUpdateManyWithoutRegionNestedInput
   }
 
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
@@ -14290,6 +15954,138 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserCreateWithoutAssignedRegionsInput = {
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+  }
+
+  export type UserUncheckedCreateWithoutAssignedRegionsInput = {
+    id?: number
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientUncheckedCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+  }
+
+  export type UserCreateOrConnectWithoutAssignedRegionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAssignedRegionsInput, UserUncheckedCreateWithoutAssignedRegionsInput>
+  }
+
+  export type RegionCreateWithoutAssignedUsersInput = {
+    name: string
+    color?: string
+    createdAt?: Date | string
+    creator: UserCreateNestedOneWithoutRegionsCreatedInput
+    clients?: ClientCreateNestedManyWithoutRegionInput
+    orders?: OrderCreateNestedManyWithoutRegionInput
+  }
+
+  export type RegionUncheckedCreateWithoutAssignedUsersInput = {
+    id?: number
+    name: string
+    color?: string
+    createdBy: number
+    createdAt?: Date | string
+    clients?: ClientUncheckedCreateNestedManyWithoutRegionInput
+    orders?: OrderUncheckedCreateNestedManyWithoutRegionInput
+  }
+
+  export type RegionCreateOrConnectWithoutAssignedUsersInput = {
+    where: RegionWhereUniqueInput
+    create: XOR<RegionCreateWithoutAssignedUsersInput, RegionUncheckedCreateWithoutAssignedUsersInput>
+  }
+
+  export type UserUpsertWithoutAssignedRegionsInput = {
+    update: XOR<UserUpdateWithoutAssignedRegionsInput, UserUncheckedUpdateWithoutAssignedRegionsInput>
+    create: XOR<UserCreateWithoutAssignedRegionsInput, UserUncheckedCreateWithoutAssignedRegionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAssignedRegionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAssignedRegionsInput, UserUncheckedUpdateWithoutAssignedRegionsInput>
+  }
+
+  export type UserUpdateWithoutAssignedRegionsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAssignedRegionsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUncheckedUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type RegionUpsertWithoutAssignedUsersInput = {
+    update: XOR<RegionUpdateWithoutAssignedUsersInput, RegionUncheckedUpdateWithoutAssignedUsersInput>
+    create: XOR<RegionCreateWithoutAssignedUsersInput, RegionUncheckedCreateWithoutAssignedUsersInput>
+    where?: RegionWhereInput
+  }
+
+  export type RegionUpdateToOneWithWhereWithoutAssignedUsersInput = {
+    where?: RegionWhereInput
+    data: XOR<RegionUpdateWithoutAssignedUsersInput, RegionUncheckedUpdateWithoutAssignedUsersInput>
+  }
+
+  export type RegionUpdateWithoutAssignedUsersInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creator?: UserUpdateOneRequiredWithoutRegionsCreatedNestedInput
+    clients?: ClientUpdateManyWithoutRegionNestedInput
+    orders?: OrderUpdateManyWithoutRegionNestedInput
+  }
+
+  export type RegionUncheckedUpdateWithoutAssignedUsersInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    createdBy?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clients?: ClientUncheckedUpdateManyWithoutRegionNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutRegionNestedInput
+  }
+
   export type OrderCreateWithoutHistoryInput = {
     status?: $Enums.OrderStatus
     notes?: string | null
@@ -14332,6 +16128,7 @@ export namespace Prisma {
     ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutHistoryActionsInput = {
@@ -14347,6 +16144,7 @@ export namespace Prisma {
     ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutHistoryActionsInput = {
@@ -14413,6 +16211,7 @@ export namespace Prisma {
     ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutHistoryActionsInput = {
@@ -14428,6 +16227,7 @@ export namespace Prisma {
     ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ClientCreateManyCreatorInput = {
@@ -14480,6 +16280,12 @@ export namespace Prisma {
     id?: number
     name: string
     color?: string
+    createdAt?: Date | string
+  }
+
+  export type UserRegionCreateManyUserInput = {
+    id?: number
+    regionId: number
     createdAt?: Date | string
   }
 
@@ -14633,6 +16439,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     clients?: ClientUpdateManyWithoutRegionNestedInput
     orders?: OrderUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUpdateManyWithoutRegionNestedInput
   }
 
   export type RegionUncheckedUpdateWithoutCreatorInput = {
@@ -14642,12 +16449,30 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     clients?: ClientUncheckedUpdateManyWithoutRegionNestedInput
     orders?: OrderUncheckedUpdateManyWithoutRegionNestedInput
+    assignedUsers?: UserRegionUncheckedUpdateManyWithoutRegionNestedInput
   }
 
   export type RegionUncheckedUpdateManyWithoutCreatorInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
     color?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserRegionUpdateWithoutUserInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    region?: RegionUpdateOneRequiredWithoutAssignedUsersNestedInput
+  }
+
+  export type UserRegionUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    regionId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserRegionUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    regionId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -14673,6 +16498,12 @@ export namespace Prisma {
     status?: $Enums.OrderStatus
     notes?: string | null
     deliveredAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type UserRegionCreateManyRegionInput = {
+    id?: number
+    userId: number
     createdAt?: Date | string
   }
 
@@ -14752,6 +16583,23 @@ export namespace Prisma {
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserRegionUpdateWithoutRegionInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAssignedRegionsNestedInput
+  }
+
+  export type UserRegionUncheckedUpdateWithoutRegionInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserRegionUncheckedUpdateManyWithoutRegionInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

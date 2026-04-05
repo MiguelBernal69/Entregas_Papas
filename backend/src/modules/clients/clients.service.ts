@@ -1,6 +1,34 @@
 import prisma from '../../prisma/client'
+import { getRegionByPoint } from '../regions/regions.service'
 
-export const getAllClients = async () => {
+export const getAllClients = async (userId?: number, userRole?: string) => {
+  const role = userRole?.toLowerCase()
+  
+  // Si es preventista, filtrar por sus zonas asignadas + los que no tienen zona
+  if (role === 'preventista' && userId) {
+    const userRegions = await prisma.userRegion.findMany({
+      where: { userId },
+      select: { regionId: true }
+    })
+    const regionIds = userRegions.map(ur => ur.regionId)
+
+    return prisma.client.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { regionId: { in: regionIds } }, // clientes de sus zonas
+          { regionId: null }               // clientes sin zona (VISTOS POR TODOS)
+        ]
+      },
+      include: {
+        creator: { select: { id: true, name: true } },
+        region: { select: { id: true, name: true, color: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+  }
+
+  // Admin y otros roles (como distribuidor si no se especifica) ven todos
   return prisma.client.findMany({
     where: { isActive: true },
     include: {
@@ -41,6 +69,12 @@ export const createClient = async (
   },
   createdBy: number
 ) => {
+  // Autodetección de región si no se provee
+  if (!data.regionId) {
+    const detected = await getRegionByPoint(data.latitude, data.longitude)
+    if (detected) data.regionId = detected.id
+  }
+
   return prisma.client.create({
     data: { ...data, createdBy },
     include: {
@@ -65,6 +99,14 @@ export const updateClient = async (
 ) => {
   const client = await prisma.client.findUnique({ where: { id } })
   if (!client) throw new Error('Cliente no encontrado')
+
+  // Si cambian las coordenadas y no se provee nueva región, intentar redetectar
+  if ((data.latitude || data.longitude) && !data.regionId) {
+    const lat = data.latitude ?? client.latitude
+    const lng = data.longitude ?? client.longitude
+    const detected = await getRegionByPoint(lat, lng)
+    if (detected) data.regionId = detected.id
+  }
 
   // Si cambió la región, actualizar también los pedidos activos del cliente
   if (data.regionId !== undefined && data.regionId !== client.regionId) {

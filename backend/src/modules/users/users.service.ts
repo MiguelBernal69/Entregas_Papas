@@ -99,3 +99,10 @@ export const toggleUserActive = async (id: number) => {
     select: { id: true, name: true, isActive: true }
   })
 }
+
+export const getUserRegionsService = async (userId: number) => {
+  return prisma.userRegion.findMany({
+    where: { userId },
+    include: { region: { select: { id: true, name: true, color: true } } }
+  })
+}

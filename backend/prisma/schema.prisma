@@ -45,6 +45,8 @@ model User {
   ordersDelivery Order[]        @relation("OrderDistributor")
   historyActions OrderHistory[]
   regionsCreated Region[]
+
+  assignedRegions UserRegion[]
 }
 
 model Region {
@@ -57,6 +59,7 @@ model Region {
   creator User     @relation(fields: [createdBy], references: [id])
   clients Client[]
   orders  Order[]
+  assignedUsers   UserRegion[]
   polygon Unsupported("geometry(Polygon, 4326)")?
 }
 
@@ -119,6 +122,18 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+}
+
+model UserRegion {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  regionId  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  region Region @relation(fields: [regionId], references: [id])
+
+  @@unique([userId, regionId])
 }
 
 model OrderHistory {

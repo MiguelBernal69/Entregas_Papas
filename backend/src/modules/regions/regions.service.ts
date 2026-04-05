@@ -202,3 +202,50 @@ export const recalculateAllRegions = async () => {
     pedidosActualizados: Number(ordersResult.rows[0].total)
   }
 }
+export const assignRegionToUser = async (userId: number, regionId: number) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user || user.role !== 'preventista') throw new Error('Usuario no válido')
+
+  const region = await prisma.region.findUnique({ where: { id: regionId } })
+  if (!region) throw new Error('Región no encontrada')
+
+  return prisma.userRegion.upsert({
+    where: { userId_regionId: { userId, regionId } },
+    create: { userId, regionId },
+    update: {}
+  })
+}
+
+export const removeRegionFromUser = async (userId: number, regionId: number) => {
+  return prisma.userRegion.deleteMany({ where: { userId, regionId } })
+}
+
+export const getPreventistasInRegion = async (regionId: number) => {
+  return prisma.userRegion.findMany({
+    where: { regionId },
+    include: { user: { select: { id: true, name: true, email: true, phone: true } } }
+  })
+}
+
+export const getUserRegions = async (userId: number) => {
+  return prisma.userRegion.findMany({
+    where: { userId },
+    include: { region: { select: { id: true, name: true, color: true } } }
+  })
+}
+
+export const assignRegionsBulk = async (userId: number, regionIds: number[]) => {
+  return prisma.$transaction(async (tx) => {
+    // 1. Delete all existing assignments for this user
+    await tx.userRegion.deleteMany({ where: { userId } })
+    
+    // 2. Create new assignments
+    if (regionIds.length > 0) {
+      await tx.userRegion.createMany({
+        data: regionIds.map(id => ({ userId, regionId: id }))
+      })
+    }
+    
+    return { count: regionIds.length }
+  })
+}

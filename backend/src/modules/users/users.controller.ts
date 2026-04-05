@@ -60,3 +60,12 @@ export const toggle = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ message: error.message })
   }
 }
+
+export const getUserRegions = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await service.getUserRegionsService(Number(req.params.id))
+    res.json(data)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}

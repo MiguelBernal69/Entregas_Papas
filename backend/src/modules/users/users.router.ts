@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getAll, getOne, create, update, toggle } from './users.controller'
+import { getAll, getOne, create, update, toggle, getUserRegions } from './users.controller'
 import { authenticate } from '../../middlewares/auth.middleware'
 import { authorize } from '../../middlewares/role.middleware'
 
@@ -13,5 +13,6 @@ router.get('/:id', getOne)
 router.post('/', create)
 router.put('/:id', update)
 router.patch('/:id/toggle', toggle)
+router.get('/:id/regions', getUserRegions)
 
 export default router

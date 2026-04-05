@@ -5,7 +5,7 @@ import fs from 'fs'
 
 export const getAll = async (req: AuthRequest, res: Response) => {
   try {
-    const clients = await service.getAllClients()
+    const clients = await service.getAllClients(req.user?.id, req.user?.role)
     res.json(clients)
   } catch (error: any) {
     res.status(500).json({ message: error.message })

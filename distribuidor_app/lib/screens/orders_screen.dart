@@ -1,0 +1,333 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/order.dart';
+import '../services/order_service.dart';
+import '../providers/auth_provider.dart';
+import 'map_screen.dart';
+
+class OrdersScreen extends StatefulWidget {
+  const OrdersScreen({super.key});
+
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  List<Order> _orders = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    setState(() => _loading = true);
+    try {
+      final orders = await OrderService.getMyOrders();
+      setState(() {
+        _orders = orders;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _deliver(int orderId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirmar entrega'),
+        content: const Text('¿Marcar este pedido como entregado?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text(
+              'Entregar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final ok = await OrderService.deliverOrder(orderId);
+    if (ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Pedido entregado'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _fetchOrders();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.read<AuthProvider>().user;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Mis Pedidos',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            Text(
+              'Hola, ${user?.name ?? ''}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.map_outlined),
+            tooltip: 'Ver mapa',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => MapScreen(orders: _orders)),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<AuthProvider>().logout(),
+          ),
+        ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _orders.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('📦', style: TextStyle(fontSize: 48)),
+                  SizedBox(height: 12),
+                  Text(
+                    'No tienes pedidos asignados',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchOrders,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _orders.length,
+                itemBuilder: (context, index) {
+                  final order = _orders[index];
+                  return _OrderCard(
+                    order: order,
+                    onDeliver: () => _deliver(order.id),
+                  );
+                },
+              ),
+            ),
+    );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  final Order order;
+  final VoidCallback onDeliver;
+
+  const _OrderCard({required this.order, required this.onDeliver});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Pedido #${order.id}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF8B5CF6),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                const SizedBox(width: 2),
+                Flexible(
+                  child: Text(
+                    order.client.address,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Cliente
+            Row(
+              children: [
+                const Icon(Icons.store, size: 18, color: Colors.blueGrey),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.client.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      order.client.ownerName,
+                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Teléfono
+            Row(
+              children: [
+                const Icon(Icons.phone, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(order.client.phone, style: const TextStyle(fontSize: 13)),
+              ],
+            ),
+
+            if (order.notes != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.note, size: 16, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      order.notes!,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const Divider(height: 20),
+
+            // Productos
+            ...order.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${item.productName} x${item.quantity}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      'Bs. ${(item.unitPrice * item.quantity).toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const Divider(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Bs. ${order.total.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3B82F6),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Botones
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            MapScreen(orders: [order], focusOrder: order),
+                      ),
+                    ),
+                    icon: const Icon(Icons.map_outlined, size: 16),
+                    label: const Text('Ver en mapa'),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onDeliver,
+                    icon: const Icon(Icons.check_circle_outline, size: 16),
+                    label: const Text('Entregar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

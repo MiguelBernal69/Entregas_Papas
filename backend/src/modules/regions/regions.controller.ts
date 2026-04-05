@@ -91,3 +91,50 @@ export const detectRegion = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message })
   }
 }   
+
+export const assignRegion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, regionId } = req.body
+    if (!userId || !regionId) {
+      res.status(400).json({ message: 'userId y regionId son requeridos' })
+      return
+    }
+    const result = await service.assignRegionToUser(Number(userId), Number(regionId))
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const removeRegion = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, regionId } = req.body
+    await service.removeRegionFromUser(Number(userId), Number(regionId))
+    res.json({ message: 'Zona removida' })
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const assignBulk = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, regionIds } = req.body
+    if (!userId || !Array.isArray(regionIds)) {
+      res.status(400).json({ message: 'userId y un array regionIds son requeridos' })
+      return
+    }
+    const result = await service.assignRegionsBulk(Number(userId), regionIds.map(Number))
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const getPreventistasInRegion = async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await service.getPreventistasInRegion(Number(req.params.id))
+    res.json(result)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
