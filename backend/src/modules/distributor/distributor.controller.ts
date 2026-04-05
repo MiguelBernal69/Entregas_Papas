@@ -4,7 +4,8 @@ import * as service from './distributor.service'
 
 export const getMyOrders = async (req: AuthRequest, res: Response) => {
     try {
-        const orders = await service.getMyOrders(req.user!.id)
+        const statusQuery = req.query.status as string | undefined
+        const orders = await service.getMyOrders(req.user!.id, statusQuery)
         res.json(orders)
     } catch (error: any) {
         res.status(500).json({ message: error.message })

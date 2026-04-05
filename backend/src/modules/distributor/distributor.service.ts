@@ -1,11 +1,19 @@
 import prisma from '../../prisma/client'
 import pool from '../../config/db'
 
-export const getMyOrders = async (distributorId: number) => {
+export const getMyOrders = async (distributorId: number, statusQuery?: string) => {
+    // Si no manda query, por defecto traemos asignado y entregado para que pueda sacar stats,
+    // o sino lo que mande por query (ej. 'asignado').
+    let statusFilter: any = { in: ['asignado', 'entregado'] }
+    
+    if (statusQuery) {
+        statusFilter = statusQuery
+    }
+
     return prisma.order.findMany({
         where: {
             distributorId,
-            status: 'asignado'
+            status: statusFilter
         },
         include: {
             client: {

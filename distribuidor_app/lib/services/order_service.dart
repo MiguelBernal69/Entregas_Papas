@@ -13,9 +13,13 @@ class OrderService {
     };
   }
 
-  static Future<List<Order>> getMyOrders() async {
+  static Future<List<Order>> getMyOrders({String? status}) async {
+    String url = '${Api.baseUrl}/distributor/orders';
+    if (status != null) {
+      url += '?status=$status';
+    }
     final res = await http.get(
-      Uri.parse('${Api.baseUrl}/distributor/orders'),
+      Uri.parse(url),
       headers: await _headers(),
     );
 

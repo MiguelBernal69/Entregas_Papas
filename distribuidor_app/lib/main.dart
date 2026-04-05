@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/orders_screen.dart';
+
 import 'screens/preventista/preventista_home_screen.dart';
+
+import 'screens/distribuidor/distribuidor_home_screen.dart';
 
 void main() {
   runApp(
@@ -36,7 +38,7 @@ class MyApp extends StatelessWidget {
           // Redirige según el rol
           switch (auth.user?.role) {
             case 'distribuidor':
-              return const OrdersScreen();
+              return const DistribuidorHomeScreen();
             case 'preventista':
               return const PreventistaHomeScreen();
             default:

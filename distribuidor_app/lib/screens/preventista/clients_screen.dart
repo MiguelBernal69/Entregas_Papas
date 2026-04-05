@@ -77,10 +77,40 @@ class _ClientsScreenState extends State<ClientsScreen> {
     _fetchClients();
   }
 
+  bool _isMapMode = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: const Text('Directorio de Clientes'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: false,
+                  icon: Icon(Icons.list),
+                  label: Text('Lista'),
+                ),
+                ButtonSegment(
+                  value: true,
+                  icon: Icon(Icons.map_outlined),
+                  label: Text('Mapa'),
+                ),
+              ],
+              selected: {_isMapMode},
+              onSelectionChanged: (Set<bool> newSelection) {
+                setState(() {
+                  _isMapMode = newSelection.first;
+                });
+              },
+            ),
+          )
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
         backgroundColor: const Color(0xFF3B82F6),
@@ -95,81 +125,113 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 style: TextStyle(color: Colors.grey),
               ),
             )
-          : RefreshIndicator(
-              onRefresh: _fetchClients,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _clients.length,
-                itemBuilder: (context, index) {
-                  final client = _clients[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+          : _isMapMode
+              ? FlutterMap(
+                  options: MapOptions(
+                    initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
+                        ? LatLng(_clients.first.latitude, _clients.first.longitude)
+                        : const LatLng(-17.3895, -66.1568),
+                    initialZoom: 13,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.distribuidor_app',
                     ),
-                    elevation: 0,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(
-                          0xFF3B82F6,
-                        ).withValues(alpha: 0.1),
-                        child: const Text('🏪', style: TextStyle(fontSize: 20)),
-                      ),
-                      title: Text(
-                        client.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            client.ownerName,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          Text(
-                            client.address,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
+                    MarkerLayer(
+                      markers: _clients.map((client) {
+                        return Marker(
+                          point: LatLng(client.latitude, client.longitude),
+                          width: 40,
+                          height: 40,
+                          child: GestureDetector(
+                            onTap: () => _openForm(client: client), // Optional: Or show a specific detail popup
+                            child: const Icon(
+                              Icons.location_pin,
+                              color: Colors.blue,
+                              size: 40,
                             ),
                           ),
-                          Text(
-                            client.phone,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: PopupMenuButton(
-                        itemBuilder: (_) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Text('Editar'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text(
-                              'Desactivar',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                        onSelected: (val) {
-                          if (val == 'edit') _openForm(client: client);
-                          if (val == 'delete') _delete(client.id);
-                        },
-                      ),
+                        );
+                      }).toList(),
                     ),
-                  );
-                },
-              ),
-            ),
+                  ],
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchClients,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _clients.length,
+                    itemBuilder: (context, index) {
+                      final client = _clients[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: const Color(
+                              0xFF3B82F6,
+                            ).withValues(alpha: 0.1),
+                            child: const Text('🏪', style: TextStyle(fontSize: 20)),
+                          ),
+                          title: Text(
+                            client.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                client.ownerName,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              Text(
+                                client.address,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                client.phone,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: PopupMenuButton(
+                            itemBuilder: (_) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Text('Editar'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text(
+                                  'Desactivar',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                            onSelected: (val) {
+                              if (val == 'edit') _openForm(client: client);
+                              if (val == 'delete') _delete(client.id);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

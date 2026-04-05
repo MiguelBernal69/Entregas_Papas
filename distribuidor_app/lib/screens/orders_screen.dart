@@ -25,7 +25,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _fetchOrders() async {
     setState(() => _loading = true);
     try {
-      final orders = await OrderService.getMyOrders();
+      final orders = await OrderService.getMyOrders(status: 'asignado');
       setState(() {
         _orders = orders;
         _loading = false;
