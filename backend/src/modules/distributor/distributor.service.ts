@@ -1,7 +1,7 @@
 import prisma from '../../prisma/client'
 import pool from '../../config/db'
 
-export const getMyOrders = async (distributorId: number, statusQuery?: string) => {
+export const getMyOrders = async (distributorId: number, statusQuery?: string, date?: string) => {
     // Si no manda query, por defecto traemos asignado y entregado para que pueda sacar stats,
     // o sino lo que mande por query (ej. 'asignado').
     let statusFilter: any = { in: ['asignado', 'entregado'] }
@@ -10,10 +10,30 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string) =
         statusFilter = statusQuery
     }
 
+    // Filtro por fecha si se proporciona (YYYY-MM-DD)
+    let dateFilter: any = {}
+    if (date) {
+        // Aseguramos que el rango sea en UTC para que coincida con el almacenamiento de la DB
+        const start = new Date(`${date}T00:00:00Z`)
+        const end = new Date(`${date}T23:59:59Z`)
+
+        dateFilter = {
+            OR: [
+                { status: 'asignado' }, // Todo lo que tenga en la camioneta pendiente
+                { 
+                    AND: [
+                        { status: 'entregado' },
+                        { deliveredAt: { gte: start, lte: end } } // Entregado hoy UTC
+                    ]
+                }
+            ]
+        }
+    }
+
     return prisma.order.findMany({
         where: {
             distributorId,
-            status: statusFilter
+            ...dateFilter
         },
         include: {
             client: {
@@ -24,7 +44,8 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string) =
                     phone: true,
                     address: true,
                     latitude: true,
-                    longitude: true
+                    longitude: true,
+                    photoUrl: true
                 }
             },
             items: {
@@ -45,13 +66,26 @@ export const getMyOrderById = async (orderId: number, distributorId: number) => 
             distributorId
         },
         include: {
-            client: true,
-            items: {
-                include: {
-                    product: { select: { id: true, name: true, unit: true } }
+            client: {
+                select: {
+                    id: true,
+                    name: true,
+                    ownerName: true,
+                    phone: true,
+                    address: true,
+                    latitude: true,
+                    longitude: true,
+                    photoUrl: true
                 }
             },
-            region: { select: { id: true, name: true } }
+            items: {
+                include: {
+                    product: true
+                }
+            },
+            region: {
+                select: { id: true, name: true }
+            }
         }
     })
 
@@ -123,6 +157,7 @@ const buildSnapshot = async (orderId: number) => {
             address: order.client.address,
             latitude: order.client.latitude,
             longitude: order.client.longitude,
+            photoUrl: order.client.photoUrl,
             region: order.client.region?.name ?? null
         },
         preventista: order.preventista,

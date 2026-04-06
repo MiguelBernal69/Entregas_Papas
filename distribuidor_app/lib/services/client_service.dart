@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../config/api.dart';
 import '../models/client.dart';
 import 'auth_service.dart';
@@ -32,6 +34,7 @@ class ClientService {
     required String address,
     required double latitude,
     required double longitude,
+    File? imageFile,
   }) async {
     final token = await AuthService.getToken();
     final request = http.MultipartRequest(
@@ -46,12 +49,25 @@ class ClientService {
     request.fields['latitude'] = latitude.toString();
     request.fields['longitude'] = longitude.toString();
 
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'photo',
+        imageFile.path,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+    }
+
     final response = await request.send();
     final body = await response.stream.bytesToString();
     if (response.statusCode == 201) {
       return Client.fromJson(jsonDecode(body));
     }
-    throw Exception(jsonDecode(body)['message'] ?? 'Error al crear cliente');
+    try {
+      final decoded = jsonDecode(body);
+      throw Exception(decoded['message'] ?? 'Error al crear cliente: ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Error del servidor (${response.statusCode}): ${body.length > 100 ? body.substring(0, 100) : body}');
+    }
   }
 
   static Future<Client> updateClient({
@@ -62,6 +78,7 @@ class ClientService {
     required String address,
     required double latitude,
     required double longitude,
+    File? imageFile,
   }) async {
     final token = await AuthService.getToken();
     final request = http.MultipartRequest(
@@ -76,14 +93,27 @@ class ClientService {
     request.fields['latitude'] = latitude.toString();
     request.fields['longitude'] = longitude.toString();
 
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'photo',
+        imageFile.path,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+    }
+
     final response = await request.send();
     final body = await response.stream.bytesToString();
     if (response.statusCode == 200) {
       return Client.fromJson(jsonDecode(body));
     }
-    throw Exception(
-      jsonDecode(body)['message'] ?? 'Error al actualizar cliente',
-    );
+    try {
+      final decoded = jsonDecode(body);
+      throw Exception(
+        decoded['message'] ?? 'Error al actualizar cliente (${response.statusCode})',
+      );
+    } catch (e) {
+      throw Exception('Error del servidor (${response.statusCode}): ${body.length > 100 ? body.substring(0, 100) : body}');
+    }
   }
 
   static Future<void> deleteClient(int id) async {

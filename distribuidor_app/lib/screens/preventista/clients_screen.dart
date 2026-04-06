@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/client.dart';
 import '../../services/client_service.dart';
+import '../../config/api.dart';
+import '../../widgets/client_details_sheet.dart';
+import 'preventista_orders_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -33,6 +38,36 @@ class _ClientsScreenState extends State<ClientsScreen> {
     } catch (e) {
       setState(() => _loading = false);
     }
+  }
+
+  void _showClientDetails(Client client) {
+    ClientDetailsSheet.show(
+      context,
+      name: client.name,
+      ownerName: client.ownerName,
+      phone: client.phone,
+      address: client.address,
+      photoUrl: client.photoUrl,
+      onEditPressed: () => _openForm(client: client),
+      onCreateOrder: () => _openOrderSheet(client),
+    );
+  }
+
+  void _openOrderSheet(Client client) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CreateOrderSheet(
+        initialClient: client,
+        onSaved: () {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pedido credo exitosamente')),
+          );
+        },
+      ),
+    );
   }
 
   void _openForm({Client? client}) {
@@ -145,7 +180,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           width: 40,
                           height: 40,
                           child: GestureDetector(
-                            onTap: () => _openForm(client: client), // Optional: Or show a specific detail popup
+                            onTap: () => _showClientDetails(client),
                             child: const Icon(
                               Icons.location_pin,
                               color: Colors.blue,
@@ -171,6 +206,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                         ),
                         elevation: 0,
                         child: ListTile(
+                          onTap: () => _showClientDetails(client),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 8,
@@ -257,6 +293,17 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   bool _saving = false;
   String? _error;
   bool _showMap = false;
+  File? _imageFile;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -308,6 +355,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
           address: _addressCtrl.text,
           latitude: _lat!,
           longitude: _lng!,
+          imageFile: _imageFile,
         );
       } else {
         await ClientService.createClient(
@@ -317,6 +365,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
           address: _addressCtrl.text,
           latitude: _lat!,
           longitude: _lng!,
+          imageFile: _imageFile,
         );
       }
       widget.onSaved();
@@ -374,6 +423,42 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 140,
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                      ),
+                      child: _imageFile != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.file(_imageFile!, fit: BoxFit.cover),
+                            )
+                          : (widget.client?.photoUrl != null && widget.client!.photoUrl!.isNotEmpty)
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    widget.client!.photoUrl!.startsWith('http')
+                                        ? widget.client!.photoUrl!
+                                        : '${Api.baseUrl.replaceAll('/api', '')}/${widget.client!.photoUrl}',
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.camera_alt, size: 40, color: Colors.grey),
+                                    SizedBox(height: 8),
+                                    Text('Tocar para añadir foto', style: TextStyle(color: Colors.grey)),
+                                  ],
+                                ),
+                    ),
+                  ),
                   _Field(ctrl: _nameCtrl, label: 'Nombre del negocio'),
                   _Field(ctrl: _ownerCtrl, label: 'Nombre del dueño'),
                   _Field(

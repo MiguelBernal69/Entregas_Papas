@@ -32,6 +32,7 @@ class OrderClient {
   final String address;
   final double latitude;
   final double longitude;
+  final String? photoUrl;
 
   OrderClient({
     required this.id,
@@ -41,6 +42,7 @@ class OrderClient {
     required this.address,
     required this.latitude,
     required this.longitude,
+    this.photoUrl,
   });
 
   factory OrderClient.fromJson(Map<String, dynamic> json) {
@@ -52,6 +54,7 @@ class OrderClient {
       address: json['address'] ?? 'Sin Dirección',
       latitude: (json['latitude'] as num? ?? 0.0).toDouble(),
       longitude: (json['longitude'] as num? ?? 0.0).toDouble(),
+      photoUrl: json['photoUrl'] ?? json['photo_url'],
     );
   }
 }
@@ -73,7 +76,7 @@ class Order {
     required this.items,
   });
 
-  double get total => items.fold(0, (s, i) => s + i.unitPrice * i.quantity);
+  double get total => items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity));
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(

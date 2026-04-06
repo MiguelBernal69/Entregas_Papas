@@ -202,7 +202,8 @@ class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
 // ── Formulario crear pedido ───────────────────────────────────
 class CreateOrderSheet extends StatefulWidget {
   final VoidCallback onSaved;
-  const CreateOrderSheet({super.key, required this.onSaved});
+  final Client? initialClient;
+  const CreateOrderSheet({super.key, required this.onSaved, this.initialClient});
 
   @override
   State<CreateOrderSheet> createState() => _CreateOrderSheetState();
@@ -221,6 +222,7 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   @override
   void initState() {
     super.initState();
+    _selectedClient = widget.initialClient;
     _loadData();
   }
 
@@ -231,6 +233,16 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
       setState(() {
         _clients = clients;
         _products = products;
+        
+        // If initialClient is set, find its updated reference in the fetched clients list
+        if (_selectedClient != null) {
+           try {
+             _selectedClient = _clients.firstWhere((c) => c.id == _selectedClient!.id);
+           } catch(e) {
+             _selectedClient = null;
+           }
+        }
+        
         _loading = false;
       });
     } catch (e) {

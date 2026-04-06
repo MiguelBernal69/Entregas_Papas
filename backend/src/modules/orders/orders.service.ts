@@ -29,9 +29,11 @@ const buildSnapshot = async (orderId: number) => {
       id: order.client.id,
       name: order.client.name,
       ownerName: order.client.ownerName,
+      phone: order.client.phone,
       address: order.client.address,
       latitude: order.client.latitude,
       longitude: order.client.longitude,
+      photoUrl: order.client.photoUrl,
       region: order.client.region?.name ?? null
     },
     preventista: order.preventista,
@@ -80,7 +82,7 @@ export const getAllOrders = async (filters: {
       ...(filters.preventistaId && { preventistaId: filters.preventistaId })
     },
     include: {
-      client: { select: { id: true, name: true, address: true, latitude: true, longitude: true } },
+      client: { select: { id: true, name: true, ownerName: true, phone: true, address: true, latitude: true, longitude: true, photoUrl: true } },
       preventista: { select: { id: true, name: true } },
       distributor: { select: { id: true, name: true } },
       region: { select: { id: true, name: true, color: true } },

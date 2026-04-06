@@ -4,6 +4,8 @@ import '../models/order.dart';
 import '../services/order_service.dart';
 import '../providers/auth_provider.dart';
 import 'map_screen.dart';
+import '../widgets/client_details_sheet.dart';
+import '../config/api.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -195,20 +197,55 @@ class _OrderCard extends StatelessWidget {
             // Cliente
             Row(
               children: [
-                const Icon(Icons.store, size: 18, color: Colors.blueGrey),
+                if (order.client.photoUrl != null && order.client.photoUrl!.isNotEmpty)
+                  ClipOval(
+                    child: Image.network(
+                      Api.getImageUrl(order.client.photoUrl!),
+                      height: 36,
+                      width: 36,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.store, size: 18, color: Colors.blueGrey),
+                    ),
+                  )
+                else
+                  const Icon(Icons.store, size: 18, color: Colors.blueGrey),
                 const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      order.client.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      order.client.ownerName,
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.client.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        order.client.ownerName,
+                        style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: order.client.photoUrl != null && order.client.photoUrl!.isNotEmpty
+                      ? ClipOval(
+                          child: Image.network(
+                            Api.getImageUrl(order.client.photoUrl!),
+                            height: 24,
+                            width: 24,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const Icon(Icons.account_circle, color: Colors.blue),
+                  onPressed: () {
+                    ClientDetailsSheet.show(
+                      context,
+                      name: order.client.name,
+                      ownerName: order.client.ownerName,
+                      phone: order.client.phone,
+                      address: order.client.address,
+                      photoUrl: order.client.photoUrl,
+                    );
+                  },
                 ),
               ],
             ),

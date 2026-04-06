@@ -5,7 +5,8 @@ import * as service from './distributor.service'
 export const getMyOrders = async (req: AuthRequest, res: Response) => {
     try {
         const statusQuery = req.query.status as string | undefined
-        const orders = await service.getMyOrders(req.user!.id, statusQuery)
+        const dateQuery = req.query.date as string | undefined
+        const orders = await service.getMyOrders(req.user!.id, statusQuery, dateQuery)
         res.json(orders)
     } catch (error: any) {
         res.status(500).json({ message: error.message })

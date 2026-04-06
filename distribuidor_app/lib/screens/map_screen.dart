@@ -3,6 +3,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:geolocator/geolocator.dart';
 import '../models/order.dart';
+import '../services/order_service.dart';
+import '../config/api.dart';
+import '../widgets/client_details_sheet.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Order> orders;
@@ -54,6 +57,46 @@ class _MapScreenState extends State<MapScreen> {
       );
     }
     return const ll.LatLng(-17.3895, -66.1568);
+  }
+
+  Future<void> _deliver(int orderId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirmar entrega'),
+        content: const Text('¿Marcar este pedido como entregado?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text(
+              'Entregar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final ok = await OrderService.deliverOrder(orderId);
+    if (ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Pedido entregado'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      setState(() {
+        widget.orders.removeWhere((o) => o.id == orderId);
+        _selectedOrder = null;
+      });
+    }
   }
 
   @override
@@ -157,16 +200,65 @@ class _MapScreenState extends State<MapScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      _selectedOrder!.client.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      _selectedOrder!.client.ownerName,
-                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (_selectedOrder!.client.photoUrl != null &&
+                            _selectedOrder!.client.photoUrl!.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              Api.getImageUrl(_selectedOrder!.client.photoUrl!),
+                              height: 44,
+                              width: 44,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 44,
+                                width: 44,
+                                color: Colors.grey.shade100,
+                                child: const Icon(Icons.store, size: 20, color: Colors.grey),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedOrder!.client.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                _selectedOrder!.client.ownerName,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            ClientDetailsSheet.show(
+                              context,
+                              name: _selectedOrder!.client.name,
+                              ownerName: _selectedOrder!.client.ownerName,
+                              phone: _selectedOrder!.client.phone,
+                              address: _selectedOrder!.client.address,
+                              photoUrl:
+                                  _selectedOrder!.client.photoUrl, ////aqui
+                            );
+                          },
+                          icon: const Icon(Icons.person, size: 16),
+                          label: const Text('Perfil'),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -188,6 +280,7 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(Icons.phone, size: 14, color: Colors.grey),
@@ -201,7 +294,43 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+
+                    const Divider(height: 20),
+                    const Text(
+                      'Detalle del Pedido:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Lista de productos
+                    ..._selectedOrder!.items.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${item.productName} x${item.quantity}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              'Bs. ${(item.unitPrice * item.quantity).toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const Divider(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -212,30 +341,58 @@ class _MapScreenState extends State<MapScreen> {
                             color: Color(0xFF3B82F6),
                           ),
                         ),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _mapController.move(
-                              ll.LatLng(
-                                _selectedOrder!.client.latitude,
-                                _selectedOrder!.client.longitude,
-                              ),
-                              16,
-                            );
-                          },
-                          icon: const Icon(Icons.center_focus_strong, size: 16),
-                          label: const Text('Centrar'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3B82F6),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              _mapController.move(
+                                ll.LatLng(
+                                  _selectedOrder!.client.latitude,
+                                  _selectedOrder!.client.longitude,
+                                ),
+                                16,
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.center_focus_strong,
+                              size: 16,
                             ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                            label: const Text('Centrar'),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
                         ),
+                        if (_selectedOrder!.status == 'asignado') ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _deliver(_selectedOrder!.id),
+                              icon: const Icon(
+                                Icons.check_circle_outline,
+                                size: 16,
+                              ),
+                              label: const Text('Entregar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
