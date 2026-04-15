@@ -11,7 +11,8 @@ class Api {
   //    → 'http://TU_IP_O_DOMINIO:3000/api'
   //    → Si tienes dominio + SSL: 'https://api.tudominio.com/api'
   // ─────────────────────────────────────────────────────────────
-  static const String baseUrl = 'http://192.168.100.4:3000/api';
+  //static const String baseUrl = 'http://192.168.100.4:3000/api';
+  static const String baseUrl = 'http://91.98.25.50:3000/api';
 
   /// Convierte la photoUrl guardada en la DB a una URL completa accesible.
   /// Maneja tanto rutas relativas ('uploads/clients/foto.jpg')
@@ -23,8 +24,8 @@ class Api {
 
     // URL absoluta con localhost (datos viejos) → reemplazar por IP actual
     if (photoUrl.startsWith('http') && photoUrl.contains('localhost')) {
-       final uri = Uri.parse(photoUrl);
-       return '$serverBase${uri.path}${uri.query.isEmpty ? '' : '?${uri.query}'}';
+      final uri = Uri.parse(photoUrl);
+      return '$serverBase${uri.path}${uri.query.isEmpty ? '' : '?${uri.query}'}';
     }
 
     // URL absoluta normal → devolver tal cual
@@ -34,4 +35,3 @@ class Api {
     return '$serverBase/${photoUrl.startsWith('/') ? photoUrl.substring(1) : photoUrl}';
   }
 }
-
