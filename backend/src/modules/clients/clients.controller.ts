@@ -30,9 +30,9 @@ export const create = async (req: AuthRequest, res: Response) => {
       return
     }
 
-    // Si se subió una foto, construimos la URL
+    // Guardamos ruta relativa para que la app construya la URL con la IP correcta
     const photoUrl = req.file
-      ? `${req.protocol}://${req.get('host')}/uploads/clients/${req.file.filename}`
+      ? `uploads/clients/${req.file.filename}`
       : undefined
 
     const client = await service.createClient(
@@ -59,14 +59,17 @@ export const update = async (req: AuthRequest, res: Response) => {
   try {
     const updateData: any = { ...req.body }
 
-    // Si se subió nueva foto
+    // Si se subió nueva foto, guardamos ruta relativa
     if (req.file) {
-      updateData.photoUrl = `${req.protocol}://${req.get('host')}/uploads/clients/${req.file.filename}`
+      updateData.photoUrl = `uploads/clients/${req.file.filename}`
 
       // Borrar foto anterior si existe
       const existing = await service.getClientById(Number(req.params.id))
       if (existing.photoUrl) {
-        const oldPath = existing.photoUrl.split('/uploads/')[1]
+        // La ruta relativa puede ser 'uploads/clients/...' o una URL absoluta antigua
+        const oldPath = existing.photoUrl.includes('/uploads/')
+          ? existing.photoUrl.split('/uploads/')[1]
+          : existing.photoUrl.replace('uploads/', '')
         const fullPath = `uploads/${oldPath}`
         if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath)
       }

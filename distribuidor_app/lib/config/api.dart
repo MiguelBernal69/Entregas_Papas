@@ -1,24 +1,37 @@
 class Api {
-  // Cambia esta IP por la de tu PC para dispositivos físicos
-  // Si usas el emulador de Android de serie, usa 10.0.2.2
+  // ─────────────────────────────────────────────────────────────
+  //  CONFIGURACIÓN DE ENTORNO
+  //  Cambia SOLO esta línea según el entorno:
+  //
+  //  DESARROLLO local:
+  //    → Si usas emulador Android:  'http://10.0.2.2:3000/api'
+  //    → Si usas dispositivo físico: 'http://192.168.X.X:3000/api'
+  //
+  //  PRODUCCIÓN (VPS):
+  //    → 'http://TU_IP_O_DOMINIO:3000/api'
+  //    → Si tienes dominio + SSL: 'https://api.tudominio.com/api'
+  // ─────────────────────────────────────────────────────────────
   static const String baseUrl = 'http://192.168.100.4:3000/api';
 
+  /// Convierte la photoUrl guardada en la DB a una URL completa accesible.
+  /// Maneja tanto rutas relativas ('uploads/clients/foto.jpg')
+  /// como URLs absolutas antiguas ('http://localhost:3000/uploads/...').
   static String getImageUrl(String photoUrl) {
     if (photoUrl.isEmpty) return '';
-    
-    final serverBase = baseUrl.replaceAll('/api', ''); // http://192.168.100.4:3000
 
-    // Si ya es una URL completa que contiene localhost
+    final serverBase = baseUrl.replaceAll('/api', ''); // http://IP:3000
+
+    // URL absoluta con localhost (datos viejos) → reemplazar por IP actual
     if (photoUrl.startsWith('http') && photoUrl.contains('localhost')) {
        final uri = Uri.parse(photoUrl);
-       // Reemplazamos la parte de http://localhost:PORT por el serverBase
        return '$serverBase${uri.path}${uri.query.isEmpty ? '' : '?${uri.query}'}';
     }
-    
-    // Si es una URL completa normal (que no sea localhost)
+
+    // URL absoluta normal → devolver tal cual
     if (photoUrl.startsWith('http')) return photoUrl;
-    
-    // Si es una ruta relativa (ej: uploads/clients/...)
+
+    // Ruta relativa (formato actual) → construir URL con la base del servidor
     return '$serverBase/${photoUrl.startsWith('/') ? photoUrl.substring(1) : photoUrl}';
   }
 }
+

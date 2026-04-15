@@ -4,7 +4,7 @@ import pool from '../../config/db'
 export const getMyOrders = async (distributorId: number, statusQuery?: string, date?: string) => {
     // Si no manda query, por defecto traemos asignado y entregado para que pueda sacar stats,
     // o sino lo que mande por query (ej. 'asignado').
-    let statusFilter: any = { in: ['asignado', 'entregado'] }
+    let statusFilter: any = undefined
     
     if (statusQuery) {
         statusFilter = statusQuery
@@ -30,11 +30,17 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string, d
         }
     }
 
+    const where: any = {
+        distributorId,
+        ...dateFilter
+    }
+
+    if (statusFilter) {
+        where.status = statusFilter
+    }
+
     return prisma.order.findMany({
-        where: {
-            distributorId,
-            ...dateFilter
-        },
+        where,
         include: {
             client: {
                 select: {
@@ -45,7 +51,7 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string, d
                     address: true,
                     latitude: true,
                     longitude: true,
-                    photoUrl: true
+                    photoUrl: true // Campo necesario para la app móvil
                 }
             },
             items: {

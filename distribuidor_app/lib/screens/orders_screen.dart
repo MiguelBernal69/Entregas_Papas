@@ -15,21 +15,31 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  List<Order> _orders = [];
+  List<Order> _pendingOrders = [];
+  List<Order> _deliveredOrders = [];
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchOrders();
+    _fetchData();
   }
 
-  Future<void> _fetchOrders() async {
+  Future<void> _fetchData() async {
     setState(() => _loading = true);
     try {
-      final orders = await OrderService.getMyOrders(status: 'asignado');
+      final now = DateTime.now();
+      final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+      // Cargamos ambos tipos de pedidos para hoy
+      final results = await Future.wait([
+        OrderService.getMyOrders(status: 'asignado'),
+        OrderService.getMyOrders(status: 'entregado', date: today),
+      ]);
+
       setState(() {
-        _orders = orders;
+        _pendingOrders = results[0];
+        _deliveredOrders = results[1];
         _loading = false;
       });
     } catch (e) {
@@ -70,7 +80,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      _fetchOrders();
+      _fetchData();
     }
   }
 
@@ -78,76 +88,132 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     final user = context.read<AuthProvider>().user;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Mis Pedidos',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF3F4F6),
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Mi Ruta',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              Text(
+                'Hola, ${user?.name ?? ''}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.map_outlined),
+              tooltip: 'Ver mapa',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => MapScreen(orders: _pendingOrders)),
+              ).then((_) => _fetchData()), // Refrescar al volver del mapa
             ),
-            Text(
-              'Hola, ${user?.name ?? ''}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => context.read<AuthProvider>().logout(),
             ),
           ],
+          bottom: const TabBar(
+            indicatorColor: Color(0xFF3B82F6),
+            labelColor: Color(0xFF3B82F6),
+            unselectedLabelColor: Colors.grey,
+            tabs: [
+              Tab(text: 'Pendientes', icon: Icon(Icons.pending_actions)),
+              Tab(text: 'Historial Hoy', icon: Icon(Icons.history)),
+            ],
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.map_outlined),
-            tooltip: 'Ver mapa',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => MapScreen(orders: _orders)),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => context.read<AuthProvider>().logout(),
-          ),
-        ],
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _orders.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : TabBarView(
                 children: [
-                  Text('📦', style: TextStyle(fontSize: 48)),
-                  SizedBox(height: 12),
-                  Text(
-                    'No tienes pedidos asignados',
-                    style: TextStyle(color: Colors.grey),
+                  _OrderList(
+                    orders: _pendingOrders,
+                    emptyMessage: 'No tienes pedidos pendientes',
+                    onRefresh: _fetchData,
+                    onDeliver: _deliver,
+                  ),
+                  _OrderList(
+                    orders: _deliveredOrders,
+                    emptyMessage: 'Aún no has entregado pedidos hoy',
+                    onRefresh: _fetchData,
+                    isHistory: true,
                   ),
                 ],
               ),
-            )
-          : RefreshIndicator(
-              onRefresh: _fetchOrders,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _orders.length,
-                itemBuilder: (context, index) {
-                  final order = _orders[index];
-                  return _OrderCard(
-                    order: order,
-                    onDeliver: () => _deliver(order.id),
-                  );
-                },
-              ),
+      ),
+    );
+  }
+}
+
+class _OrderList extends StatelessWidget {
+  final List<Order> orders;
+  final String emptyMessage;
+  final RefreshCallback onRefresh;
+  final Function(int)? onDeliver;
+  final bool isHistory;
+
+  const _OrderList({
+    required this.orders,
+    required this.emptyMessage,
+    required this.onRefresh,
+    this.onDeliver,
+    this.isHistory = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (orders.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(isHistory ? '🕒' : '📦', style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 12),
+            Text(
+              emptyMessage,
+              style: const TextStyle(color: Colors.grey),
             ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          final order = orders[index];
+          return _OrderCard(
+            order: order,
+            onDeliver: onDeliver != null ? () => onDeliver!(order.id) : null,
+            isHistory: isHistory,
+          );
+        },
+      ),
     );
   }
 }
 
 class _OrderCard extends StatelessWidget {
   final Order order;
-  final VoidCallback onDeliver;
+  final VoidCallback? onDeliver;
+  final bool isHistory;
 
-  const _OrderCard({required this.order, required this.onDeliver});
+  const _OrderCard({
+    required this.order,
+    this.onDeliver,
+    this.isHistory = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -169,14 +235,16 @@ class _OrderCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                    color: (isHistory ? Colors.green : const Color(0xFF8B5CF6))
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Pedido #${order.id}',
-                    style: const TextStyle(
+                    isHistory ? 'ENTREGADO' : 'Pedido #${order.id}',
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF8B5CF6),
+                      fontSize: 12,
+                      color: isHistory ? Colors.green : const Color(0xFF8B5CF6),
                     ),
                   ),
                 ),
@@ -197,14 +265,16 @@ class _OrderCard extends StatelessWidget {
             // Cliente
             Row(
               children: [
-                if (order.client.photoUrl != null && order.client.photoUrl!.isNotEmpty)
+                if (order.client.photoUrl != null &&
+                    order.client.photoUrl!.isNotEmpty)
                   ClipOval(
                     child: Image.network(
                       Api.getImageUrl(order.client.photoUrl!),
                       height: 36,
                       width: 36,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.store, size: 18, color: Colors.blueGrey),
+                      errorBuilder: (_, __, ___) => const Icon(Icons.store,
+                          size: 18, color: Colors.blueGrey),
                     ),
                   )
                 else
@@ -226,16 +296,7 @@ class _OrderCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: order.client.photoUrl != null && order.client.photoUrl!.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            Api.getImageUrl(order.client.photoUrl!),
-                            height: 24,
-                            width: 24,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : const Icon(Icons.account_circle, color: Colors.blue),
+                  icon: const Icon(Icons.account_circle, color: Colors.blue),
                   onPressed: () {
                     ClientDetailsSheet.show(
                       context,
@@ -322,46 +383,50 @@ class _OrderCard extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 12),
-
-            // Botones
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            MapScreen(orders: [order], focusOrder: order),
+            if (!isHistory) ...[
+              const SizedBox(height: 12),
+              // Botones
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              MapScreen(orders: [order], focusOrder: order),
+                        ),
                       ),
-                    ),
-                    icon: const Icon(Icons.map_outlined, size: 16),
-                    label: const Text('Ver en mapa'),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: onDeliver,
-                    icon: const Icon(Icons.check_circle_outline, size: 16),
-                    label: const Text('Entregar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      icon: const Icon(Icons.map_outlined, size: 16),
+                      label: const Text('Ver en mapa'),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                  if (onDeliver != null) ...[
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: onDeliver,
+                        icon: const Icon(Icons.check_circle_outline, size: 16),
+                        label: const Text('Entregar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
           ],
         ),
       ),

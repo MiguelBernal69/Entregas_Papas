@@ -3,6 +3,7 @@ import Layout from '../../components/Layout'
 import { MapContainer, TileLayer, Marker, useMapEvents, Polygon } from 'react-leaflet'
 import { getClients, createClient, updateClient, deleteClient } from '../../api/clients'
 import { getRegions } from '../../api/regions'
+import { getImageUrl } from '../../api/axios'
 import type { Client } from '../../types'
 import L from 'leaflet'
 
@@ -207,7 +208,7 @@ export default function AdminClients() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         {client.photoUrl ? (
-                          <img src={client.photoUrl} alt={client.name}
+                          <img src={getImageUrl(client.photoUrl)} alt={client.name}
                             className="w-9 h-9 rounded-lg object-cover" />
                         ) : (
                           <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg">🏪</div>
@@ -265,7 +266,7 @@ export default function AdminClients() {
 
             {/* Foto header */}
             {detail.photoUrl ? (
-              <img src={detail.photoUrl} alt={detail.name} className="w-full h-48 object-cover rounded-t-2xl" />
+              <img src={getImageUrl(detail.photoUrl)} alt={detail.name} className="w-full h-48 object-cover rounded-t-2xl" />
             ) : (
               <div className="w-full h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-t-2xl flex items-center justify-center text-6xl">🏪</div>
             )}

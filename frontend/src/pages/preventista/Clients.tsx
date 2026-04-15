@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import { getClients, createClient, updateClient, deleteClient } from '../../api/clients'
 import { getProducts } from '../../api/products'
 import { createOrder } from '../../api/orders'
+import { getImageUrl } from '../../api/axios'
 import type { Client, Product } from '../../types'
 import L from 'leaflet'
 
@@ -360,7 +361,7 @@ export default function PreventistaClients() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             {client.photoUrl ? (
-                              <img src={client.photoUrl} alt={client.name} className="w-10 h-10 rounded-xl object-cover ring-2 ring-gray-100" />
+                              <img src={getImageUrl(client.photoUrl)} alt={client.name} className="w-10 h-10 rounded-xl object-cover ring-2 ring-gray-100" />
                             ) : (
                               <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl">🏪</div>
                             )}
@@ -448,7 +449,7 @@ export default function PreventistaClients() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[10000] p-4">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar animate-in fade-in zoom-in duration-200">
             {detail.photoUrl ? (
-              <img src={detail.photoUrl} alt={detail.name} className="w-full h-56 object-cover shadow-inner" />
+              <img src={getImageUrl(detail.photoUrl)} alt={detail.name} className="w-full h-56 object-cover shadow-inner" />
             ) : (
               <div className="w-full h-40 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-8xl">🏪</div>
             )}

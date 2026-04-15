@@ -88,7 +88,7 @@ class ClientDetailsSheet {
                           height: 220,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
+                          errorBuilder: (context, error, stackTrace) => Container(
                             height: 220,
                             color: Colors.grey.shade200,
                             child: const Center(
