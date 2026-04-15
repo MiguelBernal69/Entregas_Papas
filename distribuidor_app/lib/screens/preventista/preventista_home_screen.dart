@@ -25,18 +25,21 @@ class _PreventistaHomeScreenState extends State<PreventistaHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
         selectedItemColor: const Color(0xFF3B82F6),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Resumen'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Resumen',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Clientes'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: 'Pedidos'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: 'Pedidos',
+          ),
         ],
       ),
     );
@@ -53,7 +56,6 @@ class _PreventistaDashboard extends StatefulWidget {
 class _PreventistaDashboardState extends State<_PreventistaDashboard> {
   bool _loading = true;
   int _clientsCount = 0;
-  // TODO: Add order stats for preventistas down the line
 
   @override
   void initState() {
@@ -65,7 +67,7 @@ class _PreventistaDashboardState extends State<_PreventistaDashboard> {
     setState(() => _loading = true);
     try {
       final clients = await ClientService.getClients();
-      
+
       if (mounted) {
         setState(() {
           _clientsCount = clients.length;
@@ -98,10 +100,7 @@ class _PreventistaDashboardState extends State<_PreventistaDashboard> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchStats,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchStats),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => context.read<AuthProvider>().logout(),
@@ -185,7 +184,7 @@ class _StatCard extends StatelessWidget {
             color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(

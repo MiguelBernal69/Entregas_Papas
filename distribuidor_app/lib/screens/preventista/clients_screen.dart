@@ -43,12 +43,15 @@ class _ClientsScreenState extends State<ClientsScreen> {
   void _showClientDetails(Client client) {
     ClientDetailsSheet.show(
       context,
+      id: client.id,
       name: client.name,
       ownerName: client.ownerName,
       phone: client.phone,
       address: client.address,
+      latitude: client.latitude,
+      longitude: client.longitude,
       photoUrl: client.photoUrl,
-      onEditPressed: () => _openForm(client: client),
+      onUpdate: _fetchClients,
       onCreateOrder: () => _openOrderSheet(client),
     );
   }
@@ -296,13 +299,43 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   File? _imageFile;
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _imageFile = File(picked.path);
-      });
-    }
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Cámara'),
+              onTap: () async {
+                Navigator.pop(context);
+                final picked = await ImagePicker().pickImage(
+                  source: ImageSource.camera,
+                  imageQuality: 70,
+                );
+                if (picked != null) {
+                  setState(() => _imageFile = File(picked.path));
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galería'),
+              onTap: () async {
+                Navigator.pop(context);
+                final picked = await ImagePicker().pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 70,
+                );
+                if (picked != null) {
+                  setState(() => _imageFile = File(picked.path));
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

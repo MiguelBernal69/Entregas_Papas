@@ -5,7 +5,7 @@ import { OrderStatus } from '../../generated/prisma'
 
 export const getAll = async (req: AuthRequest, res: Response) => {
   try {
-    const { status, regionId, preventistaId } = req.query
+    const { status, regionId, preventistaId, page, limit } = req.query
 
     // Preventista solo ve sus propios pedidos
     const filters = {
@@ -16,7 +16,12 @@ export const getAll = async (req: AuthRequest, res: Response) => {
         : preventistaId ? Number(preventistaId) : undefined
     }
 
-    const orders = await service.getAllOrders(filters)
+    const pagination = {
+      skip: page ? (Number(page) - 1) * (Number(limit) || 30) : undefined,
+      take: limit ? Number(limit) : page ? 30 : undefined
+    }
+
+    const orders = await service.getAllOrders(filters, pagination)
     res.json(orders)
   } catch (error: any) {
     res.status(500).json({ message: error.message })

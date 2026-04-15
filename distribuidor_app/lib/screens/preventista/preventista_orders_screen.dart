@@ -28,25 +28,71 @@ class PreventistaOrdersScreen extends StatefulWidget {
 }
 
 class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
-  List<Order> _orders = [];
+  final List<Order> _orders = [];
   bool _loading = true;
+  bool _loadingMore = false;
+  int _page = 1;
+  bool _hasMore = true;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _fetchOrders();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_loadingMore &&
+        _hasMore) {
+      _fetchMoreOrders();
+    }
   }
 
   Future<void> _fetchOrders() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _page = 1;
+      _hasMore = true;
+      _orders.clear();
+    });
     try {
-      final data = await PreventistaOrderService.getMyOrders();
+      final data = await PreventistaOrderService.getMyOrders(page: 1);
       setState(() {
-        _orders = data;
+        _orders.addAll(data);
         _loading = false;
+        if (data.length < 30) _hasMore = false;
       });
     } catch (e) {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _fetchMoreOrders() async {
+    setState(() => _loadingMore = true);
+    try {
+      final nextPage = _page + 1;
+      final data = await PreventistaOrderService.getMyOrders(page: nextPage);
+      setState(() {
+        _orders.addAll(data);
+        _page = nextPage;
+        _loadingMore = false;
+        if (data.length < 30) _hasMore = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingMore = false);
+      }
     }
   }
 
@@ -68,6 +114,10 @@ class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: const Text('Mis Pedidos'),
+        elevation: 0,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCreateOrder,
         backgroundColor: const Color(0xFF3B82F6),
@@ -76,125 +126,133 @@ class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _orders.isEmpty
-          ? const Center(
-              child: Text(
-                'No hay pedidos aún',
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: _fetchOrders,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _orders.length,
-                itemBuilder: (context, index) {
-                  final order = _orders[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+              ? const Center(
+                  child: Text(
+                    'No hay pedidos aún',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchOrders,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _orders.length + (_hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _orders.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      final order = _orders[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Pedido #${order.id}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _statusColor[order.status],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  order.status,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: _statusText[order.status],
+                              Row(
+                                children: [
+                                  Text(
+                                    'Pedido #${order.id}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
                                   ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _statusColor[order.status],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      order.status.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: _statusText[order.status],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                order.client.name,
+                                style: const TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                order.client.address,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey,
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            order.client.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            order.client.address,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          if (order.notes != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              '📝 ${order.notes}',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.orange,
-                              ),
-                            ),
-                          ],
-                          const Divider(height: 16),
-                          ...order.items.map(
-                            (item) => Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                              if (order.notes != null) ...[
+                                const SizedBox(height: 4),
                                 Text(
-                                  '${item.productName} x${item.quantity}',
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                                Text(
-                                  'Bs. ${(item.unitPrice * item.quantity).toStringAsFixed(2)}',
+                                  '📝 ${order.notes}',
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w500,
+                                    color: Colors.orange,
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const Divider(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Total',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Bs. ${order.total.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF3B82F6),
+                              const Divider(height: 16),
+                              ...order.items.map(
+                                (item) => Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '${item.productName} x${item.quantity}',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    Text(
+                                      'Bs. ${(item.unitPrice * item.quantity).toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                              const Divider(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Total',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    'Bs. ${order.total.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF3B82F6),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

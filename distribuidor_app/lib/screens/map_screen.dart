@@ -213,7 +213,7 @@ class _MapScreenState extends State<MapScreen> {
                               height: 44,
                               width: 44,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, _, _) => Container(
                                 height: 44,
                                 width: 44,
                                 color: Colors.grey.shade100,
@@ -247,16 +247,18 @@ class _MapScreenState extends State<MapScreen> {
                           onPressed: () {
                             ClientDetailsSheet.show(
                               context,
+                              id: _selectedOrder!.client.id,
                               name: _selectedOrder!.client.name,
                               ownerName: _selectedOrder!.client.ownerName,
                               phone: _selectedOrder!.client.phone,
                               address: _selectedOrder!.client.address,
-                              photoUrl:
-                                  _selectedOrder!.client.photoUrl, ////aqui
+                              latitude: _selectedOrder!.client.latitude,
+                              longitude: _selectedOrder!.client.longitude,
+                              photoUrl: _selectedOrder!.client.photoUrl,
                             );
                           },
-                          icon: const Icon(Icons.person, size: 16),
-                          label: const Text('Perfil'),
+                          icon: const Icon(Icons.person_search, size: 16),
+                          label: const Text('Ver Perfil'),
                         ),
                       ],
                     ),

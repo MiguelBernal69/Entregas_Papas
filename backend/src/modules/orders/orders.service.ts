@@ -70,11 +70,17 @@ const saveHistory = async (
 
 // ─── servicios ─────────────────────────────────────────────
 
-export const getAllOrders = async (filters: {
-  status?: OrderStatus
-  regionId?: number
-  preventistaId?: number
-}) => {
+export const getAllOrders = async (
+  filters: {
+    status?: OrderStatus
+    regionId?: number
+    preventistaId?: number
+  },
+  pagination?: {
+    skip?: number
+    take?: number
+  }
+) => {
   return prisma.order.findMany({
     where: {
       ...(filters.status && { status: filters.status }),
@@ -88,7 +94,9 @@ export const getAllOrders = async (filters: {
       region: { select: { id: true, name: true, color: true } },
       items: { include: { product: { select: { id: true, name: true } } } }
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip: pagination?.skip,
+    take: pagination?.take
   })
 }
 

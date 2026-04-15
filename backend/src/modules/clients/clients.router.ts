@@ -12,7 +12,7 @@ router.use(authenticate)
 router.get('/', authorize('admin', 'preventista'), getAll)
 router.get('/:id', authorize('admin', 'preventista'), getOne)
 router.post('/', authorize('admin', 'preventista'), uploadClientPhoto.single('photo'), create)
-router.put('/:id', authorize('admin', 'preventista'), uploadClientPhoto.single('photo'), update)
+router.put('/:id', authorize('admin', 'preventista', 'distribuidor'), uploadClientPhoto.single('photo'), update)
 router.delete('/:id', authorize('admin', 'preventista'), remove)
 
 export default router

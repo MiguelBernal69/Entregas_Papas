@@ -17,8 +17,6 @@ class _DistribuidorHomeScreenState extends State<DistribuidorHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.read<AuthProvider>().user;
-
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -70,7 +68,8 @@ class _DistribuidorDashboardState extends State<_DistribuidorDashboard> {
     setState(() => _loading = true);
     try {
       final now = DateTime.now();
-      final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final today =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
       // Fetch all assigned and delivered for TODAY
       final orders = await OrderService.getMyOrders(date: today);
@@ -101,7 +100,6 @@ class _DistribuidorDashboardState extends State<_DistribuidorDashboard> {
           }
         }
 
-        // El stock inicial es la suma de TODO lo asignado hoy (independientemente si ya se entregó)
         for (var item in order.items) {
           totalInitialQty += item.quantity;
           initial.update(
@@ -193,11 +191,18 @@ class _DistribuidorDashboardState extends State<_DistribuidorDashboard> {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.account_balance_wallet, color: Colors.white, size: 20),
+                              Icon(
+                                Icons.account_balance_wallet,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Total a Depositar (Hoy)',
-                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
                               ),
                             ],
                           ),
@@ -213,7 +218,10 @@ class _DistribuidorDashboardState extends State<_DistribuidorDashboard> {
                           const SizedBox(height: 4),
                           Text(
                             'Recaudado de $_entregadosCount pedidos entregados',
-                            style: const TextStyle(color: Colors.white38, fontSize: 12),
+                            style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -327,7 +335,11 @@ class _InventoryList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade300),
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 48,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 12),
             Text(
               'Sin movimientos registrados',
@@ -346,12 +358,19 @@ class _InventoryList extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
               const Spacer(),
               Text(
                 'Total: $totalQty',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
             ],
           ),
@@ -361,33 +380,54 @@ class _InventoryList extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: stock.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 60),
+              separatorBuilder: (_, _) => const Divider(height: 1, indent: 60),
               itemBuilder: (context, index) {
                 String product = stock.keys.elementAt(index);
                 int qty = stock[product]!;
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                    child: const Icon(Icons.inventory_2, color: Color(0xFF3B82F6), size: 18),
+                    backgroundColor: const Color(
+                      0xFF3B82F6,
+                    ).withValues(alpha: 0.1),
+                    child: const Icon(
+                      Icons.inventory_2,
+                      color: Color(0xFF3B82F6),
+                      size: 18,
+                    ),
                   ),
                   title: Text(
                     product,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                   trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'x$qty',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 );

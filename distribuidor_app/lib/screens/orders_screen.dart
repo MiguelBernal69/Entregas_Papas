@@ -29,7 +29,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
     setState(() => _loading = true);
     try {
       final now = DateTime.now();
-      final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final today =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
       // Cargamos ambos tipos de pedidos para hoy
       final results = await Future.wait([
@@ -112,7 +113,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
               tooltip: 'Ver mapa',
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => MapScreen(orders: _pendingOrders)),
+                MaterialPageRoute(
+                  builder: (_) => MapScreen(orders: _pendingOrders),
+                ),
               ).then((_) => _fetchData()), // Refrescar al volver del mapa
             ),
             IconButton(
@@ -177,10 +180,7 @@ class _OrderList extends StatelessWidget {
           children: [
             Text(isHistory ? '🕒' : '📦', style: const TextStyle(fontSize: 48)),
             const SizedBox(height: 12),
-            Text(
-              emptyMessage,
-              style: const TextStyle(color: Colors.grey),
-            ),
+            Text(emptyMessage, style: const TextStyle(color: Colors.grey)),
           ],
         ),
       );
@@ -197,6 +197,7 @@ class _OrderList extends StatelessWidget {
             order: order,
             onDeliver: onDeliver != null ? () => onDeliver!(order.id) : null,
             isHistory: isHistory,
+            onUpdate: onRefresh,
           );
         },
       ),
@@ -208,11 +209,13 @@ class _OrderCard extends StatelessWidget {
   final Order order;
   final VoidCallback? onDeliver;
   final bool isHistory;
+  final VoidCallback? onUpdate;
 
   const _OrderCard({
     required this.order,
     this.onDeliver,
     this.isHistory = false,
+    this.onUpdate,
   });
 
   @override
@@ -273,8 +276,11 @@ class _OrderCard extends StatelessWidget {
                       height: 36,
                       width: 36,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.store,
-                          size: 18, color: Colors.blueGrey),
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.store,
+                        size: 18,
+                        color: Colors.blueGrey,
+                      ),
                     ),
                   )
                 else
@@ -290,7 +296,10 @@ class _OrderCard extends StatelessWidget {
                       ),
                       Text(
                         order.client.ownerName,
-                        style: const TextStyle(fontSize: 13, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -300,11 +309,15 @@ class _OrderCard extends StatelessWidget {
                   onPressed: () {
                     ClientDetailsSheet.show(
                       context,
+                      id: order.client.id,
                       name: order.client.name,
                       ownerName: order.client.ownerName,
                       phone: order.client.phone,
                       address: order.client.address,
+                      latitude: order.client.latitude,
+                      longitude: order.client.longitude,
                       photoUrl: order.client.photoUrl,
+                      onUpdate: onUpdate,
                     );
                   },
                 ),

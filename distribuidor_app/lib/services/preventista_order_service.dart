@@ -14,9 +14,9 @@ class PreventistaOrderService {
     };
   }
 
-  static Future<List<Order>> getMyOrders() async {
+  static Future<List<Order>> getMyOrders({int page = 1, int limit = 30}) async {
     final res = await http.get(
-      Uri.parse('${Api.baseUrl}/orders'),
+      Uri.parse('${Api.baseUrl}/orders?page=$page&limit=$limit'),
       headers: await _headers(),
     );
     if (res.statusCode == 200) {
