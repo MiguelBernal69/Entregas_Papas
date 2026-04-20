@@ -1,8 +1,12 @@
 const { PrismaClient } = require('../src/generated/prisma');
+const { PrismaPg } = require('@prisma/adapter-pg');
+const { Pool } = require('pg');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const prisma = new PrismaClient();
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🚀 Iniciando script de creación de sesiones retroactivas...');
