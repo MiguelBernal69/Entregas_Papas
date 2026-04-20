@@ -11,10 +11,11 @@ interface Stats {
   aceptado: number
   asignado: number
   entregado: number
+  entrega_parcial: number
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({ total: 0, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0 })
+  const [stats, setStats] = useState<Stats>({ total: 0, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0, entrega_parcial: 0 })
   const [totalClients, setTotalClients] = useState(0)
   const [totalUsers, setTotalUsers] = useState(0)
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
           getUsers()
         ])
 
-        const s: Stats = { total: orders.length, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0 }
+        const s: Stats = { total: orders.length, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0, entrega_parcial: 0 }
         orders.forEach((o: Order) => { s[o.status]++ })
 
         setStats(s)
@@ -49,7 +50,8 @@ export default function AdminDashboard() {
     pendiente: 'bg-yellow-100 text-yellow-700',
     aceptado:  'bg-blue-100 text-blue-700',
     asignado:  'bg-purple-100 text-purple-700',
-    entregado: 'bg-green-100 text-green-700'
+    entregado: 'bg-green-100 text-green-700',
+    entrega_parcial: 'bg-orange-100 text-orange-700'
   }
 
   if (loading) return (
@@ -70,7 +72,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Pedidos"   value={stats.total}       icon="📦" color="bg-blue-50   border-blue-200"  />
           <StatCard label="Por entregar"    value={stats.asignado}    icon="🚚" color="bg-purple-50 border-purple-200" />
-          <StatCard label="Entregados hoy"  value={stats.entregado}   icon="✅" color="bg-green-50  border-green-200"  />
+          <StatCard label="Entregados hoy"  value={stats.entregado + stats.entrega_parcial}   icon="✅" color="bg-green-50  border-green-200"  />
           <StatCard label="Clientes"        value={totalClients}      icon="🏪" color="bg-yellow-50 border-yellow-200" />
         </div>
 
