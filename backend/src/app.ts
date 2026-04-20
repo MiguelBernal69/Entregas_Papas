@@ -9,6 +9,7 @@ import productsRouter from './modules/products/products.router'
 import ordersRouter from './modules/orders/orders.router'
 import regionsRouter from './modules/regions/regions.router'
 import distributorRouter from './modules/distributor/distributor.router'
+import sessionsRouter from './modules/distributor/sessions.router'
 
 dotenv.config()
 
@@ -26,6 +27,7 @@ app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/regions', regionsRouter)
 app.use('/api/distributor', distributorRouter)
+app.use('/api/sessions', sessionsRouter)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`))

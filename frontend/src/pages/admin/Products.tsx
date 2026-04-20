@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
-import { getProducts, createProduct, updateProduct, toggleProduct } from '../../api/products'
+import { getProducts, createProduct, updateProduct, toggleProduct, deleteProduct } from '../../api/products'
 import type { Product } from '../../types'
 
 export default function AdminProducts() {
@@ -73,6 +73,16 @@ export default function AdminProducts() {
     }
   }
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('¿Está seguro de que desea eliminar este producto permanentemente?')) return
+    try {
+      await deleteProduct(id)
+      fetchProducts()
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al eliminar el producto')
+    }
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -127,11 +137,17 @@ export default function AdminProducts() {
                         onClick={() => handleToggle(product.id)}
                         className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
                           product.isActive
-                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                            ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
                             : 'bg-green-50 text-green-600 hover:bg-green-100'
                         }`}
                       >
                         {product.isActive ? 'Desactivar' : 'Activar'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        Eliminar
                       </button>
                     </td>
                   </tr>

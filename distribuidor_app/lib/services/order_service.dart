@@ -34,10 +34,20 @@ class OrderService {
     throw Exception('Error al cargar pedidos');
   }
 
-  static Future<bool> deliverOrder(int orderId) async {
+  /// Entrega un pedido. Si se proporcionan [deliveredItems], es entrega parcial.
+  /// Cada item tiene { orderItemId, deliveredQuantity }.
+  static Future<bool> deliverOrder(
+    int orderId, {
+    List<Map<String, int>>? deliveredItems,
+  }) async {
+    final body = deliveredItems != null
+        ? jsonEncode({'deliveredItems': deliveredItems})
+        : '{}';
+
     final res = await http.patch(
       Uri.parse('${Api.baseUrl}/distributor/orders/$orderId/deliver'),
       headers: await _headers(),
+      body: body,
     );
     return res.statusCode == 200;
   }

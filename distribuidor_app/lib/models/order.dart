@@ -1,6 +1,7 @@
 class OrderItem {
   final int id;
   final int quantity;
+  final int? deliveredQuantity;
   final double unitPrice;
   final String productName;
   final String productUnit;
@@ -8,15 +9,23 @@ class OrderItem {
   OrderItem({
     required this.id,
     required this.quantity,
+    this.deliveredQuantity,
     required this.unitPrice,
     required this.productName,
     required this.productUnit,
   });
 
+  /// Cantidad realmente entregada (si es null, se entregó todo)
+  int get actualDelivered => deliveredQuantity ?? quantity;
+
+  /// Cantidad devuelta (no vendida)
+  int get returnedQuantity => quantity - actualDelivered;
+
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       id: json['id'] ?? 0,
       quantity: json['quantity'] ?? 0,
+      deliveredQuantity: json['deliveredQuantity'],
       unitPrice: (json['unitPrice'] as num? ?? 0.0).toDouble(),
       productName: json['product']?['name'] ?? 'Producto Desconocido',
       productUnit: json['product']?['unit'] ?? 'ud',
@@ -76,7 +85,14 @@ class Order {
     required this.items,
   });
 
+  /// Total basado en cantidad PEDIDA
   double get total => items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.quantity));
+
+  /// Total basado en cantidad REALMENTE ENTREGADA
+  double get totalEntregado => items.fold(0.0, (sum, item) => sum + (item.unitPrice * item.actualDelivered));
+
+  /// Si es entrega parcial
+  bool get isPartial => status == 'entrega_parcial';
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(

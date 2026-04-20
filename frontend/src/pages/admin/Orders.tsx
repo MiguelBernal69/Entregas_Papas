@@ -33,8 +33,8 @@ export default function AdminOrders() {
         getUsers(),
         getRegions()
       ])
-      // Excluir pedidos entregados — van a la página de Historial
-      setOrders(ordersData.filter((o: Order) => o.status !== 'entregado'))
+      // Excluir pedidos entregados o parciales — van a la página de Historial
+      setOrders(ordersData.filter((o: Order) => o.status !== 'entregado' && o.status !== 'entrega_parcial'))
       setDistributors(usersData.filter((u: User) => u.role === 'distribuidor' && u.isActive))
       setRegions(regionsData)
     } catch (err) {
@@ -84,6 +84,34 @@ export default function AdminOrders() {
           <h1 className="text-2xl font-bold text-gray-800">Pedidos</h1>
           <p className="text-gray-500 text-sm mt-1">Gestiona y asigna pedidos a distribuidores</p>
         </div>
+
+        {/* Resumen Global de Bodega (Pedidos Aceptados) */}
+        {orders.some(o => o.status === 'aceptado') && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-green-900 mb-3 flex items-center gap-2">
+              <span>🏭</span> Total en Bodega a preparar (Todos los pedidos Aceptados)
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(
+                orders.filter(o => o.status === 'aceptado').reduce((acc, order) => {
+                  order.items.forEach(item => {
+                    const name = item.product.name
+                    acc[name] = (acc[name] || 0) + item.quantity
+                  })
+                  return acc
+                }, {} as Record<string, number>)
+              ).map(([productName, qty]) => (
+                <div key={productName} className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-green-100 flex items-center gap-2">
+                  <span className="text-sm text-gray-700">{productName}</span>
+                  <span className="text-sm font-bold text-green-700 px-2 flex items-center bg-green-100 rounded">
+                    x{qty}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
 
         {/* Barra de herramientas */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
@@ -139,6 +167,33 @@ export default function AdminOrders() {
             </>
           )}
         </div>
+
+        {/* Resumen de carga al camión */}
+        {selected.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <span>📦</span> Total a cargar al camión ({selected.length} pedidos seleccionados)
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(
+                orders.filter(o => selected.includes(o.id)).reduce((acc, order) => {
+                  order.items.forEach(item => {
+                    const name = item.product.name
+                    acc[name] = (acc[name] || 0) + item.quantity
+                  })
+                  return acc
+                }, {} as Record<string, number>)
+              ).map(([productName, qty]) => (
+                <div key={productName} className="bg-white px-3 py-2 rounded-lg shadow-sm border border-blue-100 flex items-center gap-2">
+                  <span className="text-sm text-gray-700">{productName}</span>
+                  <span className="text-sm font-bold text-blue-700 px-2 flex items-center bg-blue-100 rounded">
+                    x{qty}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tabla */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

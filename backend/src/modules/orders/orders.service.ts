@@ -83,7 +83,9 @@ export const getAllOrders = async (
 ) => {
   return prisma.order.findMany({
     where: {
-      ...(filters.status && { status: filters.status }),
+      ...(filters.status && { 
+        status: filters.status === 'entregado' ? { in: ['entregado', 'entrega_parcial'] } : filters.status 
+      }),
       ...(filters.regionId && { regionId: filters.regionId }),
       ...(filters.preventistaId && { preventistaId: filters.preventistaId })
     },
@@ -237,7 +239,7 @@ export const changeOrderStatus = async (
     where: { id },
     data: {
       status: newStatus,
-      ...(newStatus === 'entregado' && { deliveredAt: new Date() })
+      ...(['entregado', 'entrega_parcial'].includes(newStatus) && { deliveredAt: new Date() })
     }
   })
 

@@ -7,6 +7,21 @@ export const getAllProducts = async (onlyActive = false) => {
   })
 }
 
+export const deleteProduct = async (id: number) => {
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: { _count: { select: { orderItems: true } } }
+  })
+
+  if (!product) throw new Error('Producto no encontrado')
+
+  if (product._count.orderItems > 0) {
+    throw new Error('No se puede eliminar un producto que ya tiene pedidos asociados. Considere desactivarlo en su lugar.')
+  }
+
+  return prisma.product.delete({ where: { id } })
+}
+
 export const getProductById = async (id: number) => {
   const product = await prisma.product.findUnique({ where: { id } })
   if (!product) throw new Error('Producto no encontrado')

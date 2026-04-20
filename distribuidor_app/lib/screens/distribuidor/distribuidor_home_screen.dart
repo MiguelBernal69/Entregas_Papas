@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 
 import '../../services/order_service.dart';
 import '../orders_screen.dart';
+import 'report_screen.dart';
 
 class DistribuidorHomeScreen extends StatefulWidget {
   const DistribuidorHomeScreen({super.key});
@@ -20,7 +21,7 @@ class _DistribuidorHomeScreenState extends State<DistribuidorHomeScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: const [_DistribuidorDashboard(), OrdersScreen()],
+        children: const [OrdersScreen(), ReportScreen()],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -28,12 +29,12 @@ class _DistribuidorHomeScreenState extends State<DistribuidorHomeScreen> {
         selectedItemColor: const Color(0xFF3B82F6),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Resumen',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.local_shipping),
             label: 'Mi Ruta',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assessment),
+            label: 'Reporte',
           ),
         ],
       ),
@@ -84,9 +85,25 @@ class _DistribuidorDashboardState extends State<_DistribuidorDashboard> {
 
       for (var order in orders) {
         final status = order.status.toLowerCase();
-        if (status == 'entregado') {
+        if (status == 'entregado' || status == 'entrega_parcial') {
           entregados++;
-          collected += order.total;
+          // Usar totalEntregado (basado en deliveredQuantity) en vez de total
+          collected += order.totalEntregado;
+
+          // Si es parcial, los productos devueltos van al stock restante
+          if (status == 'entrega_parcial') {
+            for (var item in order.items) {
+              final devuelto = item.returnedQuantity;
+              if (devuelto > 0) {
+                totalRemainingQty += devuelto;
+                remaining.update(
+                  item.productName,
+                  (val) => val + devuelto,
+                  ifAbsent: () => devuelto,
+                );
+              }
+            }
+          }
         } else if (status == 'asignado') {
           pendientes++;
           // Sumar al stock que aún queda en la camioneta

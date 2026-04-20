@@ -47,10 +47,11 @@ export interface OrderItem {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number
     product: Product
 }
 
-export type OrderStatus = 'pendiente' | 'aceptado' | 'asignado' | 'entregado'
+export type OrderStatus = 'pendiente' | 'aceptado' | 'asignado' | 'entregado' | 'entrega_parcial'
 
 export interface Order {
     id: number

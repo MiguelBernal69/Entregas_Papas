@@ -4,8 +4,6 @@ import { getOrders } from '../../api/orders'
 import { getRegions } from '../../api/regions'
 import type { Order } from '../../types'
 
-const statusBadge = 'bg-green-100 text-green-700'
-
 export default function AdminHistory() {
   const [orders, setOrders] = useState<Order[]>([])
   const [regions, setRegions] = useState<any[]>([])
@@ -52,7 +50,7 @@ export default function AdminHistory() {
   })
 
   const totalBs = filtered.reduce((sum, o) =>
-    sum + o.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0), 0
+    sum + o.items.reduce((s, i) => s + i.unitPrice * (i.deliveredQuantity ?? i.quantity), 0), 0
   )
 
   return (
@@ -78,7 +76,7 @@ export default function AdminHistory() {
           <div className="bg-white border border-purple-200 rounded-2xl p-5 col-span-2 lg:col-span-1">
             <div className="text-2xl mb-1"><span>📦</span></div>
             <div className="text-3xl font-bold text-gray-800">
-              {filtered.reduce((s, o) => s + o.items.reduce((si, i) => si + i.quantity, 0), 0)}
+              {filtered.reduce((s, o) => s + o.items.reduce((si, i) => si + (i.deliveredQuantity ?? i.quantity), 0), 0)}
             </div>
             <div className="text-sm text-gray-500 mt-1">Unidades entregadas</div>
           </div>
@@ -132,13 +130,14 @@ export default function AdminHistory() {
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Distribuidor</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Zona</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Total</th>
-                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Entregado</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Estado</th>
+                  <th className="text-left px-4 py-3 text-gray-600 font-medium">Fecha Entrega</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Detalle</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {filtered.map(order => {
-                  const total = order.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0)
+                  const total = order.items.reduce((s, i) => s + i.unitPrice * (i.deliveredQuantity ?? i.quantity), 0)
                   return (
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 font-medium text-gray-800">#{order.id}</td>
@@ -156,6 +155,13 @@ export default function AdminHistory() {
                         ) : <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-4 py-4 font-medium text-gray-800">Bs. {total.toFixed(2)}</td>
+                      <td className="px-4 py-4">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                          order.status === 'entrega_parcial' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {order.status === 'entrega_parcial' ? 'Parcial' : 'Completa'}
+                        </span>
+                      </td>
                       <td className="px-4 py-4 text-gray-500">
                         {order.deliveredAt
                           ? new Date(order.deliveredAt).toLocaleDateString()
@@ -191,8 +197,10 @@ export default function AdminHistory() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">Pedido #{detail.id}</h2>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusBadge}`}>
-                  Entregado
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full mt-1 inline-block ${
+                  detail.status === 'entrega_parcial' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                }`}>
+                  {detail.status === 'entrega_parcial' ? 'Entrega Parcial' : 'Entregado'}
                 </span>
               </div>
               <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600 text-xl"><span>✕</span></button>
@@ -239,13 +247,18 @@ export default function AdminHistory() {
                 <div className="space-y-2">
                   {detail.items.map(item => (
                     <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-gray-600">{item.product.name} x{item.quantity}</span>
-                      <span className="font-medium">Bs. {(item.unitPrice * item.quantity).toFixed(2)}</span>
+                      <span className="text-gray-600">
+                        {item.product.name} x{item.quantity}
+                        {item.deliveredQuantity !== undefined && item.deliveredQuantity !== null && item.deliveredQuantity < item.quantity && (
+                          <span className="text-orange-600 font-medium ml-2">(Entregado: {item.deliveredQuantity})</span>
+                        )}
+                      </span>
+                      <span className="font-medium">Bs. {(item.unitPrice * (item.deliveredQuantity ?? item.quantity)).toFixed(2)}</span>
                     </div>
                   ))}
                   <div className="flex justify-between text-sm font-bold border-t pt-2">
-                    <span>Total</span>
-                    <span>Bs. {detail.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0).toFixed(2)}</span>
+                    <span>Total Cobrado</span>
+                    <span>Bs. {detail.items.reduce((s, i) => s + i.unitPrice * (i.deliveredQuantity ?? i.quantity), 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

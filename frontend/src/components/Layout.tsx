@@ -18,13 +18,14 @@ export default function Layout({ children }: Props) {
   const adminNav: NavItem[] = [
     { to: '/admin/dashboard', label: 'Dashboard',  icon: '📊' },
     { to: '/admin/orders',    label: 'Pedidos',     icon: '📦' },
-    { to: '/admin/history',   label: 'Historial',   icon: '📋' },
+    // { to: '/admin/history',   label: 'Historial',   icon: '📋' },
     { to: '/admin/map',       label: 'Mapa',        icon: '🗺️'  },
     { to: '/admin/regions',   label: 'Zonas',       icon: '📍' },
     { to: '/admin/assign-regions',  label: 'Zonas', icon: '📌' },
     { to: '/admin/users',     label: 'Usuarios',    icon: '👥' },
     { to: '/admin/clients',   label: 'Clientes',    icon: '🏪' }, // ← nuevo
     { to: '/admin/products',  label: 'Productos',   icon: '🥔' },
+    { to: '/admin/sessions',  label: 'Distribución', icon: '🚛' },
   ]
 
   const preventistaNav: NavItem[] = [

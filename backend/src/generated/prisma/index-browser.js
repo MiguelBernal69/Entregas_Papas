@@ -181,7 +181,8 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   orderId: 'orderId',
   productId: 'productId',
   quantity: 'quantity',
-  unitPrice: 'unitPrice'
+  unitPrice: 'unitPrice',
+  deliveredQuantity: 'deliveredQuantity'
 };
 
 exports.Prisma.UserRegionScalarFieldEnum = {
@@ -202,12 +203,28 @@ exports.Prisma.OrderHistoryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.DistributionSessionScalarFieldEnum = {
+  id: 'id',
+  distributorId: 'distributorId',
+  status: 'status',
+  openedAt: 'openedAt',
+  closedAt: 'closedAt',
+  closedByAdminId: 'closedByAdminId',
+  notes: 'notes',
+  snapshotData: 'snapshotData'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
 };
 
 exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull
 };
 
@@ -236,7 +253,8 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   pendiente: 'pendiente',
   aceptado: 'aceptado',
   asignado: 'asignado',
-  entregado: 'entregado'
+  entregado: 'entregado',
+  entrega_parcial: 'entrega_parcial'
 };
 
 exports.OrderAction = exports.$Enums.OrderAction = {
@@ -247,6 +265,11 @@ exports.OrderAction = exports.$Enums.OrderAction = {
   delivered: 'delivered'
 };
 
+exports.SessionStatus = exports.$Enums.SessionStatus = {
+  activa: 'activa',
+  cerrada: 'cerrada'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Region: 'Region',
@@ -255,7 +278,8 @@ exports.Prisma.ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   UserRegion: 'UserRegion',
-  OrderHistory: 'OrderHistory'
+  OrderHistory: 'OrderHistory',
+  DistributionSession: 'DistributionSession'
 };
 
 /**

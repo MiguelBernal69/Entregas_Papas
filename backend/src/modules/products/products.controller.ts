@@ -63,3 +63,12 @@ export const toggle = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ message: error.message })
   }
 }
+
+export const remove = async (req: AuthRequest, res: Response) => {
+  try {
+    await service.deleteProduct(Number(req.params.id))
+    res.json({ message: 'Producto eliminado correctamente' })
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}

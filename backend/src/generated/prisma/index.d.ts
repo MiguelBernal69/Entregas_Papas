@@ -53,6 +53,11 @@ export type UserRegion = $Result.DefaultSelection<Prisma.$UserRegionPayload>
  * 
  */
 export type OrderHistory = $Result.DefaultSelection<Prisma.$OrderHistoryPayload>
+/**
+ * Model DistributionSession
+ * 
+ */
+export type DistributionSession = $Result.DefaultSelection<Prisma.$DistributionSessionPayload>
 
 /**
  * Enums
@@ -71,7 +76,8 @@ export const OrderStatus: {
   pendiente: 'pendiente',
   aceptado: 'aceptado',
   asignado: 'asignado',
-  entregado: 'entregado'
+  entregado: 'entregado',
+  entrega_parcial: 'entrega_parcial'
 };
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
@@ -87,6 +93,14 @@ export const OrderAction: {
 
 export type OrderAction = (typeof OrderAction)[keyof typeof OrderAction]
 
+
+export const SessionStatus: {
+  activa: 'activa',
+  cerrada: 'cerrada'
+};
+
+export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus]
+
 }
 
 export type Role = $Enums.Role
@@ -100,6 +114,10 @@ export const OrderStatus: typeof $Enums.OrderStatus
 export type OrderAction = $Enums.OrderAction
 
 export const OrderAction: typeof $Enums.OrderAction
+
+export type SessionStatus = $Enums.SessionStatus
+
+export const SessionStatus: typeof $Enums.SessionStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -301,6 +319,16 @@ export class PrismaClient<
     * ```
     */
   get orderHistory(): Prisma.OrderHistoryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.distributionSession`: Exposes CRUD operations for the **DistributionSession** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DistributionSessions
+    * const distributionSessions = await prisma.distributionSession.findMany()
+    * ```
+    */
+  get distributionSession(): Prisma.DistributionSessionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -742,7 +770,8 @@ export namespace Prisma {
     Order: 'Order',
     OrderItem: 'OrderItem',
     UserRegion: 'UserRegion',
-    OrderHistory: 'OrderHistory'
+    OrderHistory: 'OrderHistory',
+    DistributionSession: 'DistributionSession'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -758,7 +787,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "region" | "client" | "product" | "order" | "orderItem" | "userRegion" | "orderHistory"
+      modelProps: "user" | "region" | "client" | "product" | "order" | "orderItem" | "userRegion" | "orderHistory" | "distributionSession"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1354,6 +1383,80 @@ export namespace Prisma {
           }
         }
       }
+      DistributionSession: {
+        payload: Prisma.$DistributionSessionPayload<ExtArgs>
+        fields: Prisma.DistributionSessionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DistributionSessionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DistributionSessionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>
+          }
+          findFirst: {
+            args: Prisma.DistributionSessionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DistributionSessionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>
+          }
+          findMany: {
+            args: Prisma.DistributionSessionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>[]
+          }
+          create: {
+            args: Prisma.DistributionSessionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>
+          }
+          createMany: {
+            args: Prisma.DistributionSessionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DistributionSessionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>[]
+          }
+          delete: {
+            args: Prisma.DistributionSessionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>
+          }
+          update: {
+            args: Prisma.DistributionSessionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>
+          }
+          deleteMany: {
+            args: Prisma.DistributionSessionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DistributionSessionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DistributionSessionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>[]
+          }
+          upsert: {
+            args: Prisma.DistributionSessionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistributionSessionPayload>
+          }
+          aggregate: {
+            args: Prisma.DistributionSessionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDistributionSession>
+          }
+          groupBy: {
+            args: Prisma.DistributionSessionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DistributionSessionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DistributionSessionCountArgs<ExtArgs>
+            result: $Utils.Optional<DistributionSessionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1470,6 +1573,7 @@ export namespace Prisma {
     orderItem?: OrderItemOmit
     userRegion?: UserRegionOmit
     orderHistory?: OrderHistoryOmit
+    distributionSession?: DistributionSessionOmit
   }
 
   /* Types for Logging */
@@ -1556,6 +1660,8 @@ export namespace Prisma {
     historyActions: number
     regionsCreated: number
     assignedRegions: number
+    distributionSessions: number
+    sessionsClosedByMe: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1565,6 +1671,8 @@ export namespace Prisma {
     historyActions?: boolean | UserCountOutputTypeCountHistoryActionsArgs
     regionsCreated?: boolean | UserCountOutputTypeCountRegionsCreatedArgs
     assignedRegions?: boolean | UserCountOutputTypeCountAssignedRegionsArgs
+    distributionSessions?: boolean | UserCountOutputTypeCountDistributionSessionsArgs
+    sessionsClosedByMe?: boolean | UserCountOutputTypeCountSessionsClosedByMeArgs
   }
 
   // Custom InputTypes
@@ -1618,6 +1726,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAssignedRegionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserRegionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountDistributionSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DistributionSessionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSessionsClosedByMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DistributionSessionWhereInput
   }
 
 
@@ -2004,6 +2126,8 @@ export namespace Prisma {
     historyActions?: boolean | User$historyActionsArgs<ExtArgs>
     regionsCreated?: boolean | User$regionsCreatedArgs<ExtArgs>
     assignedRegions?: boolean | User$assignedRegionsArgs<ExtArgs>
+    distributionSessions?: boolean | User$distributionSessionsArgs<ExtArgs>
+    sessionsClosedByMe?: boolean | User$sessionsClosedByMeArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2048,6 +2172,8 @@ export namespace Prisma {
     historyActions?: boolean | User$historyActionsArgs<ExtArgs>
     regionsCreated?: boolean | User$regionsCreatedArgs<ExtArgs>
     assignedRegions?: boolean | User$assignedRegionsArgs<ExtArgs>
+    distributionSessions?: boolean | User$distributionSessionsArgs<ExtArgs>
+    sessionsClosedByMe?: boolean | User$sessionsClosedByMeArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2062,6 +2188,8 @@ export namespace Prisma {
       historyActions: Prisma.$OrderHistoryPayload<ExtArgs>[]
       regionsCreated: Prisma.$RegionPayload<ExtArgs>[]
       assignedRegions: Prisma.$UserRegionPayload<ExtArgs>[]
+      distributionSessions: Prisma.$DistributionSessionPayload<ExtArgs>[]
+      sessionsClosedByMe: Prisma.$DistributionSessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2472,6 +2600,8 @@ export namespace Prisma {
     historyActions<T extends User$historyActionsArgs<ExtArgs> = {}>(args?: Subset<T, User$historyActionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     regionsCreated<T extends User$regionsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, User$regionsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     assignedRegions<T extends User$assignedRegionsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignedRegionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    distributionSessions<T extends User$distributionSessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$distributionSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sessionsClosedByMe<T extends User$sessionsClosedByMeArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsClosedByMeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3043,6 +3173,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserRegionScalarFieldEnum | UserRegionScalarFieldEnum[]
+  }
+
+  /**
+   * User.distributionSessions
+   */
+  export type User$distributionSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    where?: DistributionSessionWhereInput
+    orderBy?: DistributionSessionOrderByWithRelationInput | DistributionSessionOrderByWithRelationInput[]
+    cursor?: DistributionSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DistributionSessionScalarFieldEnum | DistributionSessionScalarFieldEnum[]
+  }
+
+  /**
+   * User.sessionsClosedByMe
+   */
+  export type User$sessionsClosedByMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    where?: DistributionSessionWhereInput
+    orderBy?: DistributionSessionOrderByWithRelationInput | DistributionSessionOrderByWithRelationInput[]
+    cursor?: DistributionSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DistributionSessionScalarFieldEnum | DistributionSessionScalarFieldEnum[]
   }
 
   /**
@@ -7954,6 +8132,7 @@ export namespace Prisma {
     productId: number | null
     quantity: number | null
     unitPrice: number | null
+    deliveredQuantity: number | null
   }
 
   export type OrderItemSumAggregateOutputType = {
@@ -7962,6 +8141,7 @@ export namespace Prisma {
     productId: number | null
     quantity: number | null
     unitPrice: number | null
+    deliveredQuantity: number | null
   }
 
   export type OrderItemMinAggregateOutputType = {
@@ -7970,6 +8150,7 @@ export namespace Prisma {
     productId: number | null
     quantity: number | null
     unitPrice: number | null
+    deliveredQuantity: number | null
   }
 
   export type OrderItemMaxAggregateOutputType = {
@@ -7978,6 +8159,7 @@ export namespace Prisma {
     productId: number | null
     quantity: number | null
     unitPrice: number | null
+    deliveredQuantity: number | null
   }
 
   export type OrderItemCountAggregateOutputType = {
@@ -7986,6 +8168,7 @@ export namespace Prisma {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity: number
     _all: number
   }
 
@@ -7996,6 +8179,7 @@ export namespace Prisma {
     productId?: true
     quantity?: true
     unitPrice?: true
+    deliveredQuantity?: true
   }
 
   export type OrderItemSumAggregateInputType = {
@@ -8004,6 +8188,7 @@ export namespace Prisma {
     productId?: true
     quantity?: true
     unitPrice?: true
+    deliveredQuantity?: true
   }
 
   export type OrderItemMinAggregateInputType = {
@@ -8012,6 +8197,7 @@ export namespace Prisma {
     productId?: true
     quantity?: true
     unitPrice?: true
+    deliveredQuantity?: true
   }
 
   export type OrderItemMaxAggregateInputType = {
@@ -8020,6 +8206,7 @@ export namespace Prisma {
     productId?: true
     quantity?: true
     unitPrice?: true
+    deliveredQuantity?: true
   }
 
   export type OrderItemCountAggregateInputType = {
@@ -8028,6 +8215,7 @@ export namespace Prisma {
     productId?: true
     quantity?: true
     unitPrice?: true
+    deliveredQuantity?: true
     _all?: true
   }
 
@@ -8123,6 +8311,7 @@ export namespace Prisma {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity: number | null
     _count: OrderItemCountAggregateOutputType | null
     _avg: OrderItemAvgAggregateOutputType | null
     _sum: OrderItemSumAggregateOutputType | null
@@ -8150,6 +8339,7 @@ export namespace Prisma {
     productId?: boolean
     quantity?: boolean
     unitPrice?: boolean
+    deliveredQuantity?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["orderItem"]>
@@ -8160,6 +8350,7 @@ export namespace Prisma {
     productId?: boolean
     quantity?: boolean
     unitPrice?: boolean
+    deliveredQuantity?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["orderItem"]>
@@ -8170,6 +8361,7 @@ export namespace Prisma {
     productId?: boolean
     quantity?: boolean
     unitPrice?: boolean
+    deliveredQuantity?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["orderItem"]>
@@ -8180,9 +8372,10 @@ export namespace Prisma {
     productId?: boolean
     quantity?: boolean
     unitPrice?: boolean
+    deliveredQuantity?: boolean
   }
 
-  export type OrderItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "productId" | "quantity" | "unitPrice", ExtArgs["result"]["orderItem"]>
+  export type OrderItemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "productId" | "quantity" | "unitPrice" | "deliveredQuantity", ExtArgs["result"]["orderItem"]>
   export type OrderItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
     product?: boolean | ProductDefaultArgs<ExtArgs>
@@ -8208,6 +8401,7 @@ export namespace Prisma {
       productId: number
       quantity: number
       unitPrice: number
+      deliveredQuantity: number | null
     }, ExtArgs["result"]["orderItem"]>
     composites: {}
   }
@@ -8638,6 +8832,7 @@ export namespace Prisma {
     readonly productId: FieldRef<"OrderItem", 'Int'>
     readonly quantity: FieldRef<"OrderItem", 'Int'>
     readonly unitPrice: FieldRef<"OrderItem", 'Float'>
+    readonly deliveredQuantity: FieldRef<"OrderItem", 'Int'>
   }
     
 
@@ -11306,6 +11501,1173 @@ export namespace Prisma {
 
 
   /**
+   * Model DistributionSession
+   */
+
+  export type AggregateDistributionSession = {
+    _count: DistributionSessionCountAggregateOutputType | null
+    _avg: DistributionSessionAvgAggregateOutputType | null
+    _sum: DistributionSessionSumAggregateOutputType | null
+    _min: DistributionSessionMinAggregateOutputType | null
+    _max: DistributionSessionMaxAggregateOutputType | null
+  }
+
+  export type DistributionSessionAvgAggregateOutputType = {
+    id: number | null
+    distributorId: number | null
+    closedByAdminId: number | null
+  }
+
+  export type DistributionSessionSumAggregateOutputType = {
+    id: number | null
+    distributorId: number | null
+    closedByAdminId: number | null
+  }
+
+  export type DistributionSessionMinAggregateOutputType = {
+    id: number | null
+    distributorId: number | null
+    status: $Enums.SessionStatus | null
+    openedAt: Date | null
+    closedAt: Date | null
+    closedByAdminId: number | null
+    notes: string | null
+  }
+
+  export type DistributionSessionMaxAggregateOutputType = {
+    id: number | null
+    distributorId: number | null
+    status: $Enums.SessionStatus | null
+    openedAt: Date | null
+    closedAt: Date | null
+    closedByAdminId: number | null
+    notes: string | null
+  }
+
+  export type DistributionSessionCountAggregateOutputType = {
+    id: number
+    distributorId: number
+    status: number
+    openedAt: number
+    closedAt: number
+    closedByAdminId: number
+    notes: number
+    snapshotData: number
+    _all: number
+  }
+
+
+  export type DistributionSessionAvgAggregateInputType = {
+    id?: true
+    distributorId?: true
+    closedByAdminId?: true
+  }
+
+  export type DistributionSessionSumAggregateInputType = {
+    id?: true
+    distributorId?: true
+    closedByAdminId?: true
+  }
+
+  export type DistributionSessionMinAggregateInputType = {
+    id?: true
+    distributorId?: true
+    status?: true
+    openedAt?: true
+    closedAt?: true
+    closedByAdminId?: true
+    notes?: true
+  }
+
+  export type DistributionSessionMaxAggregateInputType = {
+    id?: true
+    distributorId?: true
+    status?: true
+    openedAt?: true
+    closedAt?: true
+    closedByAdminId?: true
+    notes?: true
+  }
+
+  export type DistributionSessionCountAggregateInputType = {
+    id?: true
+    distributorId?: true
+    status?: true
+    openedAt?: true
+    closedAt?: true
+    closedByAdminId?: true
+    notes?: true
+    snapshotData?: true
+    _all?: true
+  }
+
+  export type DistributionSessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DistributionSession to aggregate.
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistributionSessions to fetch.
+     */
+    orderBy?: DistributionSessionOrderByWithRelationInput | DistributionSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DistributionSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistributionSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistributionSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DistributionSessions
+    **/
+    _count?: true | DistributionSessionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DistributionSessionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DistributionSessionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DistributionSessionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DistributionSessionMaxAggregateInputType
+  }
+
+  export type GetDistributionSessionAggregateType<T extends DistributionSessionAggregateArgs> = {
+        [P in keyof T & keyof AggregateDistributionSession]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDistributionSession[P]>
+      : GetScalarType<T[P], AggregateDistributionSession[P]>
+  }
+
+
+
+
+  export type DistributionSessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DistributionSessionWhereInput
+    orderBy?: DistributionSessionOrderByWithAggregationInput | DistributionSessionOrderByWithAggregationInput[]
+    by: DistributionSessionScalarFieldEnum[] | DistributionSessionScalarFieldEnum
+    having?: DistributionSessionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DistributionSessionCountAggregateInputType | true
+    _avg?: DistributionSessionAvgAggregateInputType
+    _sum?: DistributionSessionSumAggregateInputType
+    _min?: DistributionSessionMinAggregateInputType
+    _max?: DistributionSessionMaxAggregateInputType
+  }
+
+  export type DistributionSessionGroupByOutputType = {
+    id: number
+    distributorId: number
+    status: $Enums.SessionStatus
+    openedAt: Date
+    closedAt: Date | null
+    closedByAdminId: number | null
+    notes: string | null
+    snapshotData: JsonValue | null
+    _count: DistributionSessionCountAggregateOutputType | null
+    _avg: DistributionSessionAvgAggregateOutputType | null
+    _sum: DistributionSessionSumAggregateOutputType | null
+    _min: DistributionSessionMinAggregateOutputType | null
+    _max: DistributionSessionMaxAggregateOutputType | null
+  }
+
+  type GetDistributionSessionGroupByPayload<T extends DistributionSessionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DistributionSessionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DistributionSessionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DistributionSessionGroupByOutputType[P]>
+            : GetScalarType<T[P], DistributionSessionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DistributionSessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    distributorId?: boolean
+    status?: boolean
+    openedAt?: boolean
+    closedAt?: boolean
+    closedByAdminId?: boolean
+    notes?: boolean
+    snapshotData?: boolean
+    distributor?: boolean | UserDefaultArgs<ExtArgs>
+    closedByAdmin?: boolean | DistributionSession$closedByAdminArgs<ExtArgs>
+  }, ExtArgs["result"]["distributionSession"]>
+
+  export type DistributionSessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    distributorId?: boolean
+    status?: boolean
+    openedAt?: boolean
+    closedAt?: boolean
+    closedByAdminId?: boolean
+    notes?: boolean
+    snapshotData?: boolean
+    distributor?: boolean | UserDefaultArgs<ExtArgs>
+    closedByAdmin?: boolean | DistributionSession$closedByAdminArgs<ExtArgs>
+  }, ExtArgs["result"]["distributionSession"]>
+
+  export type DistributionSessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    distributorId?: boolean
+    status?: boolean
+    openedAt?: boolean
+    closedAt?: boolean
+    closedByAdminId?: boolean
+    notes?: boolean
+    snapshotData?: boolean
+    distributor?: boolean | UserDefaultArgs<ExtArgs>
+    closedByAdmin?: boolean | DistributionSession$closedByAdminArgs<ExtArgs>
+  }, ExtArgs["result"]["distributionSession"]>
+
+  export type DistributionSessionSelectScalar = {
+    id?: boolean
+    distributorId?: boolean
+    status?: boolean
+    openedAt?: boolean
+    closedAt?: boolean
+    closedByAdminId?: boolean
+    notes?: boolean
+    snapshotData?: boolean
+  }
+
+  export type DistributionSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "distributorId" | "status" | "openedAt" | "closedAt" | "closedByAdminId" | "notes" | "snapshotData", ExtArgs["result"]["distributionSession"]>
+  export type DistributionSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    distributor?: boolean | UserDefaultArgs<ExtArgs>
+    closedByAdmin?: boolean | DistributionSession$closedByAdminArgs<ExtArgs>
+  }
+  export type DistributionSessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    distributor?: boolean | UserDefaultArgs<ExtArgs>
+    closedByAdmin?: boolean | DistributionSession$closedByAdminArgs<ExtArgs>
+  }
+  export type DistributionSessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    distributor?: boolean | UserDefaultArgs<ExtArgs>
+    closedByAdmin?: boolean | DistributionSession$closedByAdminArgs<ExtArgs>
+  }
+
+  export type $DistributionSessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DistributionSession"
+    objects: {
+      distributor: Prisma.$UserPayload<ExtArgs>
+      closedByAdmin: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      distributorId: number
+      status: $Enums.SessionStatus
+      openedAt: Date
+      closedAt: Date | null
+      closedByAdminId: number | null
+      notes: string | null
+      snapshotData: Prisma.JsonValue | null
+    }, ExtArgs["result"]["distributionSession"]>
+    composites: {}
+  }
+
+  type DistributionSessionGetPayload<S extends boolean | null | undefined | DistributionSessionDefaultArgs> = $Result.GetResult<Prisma.$DistributionSessionPayload, S>
+
+  type DistributionSessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DistributionSessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DistributionSessionCountAggregateInputType | true
+    }
+
+  export interface DistributionSessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DistributionSession'], meta: { name: 'DistributionSession' } }
+    /**
+     * Find zero or one DistributionSession that matches the filter.
+     * @param {DistributionSessionFindUniqueArgs} args - Arguments to find a DistributionSession
+     * @example
+     * // Get one DistributionSession
+     * const distributionSession = await prisma.distributionSession.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DistributionSessionFindUniqueArgs>(args: SelectSubset<T, DistributionSessionFindUniqueArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DistributionSession that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DistributionSessionFindUniqueOrThrowArgs} args - Arguments to find a DistributionSession
+     * @example
+     * // Get one DistributionSession
+     * const distributionSession = await prisma.distributionSession.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DistributionSessionFindUniqueOrThrowArgs>(args: SelectSubset<T, DistributionSessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DistributionSession that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionFindFirstArgs} args - Arguments to find a DistributionSession
+     * @example
+     * // Get one DistributionSession
+     * const distributionSession = await prisma.distributionSession.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DistributionSessionFindFirstArgs>(args?: SelectSubset<T, DistributionSessionFindFirstArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DistributionSession that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionFindFirstOrThrowArgs} args - Arguments to find a DistributionSession
+     * @example
+     * // Get one DistributionSession
+     * const distributionSession = await prisma.distributionSession.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DistributionSessionFindFirstOrThrowArgs>(args?: SelectSubset<T, DistributionSessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DistributionSessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DistributionSessions
+     * const distributionSessions = await prisma.distributionSession.findMany()
+     * 
+     * // Get first 10 DistributionSessions
+     * const distributionSessions = await prisma.distributionSession.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const distributionSessionWithIdOnly = await prisma.distributionSession.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DistributionSessionFindManyArgs>(args?: SelectSubset<T, DistributionSessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DistributionSession.
+     * @param {DistributionSessionCreateArgs} args - Arguments to create a DistributionSession.
+     * @example
+     * // Create one DistributionSession
+     * const DistributionSession = await prisma.distributionSession.create({
+     *   data: {
+     *     // ... data to create a DistributionSession
+     *   }
+     * })
+     * 
+     */
+    create<T extends DistributionSessionCreateArgs>(args: SelectSubset<T, DistributionSessionCreateArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DistributionSessions.
+     * @param {DistributionSessionCreateManyArgs} args - Arguments to create many DistributionSessions.
+     * @example
+     * // Create many DistributionSessions
+     * const distributionSession = await prisma.distributionSession.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DistributionSessionCreateManyArgs>(args?: SelectSubset<T, DistributionSessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DistributionSessions and returns the data saved in the database.
+     * @param {DistributionSessionCreateManyAndReturnArgs} args - Arguments to create many DistributionSessions.
+     * @example
+     * // Create many DistributionSessions
+     * const distributionSession = await prisma.distributionSession.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DistributionSessions and only return the `id`
+     * const distributionSessionWithIdOnly = await prisma.distributionSession.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DistributionSessionCreateManyAndReturnArgs>(args?: SelectSubset<T, DistributionSessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DistributionSession.
+     * @param {DistributionSessionDeleteArgs} args - Arguments to delete one DistributionSession.
+     * @example
+     * // Delete one DistributionSession
+     * const DistributionSession = await prisma.distributionSession.delete({
+     *   where: {
+     *     // ... filter to delete one DistributionSession
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DistributionSessionDeleteArgs>(args: SelectSubset<T, DistributionSessionDeleteArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DistributionSession.
+     * @param {DistributionSessionUpdateArgs} args - Arguments to update one DistributionSession.
+     * @example
+     * // Update one DistributionSession
+     * const distributionSession = await prisma.distributionSession.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DistributionSessionUpdateArgs>(args: SelectSubset<T, DistributionSessionUpdateArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DistributionSessions.
+     * @param {DistributionSessionDeleteManyArgs} args - Arguments to filter DistributionSessions to delete.
+     * @example
+     * // Delete a few DistributionSessions
+     * const { count } = await prisma.distributionSession.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DistributionSessionDeleteManyArgs>(args?: SelectSubset<T, DistributionSessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DistributionSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DistributionSessions
+     * const distributionSession = await prisma.distributionSession.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DistributionSessionUpdateManyArgs>(args: SelectSubset<T, DistributionSessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DistributionSessions and returns the data updated in the database.
+     * @param {DistributionSessionUpdateManyAndReturnArgs} args - Arguments to update many DistributionSessions.
+     * @example
+     * // Update many DistributionSessions
+     * const distributionSession = await prisma.distributionSession.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DistributionSessions and only return the `id`
+     * const distributionSessionWithIdOnly = await prisma.distributionSession.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DistributionSessionUpdateManyAndReturnArgs>(args: SelectSubset<T, DistributionSessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DistributionSession.
+     * @param {DistributionSessionUpsertArgs} args - Arguments to update or create a DistributionSession.
+     * @example
+     * // Update or create a DistributionSession
+     * const distributionSession = await prisma.distributionSession.upsert({
+     *   create: {
+     *     // ... data to create a DistributionSession
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DistributionSession we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DistributionSessionUpsertArgs>(args: SelectSubset<T, DistributionSessionUpsertArgs<ExtArgs>>): Prisma__DistributionSessionClient<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DistributionSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionCountArgs} args - Arguments to filter DistributionSessions to count.
+     * @example
+     * // Count the number of DistributionSessions
+     * const count = await prisma.distributionSession.count({
+     *   where: {
+     *     // ... the filter for the DistributionSessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends DistributionSessionCountArgs>(
+      args?: Subset<T, DistributionSessionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DistributionSessionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DistributionSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DistributionSessionAggregateArgs>(args: Subset<T, DistributionSessionAggregateArgs>): Prisma.PrismaPromise<GetDistributionSessionAggregateType<T>>
+
+    /**
+     * Group by DistributionSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistributionSessionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DistributionSessionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DistributionSessionGroupByArgs['orderBy'] }
+        : { orderBy?: DistributionSessionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DistributionSessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDistributionSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DistributionSession model
+   */
+  readonly fields: DistributionSessionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DistributionSession.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DistributionSessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    distributor<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    closedByAdmin<T extends DistributionSession$closedByAdminArgs<ExtArgs> = {}>(args?: Subset<T, DistributionSession$closedByAdminArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DistributionSession model
+   */
+  interface DistributionSessionFieldRefs {
+    readonly id: FieldRef<"DistributionSession", 'Int'>
+    readonly distributorId: FieldRef<"DistributionSession", 'Int'>
+    readonly status: FieldRef<"DistributionSession", 'SessionStatus'>
+    readonly openedAt: FieldRef<"DistributionSession", 'DateTime'>
+    readonly closedAt: FieldRef<"DistributionSession", 'DateTime'>
+    readonly closedByAdminId: FieldRef<"DistributionSession", 'Int'>
+    readonly notes: FieldRef<"DistributionSession", 'String'>
+    readonly snapshotData: FieldRef<"DistributionSession", 'Json'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DistributionSession findUnique
+   */
+  export type DistributionSessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which DistributionSession to fetch.
+     */
+    where: DistributionSessionWhereUniqueInput
+  }
+
+  /**
+   * DistributionSession findUniqueOrThrow
+   */
+  export type DistributionSessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which DistributionSession to fetch.
+     */
+    where: DistributionSessionWhereUniqueInput
+  }
+
+  /**
+   * DistributionSession findFirst
+   */
+  export type DistributionSessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which DistributionSession to fetch.
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistributionSessions to fetch.
+     */
+    orderBy?: DistributionSessionOrderByWithRelationInput | DistributionSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DistributionSessions.
+     */
+    cursor?: DistributionSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistributionSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistributionSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DistributionSessions.
+     */
+    distinct?: DistributionSessionScalarFieldEnum | DistributionSessionScalarFieldEnum[]
+  }
+
+  /**
+   * DistributionSession findFirstOrThrow
+   */
+  export type DistributionSessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which DistributionSession to fetch.
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistributionSessions to fetch.
+     */
+    orderBy?: DistributionSessionOrderByWithRelationInput | DistributionSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DistributionSessions.
+     */
+    cursor?: DistributionSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistributionSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistributionSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DistributionSessions.
+     */
+    distinct?: DistributionSessionScalarFieldEnum | DistributionSessionScalarFieldEnum[]
+  }
+
+  /**
+   * DistributionSession findMany
+   */
+  export type DistributionSessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which DistributionSessions to fetch.
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistributionSessions to fetch.
+     */
+    orderBy?: DistributionSessionOrderByWithRelationInput | DistributionSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DistributionSessions.
+     */
+    cursor?: DistributionSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistributionSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistributionSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DistributionSessions.
+     */
+    distinct?: DistributionSessionScalarFieldEnum | DistributionSessionScalarFieldEnum[]
+  }
+
+  /**
+   * DistributionSession create
+   */
+  export type DistributionSessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DistributionSession.
+     */
+    data: XOR<DistributionSessionCreateInput, DistributionSessionUncheckedCreateInput>
+  }
+
+  /**
+   * DistributionSession createMany
+   */
+  export type DistributionSessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DistributionSessions.
+     */
+    data: DistributionSessionCreateManyInput | DistributionSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DistributionSession createManyAndReturn
+   */
+  export type DistributionSessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * The data used to create many DistributionSessions.
+     */
+    data: DistributionSessionCreateManyInput | DistributionSessionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DistributionSession update
+   */
+  export type DistributionSessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DistributionSession.
+     */
+    data: XOR<DistributionSessionUpdateInput, DistributionSessionUncheckedUpdateInput>
+    /**
+     * Choose, which DistributionSession to update.
+     */
+    where: DistributionSessionWhereUniqueInput
+  }
+
+  /**
+   * DistributionSession updateMany
+   */
+  export type DistributionSessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DistributionSessions.
+     */
+    data: XOR<DistributionSessionUpdateManyMutationInput, DistributionSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which DistributionSessions to update
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * Limit how many DistributionSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DistributionSession updateManyAndReturn
+   */
+  export type DistributionSessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * The data used to update DistributionSessions.
+     */
+    data: XOR<DistributionSessionUpdateManyMutationInput, DistributionSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which DistributionSessions to update
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * Limit how many DistributionSessions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DistributionSession upsert
+   */
+  export type DistributionSessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DistributionSession to update in case it exists.
+     */
+    where: DistributionSessionWhereUniqueInput
+    /**
+     * In case the DistributionSession found by the `where` argument doesn't exist, create a new DistributionSession with this data.
+     */
+    create: XOR<DistributionSessionCreateInput, DistributionSessionUncheckedCreateInput>
+    /**
+     * In case the DistributionSession was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DistributionSessionUpdateInput, DistributionSessionUncheckedUpdateInput>
+  }
+
+  /**
+   * DistributionSession delete
+   */
+  export type DistributionSessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+    /**
+     * Filter which DistributionSession to delete.
+     */
+    where: DistributionSessionWhereUniqueInput
+  }
+
+  /**
+   * DistributionSession deleteMany
+   */
+  export type DistributionSessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DistributionSessions to delete
+     */
+    where?: DistributionSessionWhereInput
+    /**
+     * Limit how many DistributionSessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DistributionSession.closedByAdmin
+   */
+  export type DistributionSession$closedByAdminArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * DistributionSession without action
+   */
+  export type DistributionSessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistributionSession
+     */
+    select?: DistributionSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistributionSession
+     */
+    omit?: DistributionSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DistributionSessionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -11395,7 +12757,8 @@ export namespace Prisma {
     orderId: 'orderId',
     productId: 'productId',
     quantity: 'quantity',
-    unitPrice: 'unitPrice'
+    unitPrice: 'unitPrice',
+    deliveredQuantity: 'deliveredQuantity'
   };
 
   export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
@@ -11425,6 +12788,20 @@ export namespace Prisma {
   export type OrderHistoryScalarFieldEnum = (typeof OrderHistoryScalarFieldEnum)[keyof typeof OrderHistoryScalarFieldEnum]
 
 
+  export const DistributionSessionScalarFieldEnum: {
+    id: 'id',
+    distributorId: 'distributorId',
+    status: 'status',
+    openedAt: 'openedAt',
+    closedAt: 'closedAt',
+    closedByAdminId: 'closedByAdminId',
+    notes: 'notes',
+    snapshotData: 'snapshotData'
+  };
+
+  export type DistributionSessionScalarFieldEnum = (typeof DistributionSessionScalarFieldEnum)[keyof typeof DistributionSessionScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -11438,6 +12815,14 @@ export namespace Prisma {
   };
 
   export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -11587,6 +12972,20 @@ export namespace Prisma {
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
+
+
+  /**
+   * Reference to a field of type 'SessionStatus'
+   */
+  export type EnumSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SessionStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SessionStatus[]'
+   */
+  export type ListEnumSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SessionStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -11610,6 +13009,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryListRelationFilter
     regionsCreated?: RegionListRelationFilter
     assignedRegions?: UserRegionListRelationFilter
+    distributionSessions?: DistributionSessionListRelationFilter
+    sessionsClosedByMe?: DistributionSessionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -11627,6 +13028,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryOrderByRelationAggregateInput
     regionsCreated?: RegionOrderByRelationAggregateInput
     assignedRegions?: UserRegionOrderByRelationAggregateInput
+    distributionSessions?: DistributionSessionOrderByRelationAggregateInput
+    sessionsClosedByMe?: DistributionSessionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -11647,6 +13050,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryListRelationFilter
     regionsCreated?: RegionListRelationFilter
     assignedRegions?: UserRegionListRelationFilter
+    distributionSessions?: DistributionSessionListRelationFilter
+    sessionsClosedByMe?: DistributionSessionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -12011,6 +13416,7 @@ export namespace Prisma {
     productId?: IntFilter<"OrderItem"> | number
     quantity?: IntFilter<"OrderItem"> | number
     unitPrice?: FloatFilter<"OrderItem"> | number
+    deliveredQuantity?: IntNullableFilter<"OrderItem"> | number | null
     order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
   }
@@ -12021,6 +13427,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrderInput | SortOrder
     order?: OrderOrderByWithRelationInput
     product?: ProductOrderByWithRelationInput
   }
@@ -12034,6 +13441,7 @@ export namespace Prisma {
     productId?: IntFilter<"OrderItem"> | number
     quantity?: IntFilter<"OrderItem"> | number
     unitPrice?: FloatFilter<"OrderItem"> | number
+    deliveredQuantity?: IntNullableFilter<"OrderItem"> | number | null
     order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
   }, "id">
@@ -12044,6 +13452,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrderInput | SortOrder
     _count?: OrderItemCountOrderByAggregateInput
     _avg?: OrderItemAvgOrderByAggregateInput
     _max?: OrderItemMaxOrderByAggregateInput
@@ -12060,6 +13469,7 @@ export namespace Prisma {
     productId?: IntWithAggregatesFilter<"OrderItem"> | number
     quantity?: IntWithAggregatesFilter<"OrderItem"> | number
     unitPrice?: FloatWithAggregatesFilter<"OrderItem"> | number
+    deliveredQuantity?: IntNullableWithAggregatesFilter<"OrderItem"> | number | null
   }
 
   export type UserRegionWhereInput = {
@@ -12193,6 +13603,81 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"OrderHistory"> | Date | string
   }
 
+  export type DistributionSessionWhereInput = {
+    AND?: DistributionSessionWhereInput | DistributionSessionWhereInput[]
+    OR?: DistributionSessionWhereInput[]
+    NOT?: DistributionSessionWhereInput | DistributionSessionWhereInput[]
+    id?: IntFilter<"DistributionSession"> | number
+    distributorId?: IntFilter<"DistributionSession"> | number
+    status?: EnumSessionStatusFilter<"DistributionSession"> | $Enums.SessionStatus
+    openedAt?: DateTimeFilter<"DistributionSession"> | Date | string
+    closedAt?: DateTimeNullableFilter<"DistributionSession"> | Date | string | null
+    closedByAdminId?: IntNullableFilter<"DistributionSession"> | number | null
+    notes?: StringNullableFilter<"DistributionSession"> | string | null
+    snapshotData?: JsonNullableFilter<"DistributionSession">
+    distributor?: XOR<UserScalarRelationFilter, UserWhereInput>
+    closedByAdmin?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }
+
+  export type DistributionSessionOrderByWithRelationInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    status?: SortOrder
+    openedAt?: SortOrder
+    closedAt?: SortOrderInput | SortOrder
+    closedByAdminId?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    snapshotData?: SortOrderInput | SortOrder
+    distributor?: UserOrderByWithRelationInput
+    closedByAdmin?: UserOrderByWithRelationInput
+  }
+
+  export type DistributionSessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: DistributionSessionWhereInput | DistributionSessionWhereInput[]
+    OR?: DistributionSessionWhereInput[]
+    NOT?: DistributionSessionWhereInput | DistributionSessionWhereInput[]
+    distributorId?: IntFilter<"DistributionSession"> | number
+    status?: EnumSessionStatusFilter<"DistributionSession"> | $Enums.SessionStatus
+    openedAt?: DateTimeFilter<"DistributionSession"> | Date | string
+    closedAt?: DateTimeNullableFilter<"DistributionSession"> | Date | string | null
+    closedByAdminId?: IntNullableFilter<"DistributionSession"> | number | null
+    notes?: StringNullableFilter<"DistributionSession"> | string | null
+    snapshotData?: JsonNullableFilter<"DistributionSession">
+    distributor?: XOR<UserScalarRelationFilter, UserWhereInput>
+    closedByAdmin?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }, "id">
+
+  export type DistributionSessionOrderByWithAggregationInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    status?: SortOrder
+    openedAt?: SortOrder
+    closedAt?: SortOrderInput | SortOrder
+    closedByAdminId?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    snapshotData?: SortOrderInput | SortOrder
+    _count?: DistributionSessionCountOrderByAggregateInput
+    _avg?: DistributionSessionAvgOrderByAggregateInput
+    _max?: DistributionSessionMaxOrderByAggregateInput
+    _min?: DistributionSessionMinOrderByAggregateInput
+    _sum?: DistributionSessionSumOrderByAggregateInput
+  }
+
+  export type DistributionSessionScalarWhereWithAggregatesInput = {
+    AND?: DistributionSessionScalarWhereWithAggregatesInput | DistributionSessionScalarWhereWithAggregatesInput[]
+    OR?: DistributionSessionScalarWhereWithAggregatesInput[]
+    NOT?: DistributionSessionScalarWhereWithAggregatesInput | DistributionSessionScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"DistributionSession"> | number
+    distributorId?: IntWithAggregatesFilter<"DistributionSession"> | number
+    status?: EnumSessionStatusWithAggregatesFilter<"DistributionSession"> | $Enums.SessionStatus
+    openedAt?: DateTimeWithAggregatesFilter<"DistributionSession"> | Date | string
+    closedAt?: DateTimeNullableWithAggregatesFilter<"DistributionSession"> | Date | string | null
+    closedByAdminId?: IntNullableWithAggregatesFilter<"DistributionSession"> | number | null
+    notes?: StringNullableWithAggregatesFilter<"DistributionSession"> | string | null
+    snapshotData?: JsonNullableWithAggregatesFilter<"DistributionSession">
+  }
+
   export type UserCreateInput = {
     name: string
     email: string
@@ -12207,6 +13692,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -12224,6 +13711,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUpdateInput = {
@@ -12240,6 +13729,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -12257,6 +13748,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -12618,6 +14111,7 @@ export namespace Prisma {
   export type OrderItemCreateInput = {
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
     order: OrderCreateNestedOneWithoutItemsInput
     product: ProductCreateNestedOneWithoutOrderItemsInput
   }
@@ -12628,11 +14122,13 @@ export namespace Prisma {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
   }
 
   export type OrderItemUpdateInput = {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
   }
@@ -12643,6 +14139,7 @@ export namespace Prisma {
     productId?: IntFieldUpdateOperationsInput | number
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type OrderItemCreateManyInput = {
@@ -12651,11 +14148,13 @@ export namespace Prisma {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
   }
 
   export type OrderItemUpdateManyMutationInput = {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type OrderItemUncheckedUpdateManyInput = {
@@ -12664,6 +14163,7 @@ export namespace Prisma {
     productId?: IntFieldUpdateOperationsInput | number
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type UserRegionCreateInput = {
@@ -12782,6 +14282,78 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DistributionSessionCreateInput = {
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+    distributor: UserCreateNestedOneWithoutDistributionSessionsInput
+    closedByAdmin?: UserCreateNestedOneWithoutSessionsClosedByMeInput
+  }
+
+  export type DistributionSessionUncheckedCreateInput = {
+    id?: number
+    distributorId: number
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    closedByAdminId?: number | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionUpdateInput = {
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+    distributor?: UserUpdateOneRequiredWithoutDistributionSessionsNestedInput
+    closedByAdmin?: UserUpdateOneWithoutSessionsClosedByMeNestedInput
+  }
+
+  export type DistributionSessionUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    distributorId?: IntFieldUpdateOperationsInput | number
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    closedByAdminId?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionCreateManyInput = {
+    id?: number
+    distributorId: number
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    closedByAdminId?: number | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionUpdateManyMutationInput = {
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    distributorId?: IntFieldUpdateOperationsInput | number
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    closedByAdminId?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -12876,6 +14448,12 @@ export namespace Prisma {
     none?: UserRegionWhereInput
   }
 
+  export type DistributionSessionListRelationFilter = {
+    every?: DistributionSessionWhereInput
+    some?: DistributionSessionWhereInput
+    none?: DistributionSessionWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -12898,6 +14476,10 @@ export namespace Prisma {
   }
 
   export type UserRegionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DistributionSessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -13355,6 +14937,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrder
   }
 
   export type OrderItemAvgOrderByAggregateInput = {
@@ -13363,6 +14946,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrder
   }
 
   export type OrderItemMaxOrderByAggregateInput = {
@@ -13371,6 +14955,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrder
   }
 
   export type OrderItemMinOrderByAggregateInput = {
@@ -13379,6 +14964,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrder
   }
 
   export type OrderItemSumOrderByAggregateInput = {
@@ -13387,6 +14973,7 @@ export namespace Prisma {
     productId?: SortOrder
     quantity?: SortOrder
     unitPrice?: SortOrder
+    deliveredQuantity?: SortOrder
   }
 
   export type RegionScalarRelationFilter = {
@@ -13558,6 +15145,115 @@ export namespace Prisma {
     _max?: NestedJsonFilter<$PrismaModel>
   }
 
+  export type EnumSessionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SessionStatus | EnumSessionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSessionStatusFilter<$PrismaModel> | $Enums.SessionStatus
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type DistributionSessionCountOrderByAggregateInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    status?: SortOrder
+    openedAt?: SortOrder
+    closedAt?: SortOrder
+    closedByAdminId?: SortOrder
+    notes?: SortOrder
+    snapshotData?: SortOrder
+  }
+
+  export type DistributionSessionAvgOrderByAggregateInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    closedByAdminId?: SortOrder
+  }
+
+  export type DistributionSessionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    status?: SortOrder
+    openedAt?: SortOrder
+    closedAt?: SortOrder
+    closedByAdminId?: SortOrder
+    notes?: SortOrder
+  }
+
+  export type DistributionSessionMinOrderByAggregateInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    status?: SortOrder
+    openedAt?: SortOrder
+    closedAt?: SortOrder
+    closedByAdminId?: SortOrder
+    notes?: SortOrder
+  }
+
+  export type DistributionSessionSumOrderByAggregateInput = {
+    id?: SortOrder
+    distributorId?: SortOrder
+    closedByAdminId?: SortOrder
+  }
+
+  export type EnumSessionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SessionStatus | EnumSessionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSessionStatusWithAggregatesFilter<$PrismaModel> | $Enums.SessionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSessionStatusFilter<$PrismaModel>
+    _max?: NestedEnumSessionStatusFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
   export type ClientCreateNestedManyWithoutCreatorInput = {
     create?: XOR<ClientCreateWithoutCreatorInput, ClientUncheckedCreateWithoutCreatorInput> | ClientCreateWithoutCreatorInput[] | ClientUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutCreatorInput | ClientCreateOrConnectWithoutCreatorInput[]
@@ -13600,6 +15296,20 @@ export namespace Prisma {
     connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
   }
 
+  export type DistributionSessionCreateNestedManyWithoutDistributorInput = {
+    create?: XOR<DistributionSessionCreateWithoutDistributorInput, DistributionSessionUncheckedCreateWithoutDistributorInput> | DistributionSessionCreateWithoutDistributorInput[] | DistributionSessionUncheckedCreateWithoutDistributorInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutDistributorInput | DistributionSessionCreateOrConnectWithoutDistributorInput[]
+    createMany?: DistributionSessionCreateManyDistributorInputEnvelope
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+  }
+
+  export type DistributionSessionCreateNestedManyWithoutClosedByAdminInput = {
+    create?: XOR<DistributionSessionCreateWithoutClosedByAdminInput, DistributionSessionUncheckedCreateWithoutClosedByAdminInput> | DistributionSessionCreateWithoutClosedByAdminInput[] | DistributionSessionUncheckedCreateWithoutClosedByAdminInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutClosedByAdminInput | DistributionSessionCreateOrConnectWithoutClosedByAdminInput[]
+    createMany?: DistributionSessionCreateManyClosedByAdminInputEnvelope
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+  }
+
   export type ClientUncheckedCreateNestedManyWithoutCreatorInput = {
     create?: XOR<ClientCreateWithoutCreatorInput, ClientUncheckedCreateWithoutCreatorInput> | ClientCreateWithoutCreatorInput[] | ClientUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutCreatorInput | ClientCreateOrConnectWithoutCreatorInput[]
@@ -13640,6 +15350,20 @@ export namespace Prisma {
     connectOrCreate?: UserRegionCreateOrConnectWithoutUserInput | UserRegionCreateOrConnectWithoutUserInput[]
     createMany?: UserRegionCreateManyUserInputEnvelope
     connect?: UserRegionWhereUniqueInput | UserRegionWhereUniqueInput[]
+  }
+
+  export type DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput = {
+    create?: XOR<DistributionSessionCreateWithoutDistributorInput, DistributionSessionUncheckedCreateWithoutDistributorInput> | DistributionSessionCreateWithoutDistributorInput[] | DistributionSessionUncheckedCreateWithoutDistributorInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutDistributorInput | DistributionSessionCreateOrConnectWithoutDistributorInput[]
+    createMany?: DistributionSessionCreateManyDistributorInputEnvelope
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+  }
+
+  export type DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput = {
+    create?: XOR<DistributionSessionCreateWithoutClosedByAdminInput, DistributionSessionUncheckedCreateWithoutClosedByAdminInput> | DistributionSessionCreateWithoutClosedByAdminInput[] | DistributionSessionUncheckedCreateWithoutClosedByAdminInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutClosedByAdminInput | DistributionSessionCreateOrConnectWithoutClosedByAdminInput[]
+    createMany?: DistributionSessionCreateManyClosedByAdminInputEnvelope
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -13746,6 +15470,34 @@ export namespace Prisma {
     deleteMany?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
   }
 
+  export type DistributionSessionUpdateManyWithoutDistributorNestedInput = {
+    create?: XOR<DistributionSessionCreateWithoutDistributorInput, DistributionSessionUncheckedCreateWithoutDistributorInput> | DistributionSessionCreateWithoutDistributorInput[] | DistributionSessionUncheckedCreateWithoutDistributorInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutDistributorInput | DistributionSessionCreateOrConnectWithoutDistributorInput[]
+    upsert?: DistributionSessionUpsertWithWhereUniqueWithoutDistributorInput | DistributionSessionUpsertWithWhereUniqueWithoutDistributorInput[]
+    createMany?: DistributionSessionCreateManyDistributorInputEnvelope
+    set?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    disconnect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    delete?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    update?: DistributionSessionUpdateWithWhereUniqueWithoutDistributorInput | DistributionSessionUpdateWithWhereUniqueWithoutDistributorInput[]
+    updateMany?: DistributionSessionUpdateManyWithWhereWithoutDistributorInput | DistributionSessionUpdateManyWithWhereWithoutDistributorInput[]
+    deleteMany?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
+  }
+
+  export type DistributionSessionUpdateManyWithoutClosedByAdminNestedInput = {
+    create?: XOR<DistributionSessionCreateWithoutClosedByAdminInput, DistributionSessionUncheckedCreateWithoutClosedByAdminInput> | DistributionSessionCreateWithoutClosedByAdminInput[] | DistributionSessionUncheckedCreateWithoutClosedByAdminInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutClosedByAdminInput | DistributionSessionCreateOrConnectWithoutClosedByAdminInput[]
+    upsert?: DistributionSessionUpsertWithWhereUniqueWithoutClosedByAdminInput | DistributionSessionUpsertWithWhereUniqueWithoutClosedByAdminInput[]
+    createMany?: DistributionSessionCreateManyClosedByAdminInputEnvelope
+    set?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    disconnect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    delete?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    update?: DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput | DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput[]
+    updateMany?: DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput | DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput[]
+    deleteMany?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -13836,6 +15588,34 @@ export namespace Prisma {
     update?: UserRegionUpdateWithWhereUniqueWithoutUserInput | UserRegionUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: UserRegionUpdateManyWithWhereWithoutUserInput | UserRegionUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: UserRegionScalarWhereInput | UserRegionScalarWhereInput[]
+  }
+
+  export type DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput = {
+    create?: XOR<DistributionSessionCreateWithoutDistributorInput, DistributionSessionUncheckedCreateWithoutDistributorInput> | DistributionSessionCreateWithoutDistributorInput[] | DistributionSessionUncheckedCreateWithoutDistributorInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutDistributorInput | DistributionSessionCreateOrConnectWithoutDistributorInput[]
+    upsert?: DistributionSessionUpsertWithWhereUniqueWithoutDistributorInput | DistributionSessionUpsertWithWhereUniqueWithoutDistributorInput[]
+    createMany?: DistributionSessionCreateManyDistributorInputEnvelope
+    set?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    disconnect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    delete?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    update?: DistributionSessionUpdateWithWhereUniqueWithoutDistributorInput | DistributionSessionUpdateWithWhereUniqueWithoutDistributorInput[]
+    updateMany?: DistributionSessionUpdateManyWithWhereWithoutDistributorInput | DistributionSessionUpdateManyWithWhereWithoutDistributorInput[]
+    deleteMany?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
+  }
+
+  export type DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput = {
+    create?: XOR<DistributionSessionCreateWithoutClosedByAdminInput, DistributionSessionUncheckedCreateWithoutClosedByAdminInput> | DistributionSessionCreateWithoutClosedByAdminInput[] | DistributionSessionUncheckedCreateWithoutClosedByAdminInput[]
+    connectOrCreate?: DistributionSessionCreateOrConnectWithoutClosedByAdminInput | DistributionSessionCreateOrConnectWithoutClosedByAdminInput[]
+    upsert?: DistributionSessionUpsertWithWhereUniqueWithoutClosedByAdminInput | DistributionSessionUpsertWithWhereUniqueWithoutClosedByAdminInput[]
+    createMany?: DistributionSessionCreateManyClosedByAdminInputEnvelope
+    set?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    disconnect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    delete?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+    update?: DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput | DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput[]
+    updateMany?: DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput | DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput[]
+    deleteMany?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutRegionsCreatedInput = {
@@ -14352,6 +16132,40 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutHistoryActionsInput, UserUpdateWithoutHistoryActionsInput>, UserUncheckedUpdateWithoutHistoryActionsInput>
   }
 
+  export type UserCreateNestedOneWithoutDistributionSessionsInput = {
+    create?: XOR<UserCreateWithoutDistributionSessionsInput, UserUncheckedCreateWithoutDistributionSessionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutDistributionSessionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutSessionsClosedByMeInput = {
+    create?: XOR<UserCreateWithoutSessionsClosedByMeInput, UserUncheckedCreateWithoutSessionsClosedByMeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSessionsClosedByMeInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumSessionStatusFieldUpdateOperationsInput = {
+    set?: $Enums.SessionStatus
+  }
+
+  export type UserUpdateOneRequiredWithoutDistributionSessionsNestedInput = {
+    create?: XOR<UserCreateWithoutDistributionSessionsInput, UserUncheckedCreateWithoutDistributionSessionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutDistributionSessionsInput
+    upsert?: UserUpsertWithoutDistributionSessionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutDistributionSessionsInput, UserUpdateWithoutDistributionSessionsInput>, UserUncheckedUpdateWithoutDistributionSessionsInput>
+  }
+
+  export type UserUpdateOneWithoutSessionsClosedByMeNestedInput = {
+    create?: XOR<UserCreateWithoutSessionsClosedByMeInput, UserUncheckedCreateWithoutSessionsClosedByMeInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSessionsClosedByMeInput
+    upsert?: UserUpsertWithoutSessionsClosedByMeInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSessionsClosedByMeInput, UserUpdateWithoutSessionsClosedByMeInput>, UserUncheckedUpdateWithoutSessionsClosedByMeInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -14660,6 +16474,46 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedEnumSessionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SessionStatus | EnumSessionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSessionStatusFilter<$PrismaModel> | $Enums.SessionStatus
+  }
+
+  export type NestedEnumSessionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SessionStatus | EnumSessionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SessionStatus[] | ListEnumSessionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSessionStatusWithAggregatesFilter<$PrismaModel> | $Enums.SessionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSessionStatusFilter<$PrismaModel>
+    _max?: NestedEnumSessionStatusFilter<$PrismaModel>
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
   export type ClientCreateWithoutCreatorInput = {
     name: string
     ownerName: string
@@ -14848,6 +16702,64 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DistributionSessionCreateWithoutDistributorInput = {
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+    closedByAdmin?: UserCreateNestedOneWithoutSessionsClosedByMeInput
+  }
+
+  export type DistributionSessionUncheckedCreateWithoutDistributorInput = {
+    id?: number
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    closedByAdminId?: number | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionCreateOrConnectWithoutDistributorInput = {
+    where: DistributionSessionWhereUniqueInput
+    create: XOR<DistributionSessionCreateWithoutDistributorInput, DistributionSessionUncheckedCreateWithoutDistributorInput>
+  }
+
+  export type DistributionSessionCreateManyDistributorInputEnvelope = {
+    data: DistributionSessionCreateManyDistributorInput | DistributionSessionCreateManyDistributorInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DistributionSessionCreateWithoutClosedByAdminInput = {
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+    distributor: UserCreateNestedOneWithoutDistributionSessionsInput
+  }
+
+  export type DistributionSessionUncheckedCreateWithoutClosedByAdminInput = {
+    id?: number
+    distributorId: number
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionCreateOrConnectWithoutClosedByAdminInput = {
+    where: DistributionSessionWhereUniqueInput
+    create: XOR<DistributionSessionCreateWithoutClosedByAdminInput, DistributionSessionUncheckedCreateWithoutClosedByAdminInput>
+  }
+
+  export type DistributionSessionCreateManyClosedByAdminInputEnvelope = {
+    data: DistributionSessionCreateManyClosedByAdminInput | DistributionSessionCreateManyClosedByAdminInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ClientUpsertWithWhereUniqueWithoutCreatorInput = {
     where: ClientWhereUniqueInput
     update: XOR<ClientUpdateWithoutCreatorInput, ClientUncheckedUpdateWithoutCreatorInput>
@@ -15012,6 +16924,52 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"UserRegion"> | Date | string
   }
 
+  export type DistributionSessionUpsertWithWhereUniqueWithoutDistributorInput = {
+    where: DistributionSessionWhereUniqueInput
+    update: XOR<DistributionSessionUpdateWithoutDistributorInput, DistributionSessionUncheckedUpdateWithoutDistributorInput>
+    create: XOR<DistributionSessionCreateWithoutDistributorInput, DistributionSessionUncheckedCreateWithoutDistributorInput>
+  }
+
+  export type DistributionSessionUpdateWithWhereUniqueWithoutDistributorInput = {
+    where: DistributionSessionWhereUniqueInput
+    data: XOR<DistributionSessionUpdateWithoutDistributorInput, DistributionSessionUncheckedUpdateWithoutDistributorInput>
+  }
+
+  export type DistributionSessionUpdateManyWithWhereWithoutDistributorInput = {
+    where: DistributionSessionScalarWhereInput
+    data: XOR<DistributionSessionUpdateManyMutationInput, DistributionSessionUncheckedUpdateManyWithoutDistributorInput>
+  }
+
+  export type DistributionSessionScalarWhereInput = {
+    AND?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
+    OR?: DistributionSessionScalarWhereInput[]
+    NOT?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
+    id?: IntFilter<"DistributionSession"> | number
+    distributorId?: IntFilter<"DistributionSession"> | number
+    status?: EnumSessionStatusFilter<"DistributionSession"> | $Enums.SessionStatus
+    openedAt?: DateTimeFilter<"DistributionSession"> | Date | string
+    closedAt?: DateTimeNullableFilter<"DistributionSession"> | Date | string | null
+    closedByAdminId?: IntNullableFilter<"DistributionSession"> | number | null
+    notes?: StringNullableFilter<"DistributionSession"> | string | null
+    snapshotData?: JsonNullableFilter<"DistributionSession">
+  }
+
+  export type DistributionSessionUpsertWithWhereUniqueWithoutClosedByAdminInput = {
+    where: DistributionSessionWhereUniqueInput
+    update: XOR<DistributionSessionUpdateWithoutClosedByAdminInput, DistributionSessionUncheckedUpdateWithoutClosedByAdminInput>
+    create: XOR<DistributionSessionCreateWithoutClosedByAdminInput, DistributionSessionUncheckedCreateWithoutClosedByAdminInput>
+  }
+
+  export type DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput = {
+    where: DistributionSessionWhereUniqueInput
+    data: XOR<DistributionSessionUpdateWithoutClosedByAdminInput, DistributionSessionUncheckedUpdateWithoutClosedByAdminInput>
+  }
+
+  export type DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput = {
+    where: DistributionSessionScalarWhereInput
+    data: XOR<DistributionSessionUpdateManyMutationInput, DistributionSessionUncheckedUpdateManyWithoutClosedByAdminInput>
+  }
+
   export type UserCreateWithoutRegionsCreatedInput = {
     name: string
     email: string
@@ -15025,6 +16983,8 @@ export namespace Prisma {
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateWithoutRegionsCreatedInput = {
@@ -15041,6 +17001,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserCreateOrConnectWithoutRegionsCreatedInput = {
@@ -15167,6 +17129,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRegionsCreatedInput = {
@@ -15183,6 +17147,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type ClientUpsertWithWhereUniqueWithoutRegionInput = {
@@ -15270,6 +17236,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateWithoutClientsCreatedInput = {
@@ -15286,6 +17254,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserCreateOrConnectWithoutClientsCreatedInput = {
@@ -15382,6 +17352,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutClientsCreatedInput = {
@@ -15398,6 +17370,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type OrderUpsertWithWhereUniqueWithoutClientInput = {
@@ -15419,6 +17393,7 @@ export namespace Prisma {
   export type OrderItemCreateWithoutProductInput = {
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
     order: OrderCreateNestedOneWithoutItemsInput
   }
 
@@ -15427,6 +17402,7 @@ export namespace Prisma {
     orderId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
   }
 
   export type OrderItemCreateOrConnectWithoutProductInput = {
@@ -15464,6 +17440,7 @@ export namespace Prisma {
     productId?: IntFilter<"OrderItem"> | number
     quantity?: IntFilter<"OrderItem"> | number
     unitPrice?: FloatFilter<"OrderItem"> | number
+    deliveredQuantity?: IntNullableFilter<"OrderItem"> | number | null
   }
 
   export type ClientCreateWithoutOrdersInput = {
@@ -15513,6 +17490,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateWithoutOrdersCreatedInput = {
@@ -15529,6 +17508,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserCreateOrConnectWithoutOrdersCreatedInput = {
@@ -15549,6 +17530,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateWithoutOrdersDeliveryInput = {
@@ -15565,6 +17548,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserCreateOrConnectWithoutOrdersDeliveryInput = {
@@ -15599,6 +17584,7 @@ export namespace Prisma {
   export type OrderItemCreateWithoutOrderInput = {
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
     product: ProductCreateNestedOneWithoutOrderItemsInput
   }
 
@@ -15607,6 +17593,7 @@ export namespace Prisma {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
   }
 
   export type OrderItemCreateOrConnectWithoutOrderInput = {
@@ -15712,6 +17699,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersCreatedInput = {
@@ -15728,6 +17717,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUpsertWithoutOrdersDeliveryInput = {
@@ -15754,6 +17745,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersDeliveryInput = {
@@ -15770,6 +17763,8 @@ export namespace Prisma {
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type RegionUpsertWithoutOrdersInput = {
@@ -15967,6 +17962,8 @@ export namespace Prisma {
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateWithoutAssignedRegionsInput = {
@@ -15983,6 +17980,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserCreateOrConnectWithoutAssignedRegionsInput = {
@@ -16038,6 +18037,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignedRegionsInput = {
@@ -16054,6 +18055,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type RegionUpsertWithoutAssignedUsersInput = {
@@ -16129,6 +18132,8 @@ export namespace Prisma {
     ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserUncheckedCreateWithoutHistoryActionsInput = {
@@ -16145,6 +18150,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
   }
 
   export type UserCreateOrConnectWithoutHistoryActionsInput = {
@@ -16212,6 +18219,8 @@ export namespace Prisma {
     ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutHistoryActionsInput = {
@@ -16228,6 +18237,180 @@ export namespace Prisma {
     ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+  }
+
+  export type UserCreateWithoutDistributionSessionsInput = {
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+  }
+
+  export type UserUncheckedCreateWithoutDistributionSessionsInput = {
+    id?: number
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientUncheckedCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+  }
+
+  export type UserCreateOrConnectWithoutDistributionSessionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutDistributionSessionsInput, UserUncheckedCreateWithoutDistributionSessionsInput>
+  }
+
+  export type UserCreateWithoutSessionsClosedByMeInput = {
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+  }
+
+  export type UserUncheckedCreateWithoutSessionsClosedByMeInput = {
+    id?: number
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientUncheckedCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+  }
+
+  export type UserCreateOrConnectWithoutSessionsClosedByMeInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSessionsClosedByMeInput, UserUncheckedCreateWithoutSessionsClosedByMeInput>
+  }
+
+  export type UserUpsertWithoutDistributionSessionsInput = {
+    update: XOR<UserUpdateWithoutDistributionSessionsInput, UserUncheckedUpdateWithoutDistributionSessionsInput>
+    create: XOR<UserCreateWithoutDistributionSessionsInput, UserUncheckedCreateWithoutDistributionSessionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutDistributionSessionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutDistributionSessionsInput, UserUncheckedUpdateWithoutDistributionSessionsInput>
+  }
+
+  export type UserUpdateWithoutDistributionSessionsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutDistributionSessionsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUncheckedUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+  }
+
+  export type UserUpsertWithoutSessionsClosedByMeInput = {
+    update: XOR<UserUpdateWithoutSessionsClosedByMeInput, UserUncheckedUpdateWithoutSessionsClosedByMeInput>
+    create: XOR<UserCreateWithoutSessionsClosedByMeInput, UserUncheckedCreateWithoutSessionsClosedByMeInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSessionsClosedByMeInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSessionsClosedByMeInput, UserUncheckedUpdateWithoutSessionsClosedByMeInput>
+  }
+
+  export type UserUpdateWithoutSessionsClosedByMeInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSessionsClosedByMeInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUncheckedUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
   }
 
   export type ClientCreateManyCreatorInput = {
@@ -16287,6 +18470,26 @@ export namespace Prisma {
     id?: number
     regionId: number
     createdAt?: Date | string
+  }
+
+  export type DistributionSessionCreateManyDistributorInput = {
+    id?: number
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    closedByAdminId?: number | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionCreateManyClosedByAdminInput = {
+    id?: number
+    distributorId: number
+    status?: $Enums.SessionStatus
+    openedAt?: Date | string
+    closedAt?: Date | string | null
+    notes?: string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type ClientUpdateWithoutCreatorInput = {
@@ -16476,6 +18679,64 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DistributionSessionUpdateWithoutDistributorInput = {
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+    closedByAdmin?: UserUpdateOneWithoutSessionsClosedByMeNestedInput
+  }
+
+  export type DistributionSessionUncheckedUpdateWithoutDistributorInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    closedByAdminId?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionUncheckedUpdateManyWithoutDistributorInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    closedByAdminId?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionUpdateWithoutClosedByAdminInput = {
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+    distributor?: UserUpdateOneRequiredWithoutDistributionSessionsNestedInput
+  }
+
+  export type DistributionSessionUncheckedUpdateWithoutClosedByAdminInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    distributorId?: IntFieldUpdateOperationsInput | number
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type DistributionSessionUncheckedUpdateManyWithoutClosedByAdminInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    distributorId?: IntFieldUpdateOperationsInput | number
+    status?: EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+    openedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
   export type ClientCreateManyRegionInput = {
     id?: number
     name: string
@@ -16655,11 +18916,13 @@ export namespace Prisma {
     orderId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
   }
 
   export type OrderItemUpdateWithoutProductInput = {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
     order?: OrderUpdateOneRequiredWithoutItemsNestedInput
   }
 
@@ -16668,6 +18931,7 @@ export namespace Prisma {
     orderId?: IntFieldUpdateOperationsInput | number
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type OrderItemUncheckedUpdateManyWithoutProductInput = {
@@ -16675,6 +18939,7 @@ export namespace Prisma {
     orderId?: IntFieldUpdateOperationsInput | number
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type OrderItemCreateManyOrderInput = {
@@ -16682,6 +18947,7 @@ export namespace Prisma {
     productId: number
     quantity: number
     unitPrice: number
+    deliveredQuantity?: number | null
   }
 
   export type OrderHistoryCreateManyOrderInput = {
@@ -16697,6 +18963,7 @@ export namespace Prisma {
   export type OrderItemUpdateWithoutOrderInput = {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
     product?: ProductUpdateOneRequiredWithoutOrderItemsNestedInput
   }
 
@@ -16705,6 +18972,7 @@ export namespace Prisma {
     productId?: IntFieldUpdateOperationsInput | number
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
@@ -16712,6 +18980,7 @@ export namespace Prisma {
     productId?: IntFieldUpdateOperationsInput | number
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
+    deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type OrderHistoryUpdateWithoutOrderInput = {

@@ -1,6 +1,7 @@
 import { Response } from 'express'
 import { AuthRequest } from '../../middlewares/auth.middleware'
 import * as service from './distributor.service'
+import * as sessionService from './sessions.service'
 
 export const getMyOrders = async (req: AuthRequest, res: Response) => {
     try {
@@ -27,11 +28,44 @@ export const getMyOrderById = async (req: AuthRequest, res: Response) => {
 
 export const deliverOrder = async (req: AuthRequest, res: Response) => {
     try {
+        const deliveredItems = req.body.deliveredItems as
+            { orderItemId: number; deliveredQuantity: number }[] | undefined
+
         const order = await service.deliverOrder(
             Number(req.params.id),
-            req.user!.id
+            req.user!.id,
+            deliveredItems
         )
         res.json({ message: 'Pedido entregado correctamente', order })
+    } catch (error: any) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
+// ─── Sesiones de Distribución ──────────────────────────────
+
+export const getActiveSession = async (req: AuthRequest, res: Response) => {
+    try {
+        const session = await sessionService.getActiveSession(req.user!.id)
+        res.json(session)
+    } catch (error: any) {
+        res.status(404).json({ message: error.message })
+    }
+}
+
+export const openSession = async (req: AuthRequest, res: Response) => {
+    try {
+        const session = await sessionService.openSession(req.user!.id)
+        res.json({ message: 'Sesión abierta correctamente', session })
+    } catch (error: any) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
+export const getSessionReport = async (req: AuthRequest, res: Response) => {
+    try {
+        const report = await sessionService.getSessionReport(req.user!.id)
+        res.json(report)
     } catch (error: any) {
         res.status(400).json({ message: error.message })
     }
