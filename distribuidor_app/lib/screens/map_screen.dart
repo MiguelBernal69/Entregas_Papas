@@ -6,6 +6,7 @@ import '../models/order.dart';
 import '../services/order_service.dart';
 import '../config/api.dart';
 import '../widgets/client_details_sheet.dart';
+import '../widgets/delivery_form.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Order> orders;
@@ -60,36 +61,50 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _deliver(int orderId) async {
-    final confirm = await showDialog<bool>(
+    final order = widget.orders.firstWhere((o) => o.id == orderId);
+
+    // Crear controladores para cada item
+    final controllers = <int, TextEditingController>{};
+    for (var item in order.items) {
+      controllers[item.id] = TextEditingController(text: item.quantity.toString());
+    }
+
+    final result = await showModalBottomSheet<List<Map<String, int>>?>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Confirmar entrega'),
-        content: const Text('¿Marcar este pedido como entregado?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text(
-              'Entregar',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (ctx) => DeliveryForm(order: order, controllers: controllers),
     );
 
-    if (confirm != true) return;
+    // Limpiar controladores
+    for (var c in controllers.values) {
+      c.dispose();
+    }
 
-    final ok = await OrderService.deliverOrder(orderId);
+    if (result == null) return;
+
+    // Determinar si es parcial
+    bool isPartial = false;
+    for (var item in result) {
+      final orderItem = order.items.firstWhere((i) => i.id == item['orderItemId']);
+      if (item['deliveredQuantity']! < orderItem.quantity) {
+        isPartial = true;
+        break;
+      }
+    }
+
+    final ok = await OrderService.deliverOrder(
+      orderId,
+      deliveredItems: result,
+    );
+
     if (ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Pedido entregado'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text(isPartial ? '⚠️ Entrega parcial registrada' : '✅ Pedido entregado'),
+          backgroundColor: isPartial ? Colors.orange : Colors.green,
         ),
       );
       setState(() {
