@@ -1,17 +1,47 @@
-# distribuidor_app
+# Mobile App - Lector/Distribuidor
 
-A new Flutter project.
+Esta es la aplicación móvil del sistema, desarrollada utilizando **Flutter** y **Dart**. Permite a los distribuidores o lectores de campo gestionar sus entregas/lecturas, ver su ruta y usar mapas integrados para la navegación.
 
-## Getting Started
+## Requisitos previos
 
-This project is a starting point for a Flutter application.
+- Flutter SDK (versión 3.11.4 o superior recomendada)
+- Android Studio / Xcode configurado para compilación de apps móviles.
 
-A few resources to get you started if this is your first Flutter project:
+## Configuración del entorno
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+1. Ve a la carpeta `distribuidor_app`.
+2. Revisa el archivo `lib/config/api.dart` para asegurar que las constantes que apuntan a la URL de tu servidor/API (backend) son correctas para tu entorno de desarrollo o producción.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Instalación de dependencias
+
+Descarga los paquetes necesarios (equivalente a npm install en Node.js) ejecutando el siguiente comando:
+
+```bash
+flutter pub get
+```
+
+## Ejecución en modo desarrollo
+
+Para probar la app en un emulador o un dispositivo físico conectado, ejecuta:
+
+```bash
+flutter run
+```
+
+## Compilación para producción (Generar APK)
+
+Para generar el archivo ejecutable (APK) de Android que puedes enviar a tu cliente o publicar en tiendas:
+
+```bash
+flutter build apk --release
+```
+El archivo compilado se guardará en `build/app/outputs/flutter-apk/app-release.apk`.
+
+## Tecnologías principales
+
+- Flutter & Dart
+- Provider (para manejo de estado)
+- HTTP (para comunicación con la API REST)
+- Flutter Map & LatLong2 (para integración de mapas sin costo base como OSM)
+- Geolocator (para geolocalización y seguimiento de ruta)
+- Shared Preferences (para almacenamiento en caché del usuario y tokens)

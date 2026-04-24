@@ -1,73 +1,37 @@
-# React + TypeScript + Vite
+# Frontend - Panel de Administración de Entregas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es el frontend web (panel de administración) del sistema de entregas, construido con **React**, **Vite**, **TypeScript** y estilizado con **Tailwind CSS**. También utiliza **React Leaflet** para la gestión de mapas.
 
-Currently, two official plugins are available:
+## Requisitos previos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js (v18 o superior recomendado)
 
-## React Compiler
+## Configuración del entorno
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Ve a la carpeta `frontend`.
+2. Si existe un archivo `.env.example`, haz una copia y renómbralo a `.env`.
+3. Asegúrate de configurar la URL de tu API backend en las variables de entorno para que el frontend pueda conectarse (generalmente bajo el nombre `VITE_API_URL` u otro similar).
 
-## Expanding the ESLint configuration
+## Instalación
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Instala las dependencias del proyecto usando npm:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts disponibles
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `npm run dev`: Inicia el servidor de desarrollo utilizando Vite con Hot Module Replacement (HMR).
+- `npm run build`: Compila el proyecto TypeScript y construye la aplicación optimizada para producción con Vite.
+- `npm run preview`: Previsualiza localmente el build de producción generado.
+- `npm run lint`: Ejecuta el linter (ESLint) para buscar errores en el código.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Tecnologías principales
+
+- React 19
+- Vite
+- Tailwind CSS
+- React Router DOM (para enrutamiento)
+- Axios (para peticiones HTTP)
+- React Leaflet & Geoman (para mapas interactivos)
