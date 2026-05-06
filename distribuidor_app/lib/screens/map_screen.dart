@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
@@ -22,15 +23,22 @@ class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   Position? _myPosition;
   Order? _selectedOrder;
+  StreamSubscription<Position>? _positionStream;
 
   @override
   void initState() {
     super.initState();
     _selectedOrder = widget.focusOrder;
-    _getLocation();
+    _initLocationStream();
   }
 
-  Future<void> _getLocation() async {
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initLocationStream() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return;
 
@@ -40,8 +48,18 @@ class _MapScreenState extends State<MapScreen> {
       if (permission == LocationPermission.denied) return;
     }
 
-    final pos = await Geolocator.getCurrentPosition();
-    if (mounted) setState(() => _myPosition = pos);
+    if (permission == LocationPermission.deniedForever) return;
+
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      if (mounted) {
+        setState(() => _myPosition = position);
+      }
+    });
   }
 
   ll.LatLng get _center {
@@ -419,9 +437,9 @@ class _MapScreenState extends State<MapScreen> {
 
           // Botón mi ubicación
           Positioned(
-            top: 16,
-            right: 16,
-            child: FloatingActionButton.small(
+            bottom: _selectedOrder != null ? 440 : 16, // Adjusted to be above the panel
+            left: 16,
+            child: FloatingActionButton(
               heroTag: 'myLocation',
               onPressed: () {
                 if (_myPosition != null) {
@@ -429,9 +447,14 @@ class _MapScreenState extends State<MapScreen> {
                     ll.LatLng(_myPosition!.latitude, _myPosition!.longitude),
                     15,
                   );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Obteniendo ubicación...')),
+                  );
                 }
               },
-              child: const Icon(Icons.my_location),
+              backgroundColor: Colors.white,
+              child: const Icon(Icons.my_location, color: Color(0xFF3B82F6)),
             ),
           ),
         ],

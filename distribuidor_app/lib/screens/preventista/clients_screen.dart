@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -20,11 +21,45 @@ class ClientsScreen extends StatefulWidget {
 class _ClientsScreenState extends State<ClientsScreen> {
   List<Client> _clients = [];
   bool _loading = true;
+  final MapController _mapController = MapController();
+  Position? _myPosition;
+  StreamSubscription<Position>? _positionStream;
 
   @override
   void initState() {
     super.initState();
     _fetchClients();
+    _initLocationStream();
+  }
+
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initLocationStream() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    if (permission == LocationPermission.deniedForever) return;
+
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      if (mounted) {
+        setState(() => _myPosition = position);
+      }
+    });
   }
 
   Future<void> _fetchClients() async {
@@ -164,34 +199,75 @@ class _ClientsScreenState extends State<ClientsScreen> {
               ),
             )
           : _isMapMode
-              ? FlutterMap(
-                  options: MapOptions(
-                    initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
-                        ? LatLng(_clients.first.latitude, _clients.first.longitude)
-                        : const LatLng(-17.3895, -66.1568),
-                    initialZoom: 13,
-                  ),
+              ? Stack(
                   children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.distribuidor_app',
-                    ),
-                    MarkerLayer(
-                      markers: _clients.map((client) {
-                        return Marker(
-                          point: LatLng(client.latitude, client.longitude),
-                          width: 40,
-                          height: 40,
-                          child: GestureDetector(
-                            onTap: () => _showClientDetails(client),
-                            child: const Icon(
-                              Icons.location_pin,
-                              color: Colors.blue,
-                              size: 40,
-                            ),
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
+                            ? LatLng(_clients.first.latitude, _clients.first.longitude)
+                            : const LatLng(-17.3895, -66.1568),
+                        initialZoom: 13,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.distribuidor_app',
+                        ),
+                        MarkerLayer(
+                          markers: _clients.map((client) {
+                            return Marker(
+                              point: LatLng(client.latitude, client.longitude),
+                              width: 40,
+                              height: 40,
+                              child: GestureDetector(
+                                onTap: () => _showClientDetails(client),
+                                child: const Icon(
+                                  Icons.location_pin,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        if (_myPosition != null)
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: LatLng(_myPosition!.latitude, _myPosition!.longitude),
+                                width: 40,
+                                height: 40,
+                                child: const Icon(
+                                  Icons.my_location,
+                                  color: Color(0xFF3B82F6),
+                                  size: 30,
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      }).toList(),
+                      ],
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      child: FloatingActionButton(
+                        heroTag: 'center_me_clients',
+                        onPressed: () {
+                          if (_myPosition != null) {
+                            _mapController.move(
+                              LatLng(_myPosition!.latitude, _myPosition!.longitude),
+                              15,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Obteniendo ubicación...')),
+                            );
+                          }
+                        },
+                        backgroundColor: Colors.white,
+                        child: const Icon(Icons.my_location, color: Color(0xFF3B82F6)),
+                      ),
                     ),
                   ],
                 )
