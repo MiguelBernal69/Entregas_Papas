@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/order.dart';
 import '../../models/client.dart';
 import '../../models/product.dart';
@@ -273,6 +274,8 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   Client? _selectedClient;
   final _notesCtrl = TextEditingController();
   final List<Map<String, dynamic>> _items = [];
+  // Controllers de cantidad por productId
+  final Map<int, TextEditingController> _qtyControllers = {};
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -282,6 +285,15 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
     super.initState();
     _selectedClient = widget.initialClient;
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _notesCtrl.dispose();
+    for (final ctrl in _qtyControllers.values) {
+      ctrl.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -326,6 +338,8 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
 
   void _removeProduct(int productId) {
     setState(() => _items.removeWhere((i) => i['productId'] == productId));
+    _qtyControllers[productId]?.dispose();
+    _qtyControllers.remove(productId);
   }
 
   void _updateQty(int productId, int qty) {
@@ -334,6 +348,21 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
       final idx = _items.indexWhere((i) => i['productId'] == productId);
       if (idx >= 0) _items[idx]['quantity'] = qty;
     });
+    // Sincronizar el campo de texto si existe
+    final ctrl = _qtyControllers[productId];
+    if (ctrl != null && ctrl.text != '$qty') {
+      ctrl.text = '$qty';
+      ctrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: ctrl.text.length),
+      );
+    }
+  }
+
+  TextEditingController _getQtyController(int productId, int currentQty) {
+    return _qtyControllers.putIfAbsent(
+      productId,
+      () => TextEditingController(text: '$currentQty'),
+    );
   }
 
   double get _total => _items.fold(
@@ -378,6 +407,9 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -502,51 +534,119 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                           ),
                           const SizedBox(height: 8),
                           ..._items.map(
-                            (item) => Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item['name'],
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
+                            (item) {
+                              final productId = item['productId'] as int;
+                              final qty = item['quantity'] as int;
+                              final ctrl = _getQtyController(productId, qty);
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        item['name'],
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ),
+                                    // Botón -
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                        size: 20,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () => _updateQty(
+                                        productId,
+                                        qty - 1,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    // Campo de cantidad editable por teclado
+                                    SizedBox(
+                                      width: 52,
+                                      height: 36,
+                                      child: TextField(
+                                        controller: ctrl,
+                                        textAlign: TextAlign.center,
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly,
+                                        ],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                            vertical: 8,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFF3B82F6),
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFF3B82F6),
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        onChanged: (val) {
+                                          final parsed = int.tryParse(val);
+                                          if (parsed != null && parsed >= 1) {
+                                            final idx = _items.indexWhere(
+                                              (i) => i['productId'] == productId,
+                                            );
+                                            if (idx >= 0) {
+                                              setState(() {
+                                                _items[idx]['quantity'] = parsed;
+                                              });
+                                            }
+                                          }
+                                        },
+                                        onSubmitted: (val) {
+                                          final parsed = int.tryParse(val);
+                                          if (parsed == null || parsed < 1) {
+                                            ctrl.text = '$qty';
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    // Botón +
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.add_circle_outline,
+                                        size: 20,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () => _updateQty(
+                                        productId,
+                                        qty + 1,
+                                      ),
+                                    ),
+                                    // Botón eliminar
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () => _removeProduct(productId),
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.remove_circle_outline,
-                                    size: 20,
-                                  ),
-                                  onPressed: () => _updateQty(
-                                    item['productId'],
-                                    item['quantity'] - 1,
-                                  ),
-                                ),
-                                Text(
-                                  '${item['quantity']}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.add_circle_outline,
-                                    size: 20,
-                                  ),
-                                  onPressed: () => _updateQty(
-                                    item['productId'],
-                                    item['quantity'] + 1,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                    size: 20,
-                                  ),
-                                  onPressed: () =>
-                                      _removeProduct(item['productId']),
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                           const Divider(),
                           Row(

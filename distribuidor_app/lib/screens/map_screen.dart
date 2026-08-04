@@ -53,7 +53,7 @@ class _MapScreenState extends State<MapScreen> {
     _positionStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+        distanceFilter: 2, // Reduced to 2 meters for smoother real-time movement
       ),
     ).listen((Position position) {
       if (mounted) {
@@ -151,11 +151,32 @@ class _MapScreenState extends State<MapScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.distribuidor_app',
               ),
+              // Capa de marcadores (Pedidos y Mi Ubicación)
+              MarkerLayer(
+                markers: [
+                  // Marcadores de pedidos primero (abajo)
+                  ...widget.orders.map((order) {
+                    final isSelected = _selectedOrder?.id == order.id;
+                    return Marker(
+                      point: ll.LatLng(
+                        order.client.latitude,
+                        order.client.longitude,
+                      ),
+                      width: 40,
+                      height: 40,
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedOrder = order),
+                        child: Icon(
+                          Icons.location_pin,
+                          color: isSelected ? Colors.red : const Color(0xFF8B5CF6),
+                          size: isSelected ? 42 : 34,
+                        ),
+                      ),
+                    );
+                  }),
 
-              // Mi ubicación
-              if (_myPosition != null)
-                MarkerLayer(
-                  markers: [
+                  // Mi ubicación después (arriba)
+                  if (_myPosition != null)
                     Marker(
                       point: ll.LatLng(
                         _myPosition!.latitude,
@@ -163,38 +184,19 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       width: 40,
                       height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.blue,
-                        size: 32,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.my_location,
+                          color: Colors.blue,
+                          size: 28,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-
-              // Marcadores de pedidos
-              MarkerLayer(
-                markers: widget.orders.map((order) {
-                  final isSelected = _selectedOrder?.id == order.id;
-                  return Marker(
-                    point: ll.LatLng(
-                      order.client.latitude,
-                      order.client.longitude,
-                    ),
-                    width: 40,
-                    height: 40,
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedOrder = order),
-                      child: Icon(
-                        Icons.location_pin,
-                        color: isSelected
-                            ? Colors.red
-                            : const Color(0xFF8B5CF6),
-                        size: isSelected ? 42 : 34,
-                      ),
-                    ),
-                  );
-                }).toList(),
+                ],
               ),
             ],
           ),

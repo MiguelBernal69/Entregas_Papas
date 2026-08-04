@@ -53,7 +53,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
     _positionStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+        distanceFilter: 2, // Reduced for smoother real-time movement
       ),
     ).listen((Position position) {
       if (mounted) {
@@ -490,6 +490,9 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
