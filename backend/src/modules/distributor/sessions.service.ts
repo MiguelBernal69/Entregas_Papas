@@ -172,7 +172,7 @@ export const getSessionReport = async (distributorId: number) => {
  * Admin cierra una sesión de distribución.
  * Guarda un snapshot del reporte al momento del cierre.
  */
-export const closeSession = async (sessionId: number, adminId: number, notes?: string) => {
+export const closeSession = async (sessionId: number, adminId?: number, notes?: string) => {
     const session = await prisma.distributionSession.findUnique({
         where: { id: sessionId }
     })
@@ -188,7 +188,7 @@ export const closeSession = async (sessionId: number, adminId: number, notes?: s
         data: {
             status: 'cerrada',
             closedAt: new Date(),
-            closedByAdminId: adminId,
+            ...(adminId && { closedByAdminId: adminId }),
             notes,
             snapshotData: report as any
         },

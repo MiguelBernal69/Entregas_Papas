@@ -297,3 +297,20 @@ export const getOrdersForMap = async () => {
     }
   })
 }
+
+// Retorna los IDs de clientes que YA tienen pedido HOY creado por este preventista
+export const getTodayVisitedClientIds = async (preventistaId: number): Promise<number[]> => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const orders = await prisma.order.findMany({
+    where: {
+      preventistaId,
+      createdAt: { gte: today }
+    },
+    select: { clientId: true }
+  })
+
+  // Deduplica por si el mismo cliente tiene más de un pedido hoy
+  return [...new Set(orders.map(o => o.clientId))]
+}

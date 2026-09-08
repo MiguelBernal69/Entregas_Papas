@@ -3,9 +3,8 @@ import '../models/order.dart';
 
 class DeliveryForm extends StatefulWidget {
   final Order order;
-  final Map<int, TextEditingController> controllers;
 
-  const DeliveryForm({super.key, required this.order, required this.controllers});
+  const DeliveryForm({super.key, required this.order});
 
   @override
   State<DeliveryForm> createState() => _DeliveryFormState();
@@ -13,21 +12,32 @@ class DeliveryForm extends StatefulWidget {
 
 class _DeliveryFormState extends State<DeliveryForm> {
   double _calculatedTotal = 0;
+  final TextEditingController _notesCtrl = TextEditingController();
+  final Map<int, TextEditingController> _controllers = {};
+
+  @override
+  void dispose() {
+    _notesCtrl.dispose();
+    for (var c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-    _calculateTotal();
-    // Escuchar cambios en todos los controladores
-    for (var c in widget.controllers.values) {
-      c.addListener(_calculateTotal);
+    for (var item in widget.order.items) {
+      _controllers[item.id] = TextEditingController(text: item.quantity.toString());
+      _controllers[item.id]!.addListener(_calculateTotal);
     }
+    _calculateTotal();
   }
 
   void _calculateTotal() {
     double total = 0;
     for (var item in widget.order.items) {
-      final text = widget.controllers[item.id]?.text ?? '0';
+      final text = _controllers[item.id]?.text ?? '0';
       final qty = int.tryParse(text) ?? 0;
       total += qty * item.unitPrice;
     }
@@ -86,7 +96,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
 
             // Lista de productos con campos editables
             ...widget.order.items.map((item) {
-              final controller = widget.controllers[item.id]!;
+              final controller = _controllers[item.id]!;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -186,7 +196,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
               ],
             ),
 
-            // Aviso si es parcial
+            // Aviso si es parcial y campo de notas
             if (_calculatedTotal < widget.order.total) ...[
               const SizedBox(height: 8),
               Container(
@@ -212,6 +222,21 @@ class _DeliveryFormState extends State<DeliveryForm> {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _notesCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Motivo de devolución (obligatorio para parciales)',
+                  hintText: 'Ej. Cliente no tenía dinero, producto dañado...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+                maxLines: 2,
+              ),
             ],
 
             const SizedBox(height: 16),
@@ -236,10 +261,21 @@ class _DeliveryFormState extends State<DeliveryForm> {
                   flex: 2,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // Validar cantidades
+                      // Validar notas en parciales
+                      bool isPartial = _calculatedTotal < widget.order.total;
+                      if (isPartial && _notesCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Por favor, indica el motivo de la devolución'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
                       List<Map<String, int>> deliveredItems = [];
                       for (var item in widget.order.items) {
-                        final text = widget.controllers[item.id]?.text ?? '0';
+                        final text = _controllers[item.id]?.text ?? '0';
                         int qty = int.tryParse(text) ?? 0;
                         if (qty < 0) qty = 0;
                         if (qty > item.quantity) qty = item.quantity;
@@ -248,7 +284,10 @@ class _DeliveryFormState extends State<DeliveryForm> {
                           'deliveredQuantity': qty,
                         });
                       }
-                      Navigator.pop(context, deliveredItems);
+                      Navigator.pop(context, {
+                        'deliveredItems': deliveredItems,
+                        'notes': isPartial ? _notesCtrl.text.trim() : null,
+                      });
                     },
                     icon: const Icon(Icons.check_circle, size: 18),
                     label: const Text(

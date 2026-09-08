@@ -8,3 +8,7 @@ export const updateOrder = async (id: number, data: any) => (await api.put(`/ord
 export const assignOrders = async (data: any) => (await api.post('/orders/assign', data)).data
 export const changeOrderStatus = async (id: number, status: string) =>
   (await api.patch(`/orders/${id}/status`, { status })).data
+export const getMyVisitedToday = async (): Promise<number[]> => {
+  const res = await api.get('/orders/my-visited-today')
+  return res.data.clientIds
+}

@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/client.dart';
 import '../../services/client_service.dart';
+import '../../services/preventista_order_service.dart';
 import '../../config/api.dart';
 import '../../widgets/client_details_sheet.dart';
 import 'preventista_orders_screen.dart';
@@ -19,7 +20,9 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
   List<Client> _clients = [];
+  Set<int> _visitedClientIds = {};
   bool _loading = true;
+  bool _showVisited = false;
 
   @override
   void initState() {
@@ -30,14 +33,27 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Future<void> _fetchClients() async {
     setState(() => _loading = true);
     try {
-      final data = await ClientService.getClients();
+      final results = await Future.wait([
+        ClientService.getClients(),
+        PreventistaOrderService.getMyVisitedToday(),
+      ]);
       setState(() {
-        _clients = data;
+        _clients = results[0] as List<Client>;
+        _visitedClientIds = (results[1] as List<int>).toSet();
         _loading = false;
       });
     } catch (e) {
       setState(() => _loading = false);
     }
+  }
+
+  Future<void> _refreshVisited() async {
+    try {
+      final visited = await PreventistaOrderService.getMyVisitedToday();
+      setState(() {
+        _visitedClientIds = visited.toSet();
+      });
+    } catch (_) {}
   }
 
   void _showClientDetails(Client client) {
@@ -68,6 +84,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Pedido credo exitosamente')),
           );
+          _refreshVisited();
         },
       ),
     );
@@ -164,34 +181,103 @@ class _ClientsScreenState extends State<ClientsScreen> {
               ),
             )
           : _isMapMode
-              ? FlutterMap(
-                  options: MapOptions(
-                    initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
-                        ? LatLng(_clients.first.latitude, _clients.first.longitude)
-                        : const LatLng(-17.3895, -66.1568),
-                    initialZoom: 13,
-                  ),
+              ? Stack(
                   children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.distribuidor_app',
+                    FlutterMap(
+                      options: MapOptions(
+                        initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
+                            ? LatLng(_clients.first.latitude, _clients.first.longitude)
+                            : const LatLng(-17.3895, -66.1568),
+                        initialZoom: 13,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.distribuidor_app',
+                        ),
+                        MarkerLayer(
+                          markers: _clients.where((c) {
+                            if (_visitedClientIds.contains(c.id)) {
+                              return _showVisited;
+                            }
+                            return true;
+                          }).map((client) {
+                            final isVisited = _visitedClientIds.contains(client.id);
+                            return Marker(
+                              point: LatLng(client.latitude, client.longitude),
+                              width: 40,
+                              height: 40,
+                              child: GestureDetector(
+                                onTap: () => _showClientDetails(client),
+                                child: Icon(
+                                  Icons.location_pin,
+                                  color: isVisited ? Colors.blue : Colors.red,
+                                  size: 40,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ),
-                    MarkerLayer(
-                      markers: _clients.map((client) {
-                        return Marker(
-                          point: LatLng(client.latitude, client.longitude),
-                          width: 40,
-                          height: 40,
-                          child: GestureDetector(
-                            onTap: () => _showClientDetails(client),
-                            child: const Icon(
-                              Icons.location_pin,
-                              color: Colors.blue,
-                              size: 40,
+                    // HUD Superior
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              children: [
+                                const Text('✅ Visitados', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)),
+                                Text('${_visitedClientIds.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
                             ),
-                          ),
-                        );
-                      }).toList(),
+                            Container(width: 1, height: 20, color: Colors.grey.shade300),
+                            Column(
+                              children: [
+                                const Text('🔴 Ptes', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
+                                Text('${_clients.length - _visitedClientIds.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(width: 1, height: 20, color: Colors.grey.shade300),
+                            Column(
+                              children: [
+                                const Text('📋 Total', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                Text('${_clients.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(width: 1, height: 20, color: Colors.grey.shade300),
+                            GestureDetector(
+                              onTap: () => setState(() => _showVisited = !_showVisited),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _showVisited ? Colors.blue : Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _showVisited ? 'Ocultar\nvisitados' : 'Ver\nvisitados',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: _showVisited ? Colors.white : Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 )

@@ -50,4 +50,16 @@ class SessionService {
     }
     throw Exception(jsonDecode(res.body)['message'] ?? 'Error al obtener reporte');
   }
+
+  /// Cierra la sesión activa del distribuidor
+  static Future<Map<String, dynamic>?> closeSession() async {
+    final res = await http.post(
+      Uri.parse('${Api.baseUrl}/distributor/session/close'),
+      headers: await _headers(),
+    );
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    }
+    throw Exception(jsonDecode(res.body)['message'] ?? 'Error al cerrar sesión');
+  }
 }

@@ -30,11 +30,13 @@ export const deliverOrder = async (req: AuthRequest, res: Response) => {
     try {
         const deliveredItems = req.body.deliveredItems as
             { orderItemId: number; deliveredQuantity: number }[] | undefined
+        const notes = req.body.notes as string | undefined
 
         const order = await service.deliverOrder(
             Number(req.params.id),
             req.user!.id,
-            deliveredItems
+            deliveredItems,
+            notes
         )
         res.json({ message: 'Pedido entregado correctamente', order })
     } catch (error: any) {
@@ -66,6 +68,19 @@ export const getSessionReport = async (req: AuthRequest, res: Response) => {
     try {
         const report = await sessionService.getSessionReport(req.user!.id)
         res.json(report)
+    } catch (error: any) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
+export const closeMySession = async (req: AuthRequest, res: Response) => {
+    try {
+        const active = await sessionService.getActiveSession(req.user!.id)
+        if (!active) {
+            return res.status(400).json({ message: 'No tienes una sesión activa' })
+        }
+        const session = await sessionService.closeSession(active.id, undefined, req.body.notes)
+        res.json({ message: 'Sesión cerrada correctamente', session })
     } catch (error: any) {
         res.status(400).json({ message: error.message })
     }

@@ -114,3 +114,12 @@ export const assign = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ message: error.message })
   }
 }
+
+export const getMyVisitedToday = async (req: AuthRequest, res: Response) => {
+  try {
+    const clientIds = await service.getTodayVisitedClientIds(req.user!.id)
+    res.json({ clientIds })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
