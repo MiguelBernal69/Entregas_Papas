@@ -3,7 +3,7 @@ import Layout from '../../components/Layout'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import { getClients, createClient, updateClient, deleteClient } from '../../api/clients'
 import { getProducts } from '../../api/products'
-import { createOrder } from '../../api/orders'
+import { createOrder, getMyVisitedToday } from '../../api/orders'
 import { getImageUrl } from '../../api/axios'
 import type { Client, Product } from '../../types'
 import L from 'leaflet'
@@ -14,6 +14,26 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+})
+
+// Marcador rojo/naranja → cliente pendiente (sin pedido hoy)
+const pendingIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+})
+
+// Marcador azul → cliente ya visitado hoy
+const visitedIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 })
 
 // --- Internal Helper Components ---
@@ -91,6 +111,10 @@ export default function PreventistaClients() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
+  // Visited clients tracking (mapa)
+  const [visitedClientIds, setVisitedClientIds] = useState<Set<number>>(new Set())
+  const [showVisited, setShowVisited] = useState(false)
+
   // Modals state
   const [detail, setDetail] = useState<Client | null>(null)
   const [showClientModal, setShowClientModal] = useState(false)
@@ -128,7 +152,19 @@ export default function PreventistaClients() {
     }
   }
 
-  useEffect(() => { fetchData() }, [])
+  const refreshVisited = async () => {
+    try {
+      const ids = await getMyVisitedToday()
+      setVisitedClientIds(new Set(ids))
+    } catch (err) {
+      console.error('Error fetching visited clients:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+    refreshVisited()
+  }, [])
 
   const filtered = clients.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -260,6 +296,8 @@ export default function PreventistaClients() {
         items: items.map(i => ({ productId: i.productId, quantity: i.quantity }))
       })
       setShowOrderModal(false)
+      // Refrescar visitados desde el backend para mantener sincronía
+      await refreshVisited()
       setOrderClient(null)
     } catch (err: any) {
       setOrderError(err.response?.data?.message ?? 'Error al crear el pedido')
@@ -415,28 +453,83 @@ export default function PreventistaClients() {
             ) : (
               /* --- Map View (Geographical) --- */
               <div className="h-[650px] relative">
+                {/* ── HUD superior ── */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 px-4 py-2.5">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 rounded-xl">
+                    <span className="text-sm">✅</span>
+                    <span className="text-xs font-black text-green-700">{visitedClientIds.size} Visitados</span>
+                  </div>
+                  <div className="w-px h-5 bg-gray-200" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 rounded-xl">
+                    <span className="text-sm">🔴</span>
+                    <span className="text-xs font-black text-red-700">{filtered.filter(c => !visitedClientIds.has(c.id)).length} Pendientes</span>
+                  </div>
+                  <div className="w-px h-5 bg-gray-200" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-xl">
+                    <span className="text-sm">📋</span>
+                    <span className="text-xs font-black text-gray-600">{filtered.length} Total</span>
+                  </div>
+                  <div className="w-px h-5 bg-gray-200" />
+                  {/* Toggle visitados */}
+                  <button
+                    onClick={() => setShowVisited(v => !v)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      showVisited
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                    }`}
+                  >
+                    👁️ {showVisited ? 'Ocultar visitados' : 'Ver visitados'}
+                  </button>
+                </div>
+
                 <MapContainer
                   center={[-17.3895, -66.1568]}
                   zoom={13}
                   style={{ height: '100%', width: '100%' }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  {filtered.map(client => (
-                    <Marker
-                      key={client.id}
-                      position={[client.latitude, client.longitude]}
-                      eventHandlers={{
-                        click: () => setDetail(client)
-                      }}
-                    />
-                  ))}
+
+                  {/* Marcadores pendientes (rojo) — siempre visibles */}
+                  {filtered
+                    .filter(c => !visitedClientIds.has(c.id))
+                    .map(client => (
+                      <Marker
+                        key={client.id}
+                        position={[client.latitude, client.longitude]}
+                        icon={pendingIcon}
+                        eventHandlers={{ click: () => setDetail(client) }}
+                      />
+                    ))
+                  }
+
+                  {/* Marcadores visitados (azul) — visibles solo con toggle */}
+                  {showVisited && filtered
+                    .filter(c => visitedClientIds.has(c.id))
+                    .map(client => (
+                      <Marker
+                        key={client.id}
+                        position={[client.latitude, client.longitude]}
+                        icon={visitedIcon}
+                        eventHandlers={{ click: () => setDetail(client) }}
+                      />
+                    ))
+                  }
                 </MapContainer>
-                {/* Floating Map Help */}
-                <div className="absolute bottom-6 left-6 z-[1000] bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-gray-100 max-w-xs transition-opacity duration-300">
-                  <p className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Instrucciones del Mapa</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    Haz clic en cualquier <span className="font-bold text-blue-600">marcador</span> para ver los detalles de la tienda, ubicación exacta y realizar pedidos.
-                  </p>
+
+                {/* Leyenda inferior */}
+                <div className="absolute bottom-6 left-6 z-[1000] bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-gray-100 max-w-xs">
+                  <p className="text-xs font-black text-gray-800 uppercase tracking-wider mb-2">Leyenda</p>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🔴</span>
+                      <span className="text-xs text-gray-600">Pendiente — sin pedido hoy</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🔵</span>
+                      <span className="text-xs text-gray-600">Visitado — pedido registrado hoy</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

@@ -11,10 +11,10 @@ class Api {
   //    → 'http://TU_IP_O_DOMINIO:3000/api'
   //    → Si tienes dominio + SSL: 'https://api.tudominio.com/api'
   // ─────────────────────────────────────────────────────────────
-  // static const String baseUrl = 'http://91.98.25.50/api'; // Producción
-  static const String baseUrl = 'http://178.105.45.6/api'; // Producción
+  static const String baseUrl = 'http://91.98.25.50/api'; // Producción
   //static const String baseUrl = 'http://10.0.2.2:3000/api'; // Local dev (emulador Android)
-  // static const String baseUrl = 'http://192.168.100.4:3000/api'; // Local dev (dispositivo físico)
+  //static const String baseUrl = 'http://192.168.1.148:3000/api'; // Local dev (dispositivo físico WiFi)
+  // static const String baseUrl = 'http://192.168.100.4:3000/api';
 
   /// Convierte la photoUrl guardada en la DB a una URL completa accesible.
   /// Maneja tanto rutas relativas ('uploads/clients/foto.jpg')

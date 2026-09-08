@@ -52,4 +52,16 @@ class PreventistaOrderService {
     if (res.statusCode == 201) return Order.fromJson(data);
     throw Exception(data['message'] ?? 'Error al crear pedido');
   }
+
+  static Future<List<int>> getMyVisitedToday() async {
+    final res = await http.get(
+      Uri.parse('${Api.baseUrl}/orders/my-visited-today'),
+      headers: await _headers(),
+    );
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      return List<int>.from(data['clientIds'] ?? []);
+    }
+    throw Exception('Error al cargar clientes visitados hoy');
+  }
 }

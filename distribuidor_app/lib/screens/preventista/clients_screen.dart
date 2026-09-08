@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../models/client.dart';
 import '../../services/client_service.dart';
+import '../../services/preventista_order_service.dart';
 import '../../config/api.dart';
 import '../../widgets/client_details_sheet.dart';
 import 'preventista_orders_screen.dart';
@@ -20,59 +20,40 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> {
   List<Client> _clients = [];
+  Set<int> _visitedClientIds = {};
   bool _loading = true;
-  final MapController _mapController = MapController();
-  Position? _myPosition;
-  StreamSubscription<Position>? _positionStream;
+  bool _showVisited = false;
 
   @override
   void initState() {
     super.initState();
     _fetchClients();
-    _initLocationStream();
-  }
-
-  @override
-  void dispose() {
-    _positionStream?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _initLocationStream() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
-    }
-
-    if (permission == LocationPermission.deniedForever) return;
-
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 2, // Reduced for smoother real-time movement
-      ),
-    ).listen((Position position) {
-      if (mounted) {
-        setState(() => _myPosition = position);
-      }
-    });
   }
 
   Future<void> _fetchClients() async {
     setState(() => _loading = true);
     try {
-      final data = await ClientService.getClients();
+      final results = await Future.wait([
+        ClientService.getClients(),
+        PreventistaOrderService.getMyVisitedToday(),
+      ]);
       setState(() {
-        _clients = data;
+        _clients = results[0] as List<Client>;
+        _visitedClientIds = (results[1] as List<int>).toSet();
         _loading = false;
       });
     } catch (e) {
       setState(() => _loading = false);
     }
+  }
+
+  Future<void> _refreshVisited() async {
+    try {
+      final visited = await PreventistaOrderService.getMyVisitedToday();
+      setState(() {
+        _visitedClientIds = visited.toSet();
+      });
+    } catch (_) {}
   }
 
   void _showClientDetails(Client client) {
@@ -103,6 +84,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Pedido credo exitosamente')),
           );
+          _refreshVisited();
         },
       ),
     );
@@ -202,7 +184,6 @@ class _ClientsScreenState extends State<ClientsScreen> {
               ? Stack(
                   children: [
                     FlutterMap(
-                      mapController: _mapController,
                       options: MapOptions(
                         initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
                             ? LatLng(_clients.first.latitude, _clients.first.longitude)
@@ -215,58 +196,87 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           userAgentPackageName: 'com.example.distribuidor_app',
                         ),
                         MarkerLayer(
-                          markers: _clients.map((client) {
+                          markers: _clients.where((c) {
+                            if (_visitedClientIds.contains(c.id)) {
+                              return _showVisited;
+                            }
+                            return true;
+                          }).map((client) {
+                            final isVisited = _visitedClientIds.contains(client.id);
                             return Marker(
                               point: LatLng(client.latitude, client.longitude),
                               width: 40,
                               height: 40,
                               child: GestureDetector(
                                 onTap: () => _showClientDetails(client),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.location_pin,
-                                  color: Colors.red,
+                                  color: isVisited ? Colors.blue : Colors.red,
                                   size: 40,
                                 ),
                               ),
                             );
                           }).toList(),
                         ),
-                        if (_myPosition != null)
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: LatLng(_myPosition!.latitude, _myPosition!.longitude),
-                                width: 40,
-                                height: 40,
-                                child: const Icon(
-                                  Icons.my_location,
-                                  color: Color(0xFF3B82F6),
-                                  size: 30,
-                                ),
-                              ),
-                            ],
-                          ),
                       ],
                     ),
+                    // HUD Superior
                     Positioned(
-                      bottom: 16,
-                      left: 16,
-                      child: FloatingActionButton(
-                        heroTag: 'center_me_clients',
-                        onPressed: () {
-                          if (_myPosition != null) {
-                            _mapController.move(
-                              LatLng(_myPosition!.latitude, _myPosition!.longitude),
-                              15,
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Obteniendo ubicación...')),
-                            );
-                          }
-                        },
-                        backgroundColor: Colors.white,
-                        child: const Icon(Icons.my_location, color: Color(0xFF3B82F6)),
+                      top: 10,
+                      left: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              children: [
+                                const Text('✅ Visitados', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)),
+                                Text('${_visitedClientIds.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(width: 1, height: 20, color: Colors.grey.shade300),
+                            Column(
+                              children: [
+                                const Text('🔴 Ptes', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
+                                Text('${_clients.length - _visitedClientIds.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(width: 1, height: 20, color: Colors.grey.shade300),
+                            Column(
+                              children: [
+                                const Text('📋 Total', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                Text('${_clients.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            Container(width: 1, height: 20, color: Colors.grey.shade300),
+                            GestureDetector(
+                              onTap: () => setState(() => _showVisited = !_showVisited),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _showVisited ? Colors.blue : Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _showVisited ? 'Ocultar\nvisitados' : 'Ver\nvisitados',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: _showVisited ? Colors.white : Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -490,9 +500,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

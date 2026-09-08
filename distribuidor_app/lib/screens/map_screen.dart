@@ -81,31 +81,23 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _deliver(int orderId) async {
     final order = widget.orders.firstWhere((o) => o.id == orderId);
 
-    // Crear controladores para cada item
-    final controllers = <int, TextEditingController>{};
-    for (var item in order.items) {
-      controllers[item.id] = TextEditingController(text: item.quantity.toString());
-    }
-
-    final result = await showModalBottomSheet<List<Map<String, int>>?>(
+    final result = await showModalBottomSheet<Map<String, dynamic>?>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => DeliveryForm(order: order, controllers: controllers),
+      builder: (ctx) => DeliveryForm(order: order),
     );
-
-    // Limpiar controladores
-    for (var c in controllers.values) {
-      c.dispose();
-    }
 
     if (result == null) return;
 
+    final deliveredItems = result['deliveredItems'] as List<Map<String, int>>;
+    final notes = result['notes'] as String?;
+
     // Determinar si es parcial
     bool isPartial = false;
-    for (var item in result) {
+    for (var item in deliveredItems) {
       final orderItem = order.items.firstWhere((i) => i.id == item['orderItemId']);
       if (item['deliveredQuantity']! < orderItem.quantity) {
         isPartial = true;
@@ -113,22 +105,34 @@ class _MapScreenState extends State<MapScreen> {
       }
     }
 
-    final ok = await OrderService.deliverOrder(
-      orderId,
-      deliveredItems: result,
-    );
-
-    if (ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isPartial ? '⚠️ Entrega parcial registrada' : '✅ Pedido entregado'),
-          backgroundColor: isPartial ? Colors.orange : Colors.green,
-        ),
+    try {
+      final ok = await OrderService.deliverOrder(
+        orderId,
+        deliveredItems: deliveredItems,
+        notes: notes,
       );
-      setState(() {
-        widget.orders.removeWhere((o) => o.id == orderId);
-        _selectedOrder = null;
-      });
+
+      if (ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isPartial ? '⚠️ Entrega parcial registrada' : '✅ Pedido entregado'),
+            backgroundColor: isPartial ? Colors.orange : Colors.green,
+          ),
+        );
+        setState(() {
+          widget.orders.removeWhere((o) => o.id == orderId);
+          _selectedOrder = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

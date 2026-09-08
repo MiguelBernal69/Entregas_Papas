@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../services/session_service.dart';
 
 class ReportScreen extends StatefulWidget {
-  const ReportScreen({super.key});
+  final VoidCallback? onSessionEnded;
+  const ReportScreen({super.key, this.onSessionEnded});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -80,6 +81,44 @@ class _ReportScreenState extends State<ReportScreen> {
     }
   }
 
+  Future<void> _endDay() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Terminar Día'),
+        content: const Text('¿Estás seguro de que quieres finalizar tu jornada? Se cerrará tu ruta y deberás rendir cuentas a bodega.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, Finalizar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await SessionService.closeSession();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Jornada finalizada con éxito'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      widget.onSessionEnded?.call();
+      _checkSession();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +133,13 @@ class _ReportScreenState extends State<ReportScreen> {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _fetchReport,
+            ),
+          if (_hasSession)
+            IconButton(
+              icon: const Icon(Icons.power_settings_new),
+              tooltip: 'Terminar Día',
+              color: Colors.red,
+              onPressed: _endDay,
             ),
         ],
       ),

@@ -39,16 +39,28 @@ class OrderService {
   static Future<bool> deliverOrder(
     int orderId, {
     List<Map<String, int>>? deliveredItems,
+    String? notes,
   }) async {
-    final body = deliveredItems != null
-        ? jsonEncode({'deliveredItems': deliveredItems})
-        : '{}';
+    final Map<String, dynamic> payload = {};
+    if (deliveredItems != null) payload['deliveredItems'] = deliveredItems;
+    if (notes != null) payload['notes'] = notes;
+
+    final body = jsonEncode(payload);
 
     final res = await http.patch(
       Uri.parse('${Api.baseUrl}/distributor/orders/$orderId/deliver'),
       headers: await _headers(),
       body: body,
     );
-    return res.statusCode == 200;
+    if (res.statusCode == 200) return true;
+    
+    // Si hay error, intentar extraer el mensaje
+    try {
+      final data = jsonDecode(res.body);
+      throw Exception(data['message'] ?? 'Error desconocido al entregar');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Error HTTP ${res.statusCode}');
+    }
   }
 }

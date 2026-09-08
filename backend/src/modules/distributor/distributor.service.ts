@@ -1,6 +1,13 @@
 import prisma from '../../prisma/client'
+import { getActiveSession } from './sessions.service'
 
 export const getMyOrders = async (distributorId: number, statusQuery?: string, date?: string) => {
+    // Verificar si tiene sesión activa
+    const session = await getActiveSession(distributorId)
+    if (!session) {
+        return [] // No tiene carga visible hasta que inicie su día
+    }
+
     // Si no manda query, por defecto traemos asignado y entregado para que pueda sacar stats,
     // o sino lo que mande por query (ej. 'asignado').
     let statusFilter: any = undefined
@@ -106,7 +113,8 @@ export const getMyOrderById = async (orderId: number, distributorId: number) => 
 export const deliverOrder = async (
     orderId: number,
     distributorId: number,
-    deliveredItems?: { orderItemId: number; deliveredQuantity: number }[]
+    deliveredItems?: { orderItemId: number; deliveredQuantity: number }[],
+    notes?: string
 ) => {
     // Verificar que el pedido pertenece a este distribuidor
     const order = await prisma.order.findFirst({
@@ -150,7 +158,8 @@ export const deliverOrder = async (
             where: { id: orderId },
             data: {
                 status: isPartial ? 'entrega_parcial' : 'entregado',
-                deliveredAt: new Date()
+                deliveredAt: new Date(),
+                ...(notes && { notes })
             }
         })
     })
