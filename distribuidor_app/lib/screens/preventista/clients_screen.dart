@@ -163,7 +163,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 });
               },
             ),
-          )
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -181,28 +181,37 @@ class _ClientsScreenState extends State<ClientsScreen> {
               ),
             )
           : _isMapMode
-              ? Stack(
+          ? Stack(
+              children: [
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter:
+                        _clients.isNotEmpty && _clients.first.latitude != 0.0
+                        ? LatLng(
+                            _clients.first.latitude,
+                            _clients.first.longitude,
+                          )
+                        : const LatLng(-17.3895, -66.1568),
+                    initialZoom: 13,
+                  ),
                   children: [
-                    FlutterMap(
-                      options: MapOptions(
-                        initialCenter: _clients.isNotEmpty && _clients.first.latitude != 0.0
-                            ? LatLng(_clients.first.latitude, _clients.first.longitude)
-                            : const LatLng(-17.3895, -66.1568),
-                        initialZoom: 13,
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.example.distribuidor_app',
-                        ),
-                        MarkerLayer(
-                          markers: _clients.where((c) {
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.distribuidor_app',
+                    ),
+                    MarkerLayer(
+                      markers: _clients
+                          .where((c) {
                             if (_visitedClientIds.contains(c.id)) {
                               return _showVisited;
                             }
                             return true;
-                          }).map((client) {
-                            final isVisited = _visitedClientIds.contains(client.id);
+                          })
+                          .map((client) {
+                            final isVisited = _visitedClientIds.contains(
+                              client.id,
+                            );
                             return Marker(
                               point: LatLng(client.latitude, client.longitude),
                               width: 40,
@@ -216,147 +225,211 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                 ),
                               ),
                             );
-                          }).toList(),
+                          })
+                          .toList(),
+                    ),
+                  ],
+                ),
+                // HUD Superior
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 4),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            const Text(
+                              '✅ Visitados',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            Text(
+                              '${_visitedClientIds.length}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: Colors.grey.shade300,
+                        ),
+                        Column(
+                          children: [
+                            const Text(
+                              '🔴 Ptes',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
+                            ),
+                            Text(
+                              '${_clients.length - _visitedClientIds.length}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: Colors.grey.shade300,
+                        ),
+                        Column(
+                          children: [
+                            const Text(
+                              '📋 Total',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              '${_clients.length}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: Colors.grey.shade300,
+                        ),
+                        GestureDetector(
+                          onTap: () =>
+                              setState(() => _showVisited = !_showVisited),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _showVisited
+                                  ? Colors.blue
+                                  : Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _showVisited
+                                  ? 'Ocultar\nvisitados'
+                                  : 'Ver\nvisitados',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: _showVisited
+                                    ? Colors.white
+                                    : Colors.blue,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    // HUD Superior
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.95),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Column(
-                              children: [
-                                const Text('✅ Visitados', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green)),
-                                Text('${_visitedClientIds.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            Container(width: 1, height: 20, color: Colors.grey.shade300),
-                            Column(
-                              children: [
-                                const Text('🔴 Ptes', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
-                                Text('${_clients.length - _visitedClientIds.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            Container(width: 1, height: 20, color: Colors.grey.shade300),
-                            Column(
-                              children: [
-                                const Text('📋 Total', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-                                Text('${_clients.length}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            Container(width: 1, height: 20, color: Colors.grey.shade300),
-                            GestureDetector(
-                              onTap: () => setState(() => _showVisited = !_showVisited),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _showVisited ? Colors.blue : Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  _showVisited ? 'Ocultar\nvisitados' : 'Ver\nvisitados',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: _showVisited ? Colors.white : Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchClients,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _clients.length,
-                    itemBuilder: (context, index) {
-                      final client = _clients[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                        child: ListTile(
-                          onTap: () => _showClientDetails(client),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          leading: CircleAvatar(
-                            backgroundColor: const Color(
-                              0xFF3B82F6,
-                            ).withValues(alpha: 0.1),
-                            child: const Text('🏪', style: TextStyle(fontSize: 20)),
-                          ),
-                          title: Text(
-                            client.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                client.ownerName,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              Text(
-                                client.address,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Text(
-                                client.phone,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: PopupMenuButton(
-                            itemBuilder: (_) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Text('Editar'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Text(
-                                  'Desactivar',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ],
-                            onSelected: (val) {
-                              if (val == 'edit') _openForm(client: client);
-                              if (val == 'delete') _delete(client.id);
-                            },
-                          ),
-                        ),
-                      );
-                    },
                   ),
                 ),
+              ],
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchClients,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _clients.length,
+                itemBuilder: (context, index) {
+                  final client = _clients[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                    child: ListTile(
+                      onTap: () => _showClientDetails(client),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(
+                          0xFF3B82F6,
+                        ).withValues(alpha: 0.1),
+                        child: const Text('🏪', style: TextStyle(fontSize: 20)),
+                      ),
+                      title: Text(
+                        client.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            client.ownerName,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          Text(
+                            client.address,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            client.phone,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: PopupMenuButton(
+                        itemBuilder: (_) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Editar'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text(
+                              'Desactivar',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                        onSelected: (val) {
+                          if (val == 'edit') _openForm(client: client);
+                          if (val == 'delete') _delete(client.id);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
@@ -551,31 +624,42 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          style: BorderStyle.solid,
+                        ),
                       ),
                       child: _imageFile != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: Image.file(_imageFile!, fit: BoxFit.cover),
                             )
-                          : (widget.client?.photoUrl != null && widget.client!.photoUrl!.isNotEmpty)
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    widget.client!.photoUrl!.startsWith('http')
-                                        ? widget.client!.photoUrl!
-                                        : '${Api.baseUrl.replaceAll('/api', '')}/${widget.client!.photoUrl}',
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.camera_alt, size: 40, color: Colors.grey),
-                                    SizedBox(height: 8),
-                                    Text('Tocar para añadir foto', style: TextStyle(color: Colors.grey)),
-                                  ],
+                          : (widget.client?.photoUrl != null &&
+                                widget.client!.photoUrl!.isNotEmpty)
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                widget.client!.photoUrl!.startsWith('http')
+                                    ? widget.client!.photoUrl!
+                                    : '${Api.baseUrl.replaceAll('/api', '')}/${widget.client!.photoUrl}',
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Colors.grey,
                                 ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Tocar para añadir foto',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                   _Field(ctrl: _nameCtrl, label: 'Nombre del negocio'),
