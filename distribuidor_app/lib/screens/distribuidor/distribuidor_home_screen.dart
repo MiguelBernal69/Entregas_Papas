@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-
-import '../../services/order_service.dart';
 import '../../services/session_service.dart';
 import '../orders_screen.dart';
 import 'report_screen.dart';
@@ -59,9 +57,7 @@ class _DistribuidorHomeScreenState extends State<DistribuidorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loadingSession) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (!_hasSession) {
@@ -98,12 +94,20 @@ class _DistribuidorHomeScreenState extends State<DistribuidorHomeScreen> {
               ElevatedButton.icon(
                 onPressed: _startDay,
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Iniciar Día', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                label: const Text(
+                  'Iniciar Día',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                   backgroundColor: const Color(0xFF3B82F6),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ],
@@ -138,5 +142,3 @@ class _DistribuidorHomeScreenState extends State<DistribuidorHomeScreen> {
     );
   }
 }
-
-
