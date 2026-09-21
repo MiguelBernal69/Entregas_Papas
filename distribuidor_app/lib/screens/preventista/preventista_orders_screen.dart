@@ -342,7 +342,9 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedClient = widget.initialClient ?? widget.initialOrder?.client;
+    if (widget.initialClient != null) {
+      _selectedClient = widget.initialClient;
+    }
     if (widget.initialOrder?.notes != null) {
       _notesCtrl.text = widget.initialOrder!.notes!;
     }
@@ -366,13 +368,14 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
         _clients = clients;
         _products = products;
         
-        // If initialClient / initialOrder client is set, find reference in clients list
-        if (_selectedClient != null) {
-           try {
-             _selectedClient = _clients.firstWhere((c) => c.id == _selectedClient!.id);
-           } catch(e) {
-             // Keep _selectedClient if not found in recent clients
-           }
+        if (widget.initialOrder != null) {
+          try {
+            _selectedClient = _clients.firstWhere((c) => c.id == widget.initialOrder!.client.id);
+          } catch (_) {}
+        } else if (_selectedClient != null) {
+          try {
+            _selectedClient = _clients.firstWhere((c) => c.id == _selectedClient!.id);
+          } catch (_) {}
         }
 
         // Prefill items if editing

@@ -1,5 +1,6 @@
 class OrderItem {
   final int id;
+  final int productId;
   final int quantity;
   final int? deliveredQuantity;
   final double unitPrice;
@@ -8,6 +9,7 @@ class OrderItem {
 
   OrderItem({
     required this.id,
+    required this.productId,
     required this.quantity,
     this.deliveredQuantity,
     required this.unitPrice,
@@ -24,6 +26,7 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       id: json['id'] ?? 0,
+      productId: json['productId'] ?? json['product']?['id'] ?? 0,
       quantity: json['quantity'] ?? 0,
       deliveredQuantity: json['deliveredQuantity'],
       unitPrice: (json['unitPrice'] as num? ?? 0.0).toDouble(),
