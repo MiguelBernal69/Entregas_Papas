@@ -30,6 +30,9 @@ app.use('/api/distributor', distributorRouter)
 app.use('/api/sessions', sessionsRouter)
 
 const PORT = process.env.PORT || 3000
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`))
+const server = app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`))
+
+// Mantener el bucle de eventos activo para evitar cierres prematuros del proceso Node
+setInterval(() => {}, 1000 * 60 * 60)
 
 export default app
