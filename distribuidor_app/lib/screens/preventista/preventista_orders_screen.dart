@@ -111,6 +111,21 @@ class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
     );
   }
 
+  void _openEditOrder(Order order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CreateOrderSheet(
+        initialOrder: order,
+        onSaved: () {
+          Navigator.pop(context);
+          _fetchOrders();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,6 +183,44 @@ class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
                                       fontSize: 15,
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
+                                  if (['pendiente', 'aceptado'].contains(order.status))
+                                    InkWell(
+                                      onTap: () => _openEditOrder(order),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.shade50,
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: const Color(0xFF3B82F6),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.edit,
+                                              size: 13,
+                                              color: Color(0xFF3B82F6),
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'Editar',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF3B82F6),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   const Spacer(),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -258,11 +311,17 @@ class _PreventistaOrdersScreenState extends State<PreventistaOrdersScreen> {
   }
 }
 
-// ── Formulario crear pedido ───────────────────────────────────
+// ── Formulario crear / editar pedido ───────────────────────────
 class CreateOrderSheet extends StatefulWidget {
   final VoidCallback onSaved;
   final Client? initialClient;
-  const CreateOrderSheet({super.key, required this.onSaved, this.initialClient});
+  final Order? initialOrder;
+  const CreateOrderSheet({
+    super.key,
+    required this.onSaved,
+    this.initialClient,
+    this.initialOrder,
+  });
 
   @override
   State<CreateOrderSheet> createState() => _CreateOrderSheetState();
@@ -283,7 +342,10 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedClient = widget.initialClient;
+    _selectedClient = widget.initialClient ?? widget.initialOrder?.client;
+    if (widget.initialOrder?.notes != null) {
+      _notesCtrl.text = widget.initialOrder!.notes!;
+    }
     _loadData();
   }
 
@@ -304,13 +366,25 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
         _clients = clients;
         _products = products;
         
-        // If initialClient is set, find its updated reference in the fetched clients list
+        // If initialClient / initialOrder client is set, find reference in clients list
         if (_selectedClient != null) {
            try {
              _selectedClient = _clients.firstWhere((c) => c.id == _selectedClient!.id);
            } catch(e) {
-             _selectedClient = null;
+             // Keep _selectedClient if not found in recent clients
            }
+        }
+
+        // Prefill items if editing
+        if (widget.initialOrder != null && _items.isEmpty) {
+          for (final item in widget.initialOrder!.items) {
+            _items.add({
+              'productId': item.productId,
+              'quantity': item.quantity,
+              'name': item.productName,
+              'price': item.unitPrice,
+            });
+          }
         }
         
         _loading = false;
@@ -385,15 +459,33 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
       _error = null;
     });
     try {
-      await PreventistaOrderService.createOrder(
-        clientId: _selectedClient!.id,
-        notes: _notesCtrl.text.isEmpty ? null : _notesCtrl.text,
-        items: _items
-            .map(
-              (i) => {'productId': i['productId'], 'quantity': i['quantity']},
-            )
-            .toList(),
-      );
+      if (widget.initialOrder != null) {
+        await PreventistaOrderService.updateOrder(
+          orderId: widget.initialOrder!.id,
+          notes: _notesCtrl.text.isEmpty ? null : _notesCtrl.text,
+          items: _items
+              .map(
+                (i) => {
+                  'productId': i['productId'],
+                  'quantity': i['quantity'],
+                },
+              )
+              .toList(),
+        );
+      } else {
+        await PreventistaOrderService.createOrder(
+          clientId: _selectedClient!.id,
+          notes: _notesCtrl.text.isEmpty ? null : _notesCtrl.text,
+          items: _items
+              .map(
+                (i) => {
+                  'productId': i['productId'],
+                  'quantity': i['quantity'],
+                },
+              )
+              .toList(),
+        );
+      }
       widget.onSaved();
     } catch (e) {
       setState(() {
@@ -405,6 +497,7 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.initialOrder != null;
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
       padding: EdgeInsets.only(
@@ -432,9 +525,9 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     children: [
-                      const Text(
-                        'Nuevo pedido',
-                        style: TextStyle(
+                      Text(
+                        isEditing ? 'Editar pedido #${widget.initialOrder!.id}' : 'Nuevo pedido',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -480,7 +573,7 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                                 ),
                               )
                               .toList(),
-                          onChanged: (c) => setState(() => _selectedClient = c),
+                          onChanged: isEditing ? null : (c) => setState(() => _selectedClient = c),
                         ),
 
                         const SizedBox(height: 16),
@@ -707,9 +800,9 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text(
-                                    'Crear pedido',
-                                    style: TextStyle(
+                                : Text(
+                                    isEditing ? 'Guardar cambios' : 'Crear pedido',
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

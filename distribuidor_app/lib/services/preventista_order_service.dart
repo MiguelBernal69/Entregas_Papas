@@ -53,6 +53,21 @@ class PreventistaOrderService {
     throw Exception(data['message'] ?? 'Error al crear pedido');
   }
 
+  static Future<Order> updateOrder({
+    required int orderId,
+    String? notes,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final res = await http.put(
+      Uri.parse('${Api.baseUrl}/orders/$orderId'),
+      headers: await _headers(),
+      body: jsonEncode({'notes': notes, 'items': items}),
+    );
+    final data = jsonDecode(res.body);
+    if (res.statusCode == 200) return Order.fromJson(data);
+    throw Exception(data['message'] ?? 'Error al actualizar pedido');
+  }
+
   static Future<List<int>> getMyVisitedToday() async {
     final res = await http.get(
       Uri.parse('${Api.baseUrl}/orders/my-visited-today'),
