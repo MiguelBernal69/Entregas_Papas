@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken'
 import prisma from '../../prisma/client'
 
 export const loginService = async (email: string, password: string) => {
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email.trim(), mode: 'insensitive' } }
+  })
 
   if (!user || !user.isActive) throw new Error('Credenciales inválidas')
 
