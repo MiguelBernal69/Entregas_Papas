@@ -44,13 +44,8 @@ interface ReportData {
   productsSummary: ProductSummary[]
 }
 
-const statusBadge: Record<string, { bg: string; text: string; label: string; icon: string }> = {
-  pendiente: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendiente', icon: '⏳' },
-  aceptado:  { bg: 'bg-blue-100',   text: 'text-blue-800',   label: 'Aceptado',  icon: '✓' },
-  asignado:  { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Asignado',  icon: '🚚' },
-  entregado: { bg: 'bg-green-100',  text: 'text-green-800',  label: 'Entregado', icon: '✅' },
-  entrega_parcial: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Parcial', icon: '⚠️' }
-}
+
+
 
 export default function PreventistaReport() {
   const [searchParams, setSearchParams] = useSearchParams()
