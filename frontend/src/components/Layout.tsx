@@ -31,10 +31,20 @@ export default function Layout({ children }: Props) {
   const preventistaNav: NavItem[] = [
     { to: '/preventista/clients', label: 'Clientes', icon: '🏪' },
     { to: '/preventista/orders',  label: 'Pedidos',  icon: '📦' },
+    { to: '/preventista/report',  label: 'Reportes', icon: '📊' },
     { to: '/admin/regions',       label: 'Zonas',    icon: '📍' },
   ]
 
-  const navItems = user?.role === 'admin' ? adminNav : preventistaNav
+  const distribuidorNav: NavItem[] = [
+    { to: '/distribuidor/orders', label: 'Mis Entregas y Boletas', icon: '🚚' },
+  ]
+
+  const navItems =
+    user?.role === 'admin'
+      ? adminNav
+      : user?.role === 'preventista'
+      ? preventistaNav
+      : distribuidorNav
 
   const handleLogout = () => {
     logout()

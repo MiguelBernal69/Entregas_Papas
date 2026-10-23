@@ -29,3 +29,7 @@ export const removeRegion = async (userId: number, regionId: number) =>
 
 export const assignRegionsBulk = async (userId: number, regionIds: number[]) =>
   (await api.post('/regions/assign-bulk', { userId, regionIds })).data
+
+export const getMyRegions = async (): Promise<{ id: number; name: string; color: string; polygon?: any }[]> =>
+  (await api.get('/regions/me')).data
+

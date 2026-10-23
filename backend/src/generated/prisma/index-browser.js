@@ -160,6 +160,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   description: 'description',
   price: 'price',
   unit: 'unit',
+  category: 'category',
   isActive: 'isActive',
   createdAt: 'createdAt'
 };
@@ -173,6 +174,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   status: 'status',
   notes: 'notes',
   deliveredAt: 'deliveredAt',
+  discount: 'discount',
   createdAt: 'createdAt'
 };
 
@@ -182,7 +184,8 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   productId: 'productId',
   quantity: 'quantity',
   unitPrice: 'unitPrice',
-  deliveredQuantity: 'deliveredQuantity'
+  deliveredQuantity: 'deliveredQuantity',
+  isBonification: 'isBonification'
 };
 
 exports.Prisma.UserRegionScalarFieldEnum = {

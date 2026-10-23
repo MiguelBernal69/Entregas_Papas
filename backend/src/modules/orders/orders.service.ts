@@ -16,13 +16,18 @@ const buildSnapshot = async (orderId: number) => {
 
   if (!order) throw new Error('Pedido no encontrado')
 
-  const total = order.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
+  const subtotal = order.items
+    .filter(i => !i.isBonification)
+    .reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
+  const discount = order.discount || 0
+  const total = Math.max(0, subtotal - discount)
 
   return {
     order: {
       id: order.id,
       status: order.status,
       notes: order.notes,
+      discount,
       createdAt: order.createdAt
     },
     client: {
@@ -41,8 +46,11 @@ const buildSnapshot = async (orderId: number) => {
     items: order.items.map(i => ({
       productName: i.product.name,
       quantity: i.quantity,
-      unitPrice: i.unitPrice
+      unitPrice: i.unitPrice,
+      isBonification: i.isBonification
     })),
+    subtotal,
+    discount,
     total
   }
 }
@@ -70,37 +78,259 @@ const saveHistory = async (
 
 // ─── servicios ─────────────────────────────────────────────
 
+export const getDateRange = (
+  dateStr?: string,
+  startDateStr?: string,
+  endDateStr?: string
+): { start: Date; end: Date } | null => {
+  // Rango personalizado explícito
+  if (startDateStr && endDateStr) {
+    const sParts = startDateStr.split('-').map(Number)
+    const eParts = endDateStr.split('-').map(Number)
+    if (sParts.length === 3 && eParts.length === 3) {
+      const start = new Date(sParts[0], sParts[1] - 1, sParts[2], 0, 0, 0, 0)
+      const end = new Date(eParts[0], eParts[1] - 1, eParts[2], 23, 59, 59, 999)
+      return { start, end }
+    }
+  }
+
+  if (!dateStr || dateStr === 'all') return null
+
+  const now = new Date()
+
+  if (dateStr === 'this_month') {
+    // Desde el 1 del mes actual hasta fin de mes o fin de hoy
+    const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+    return { start, end }
+  }
+
+  if (dateStr === 'last_month') {
+    // Todo el mes anterior
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0)
+    const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+    return { start, end }
+  }
+
+  if (dateStr === 'this_week') {
+    // Últimos 7 días
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0)
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+    return { start, end }
+  }
+
+  let targetYear = now.getFullYear()
+  let targetMonth = now.getMonth()
+  let targetDay = now.getDate()
+
+  if (dateStr === 'yesterday') {
+    now.setDate(now.getDate() - 1)
+    targetYear = now.getFullYear()
+    targetMonth = now.getMonth()
+    targetDay = now.getDate()
+  } else if (dateStr !== 'today') {
+    const parts = dateStr.split('-').map(Number)
+    if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+      targetYear = parts[0]
+      targetMonth = parts[1] - 1
+      targetDay = parts[2]
+    }
+  }
+
+  const start = new Date(targetYear, targetMonth, targetDay, 0, 0, 0, 0)
+  const end = new Date(targetYear, targetMonth, targetDay, 23, 59, 59, 999)
+  return { start, end }
+}
+
 export const getAllOrders = async (
   filters: {
     status?: OrderStatus
     regionId?: number
     preventistaId?: number
+    date?: string
+    startDate?: string
+    endDate?: string
   },
   pagination?: {
     skip?: number
     take?: number
   }
 ) => {
+  const dateRange = getDateRange(filters.date, filters.startDate, filters.endDate)
+
   return prisma.order.findMany({
     where: {
       ...(filters.status && { 
         status: filters.status === 'entregado' ? { in: ['entregado', 'entrega_parcial'] } : filters.status 
       }),
       ...(filters.regionId && { regionId: filters.regionId }),
-      ...(filters.preventistaId && { preventistaId: filters.preventistaId })
+      ...(filters.preventistaId && { preventistaId: filters.preventistaId }),
+      ...(dateRange && {
+        createdAt: {
+          gte: dateRange.start,
+          lte: dateRange.end
+        }
+      })
     },
     include: {
       client: { select: { id: true, name: true, ownerName: true, phone: true, address: true, latitude: true, longitude: true, photoUrl: true } },
       preventista: { select: { id: true, name: true } },
       distributor: { select: { id: true, name: true } },
       region: { select: { id: true, name: true, color: true } },
-      items: { include: { product: { select: { id: true, name: true } } } }
+      items: { include: { product: { select: { id: true, name: true, category: true, unit: true, price: true } } } }
     },
     orderBy: { createdAt: 'desc' },
     skip: pagination?.skip,
     take: pagination?.take
   })
 }
+
+export const getDailyReport = async (options: {
+  date?: string
+  startDate?: string
+  endDate?: string
+  preventistaId?: number
+}) => {
+  const dateRange = getDateRange(options.date || 'today', options.startDate, options.endDate)
+  const start = dateRange?.start ?? new Date(new Date().setHours(0, 0, 0, 0))
+  const end = dateRange?.end ?? new Date(new Date().setHours(23, 59, 59, 999))
+
+  const orders = await prisma.order.findMany({
+    where: {
+      ...(options.preventistaId && { preventistaId: options.preventistaId }),
+      createdAt: {
+        gte: start,
+        lte: end
+      }
+    },
+    include: {
+      client: { select: { id: true, name: true } },
+      items: {
+        include: {
+          product: { select: { id: true, name: true, unit: true, category: true, price: true } }
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  const uniqueClients = new Set<number>()
+  let totalAmount = 0
+  let totalBruto = 0
+  let totalDiscount = 0
+  let totalProductsUnits = 0
+  let totalRegularUnits = 0
+  let totalBonificationUnits = 0
+
+  const statusCounts: Record<string, number> = {
+    pendiente: 0,
+    aceptado: 0,
+    asignado: 0,
+    entregado: 0,
+    entrega_parcial: 0
+  }
+
+  const productsMap = new Map<number, {
+    productId: number
+    name: string
+    category: string
+    unit: string
+    unitPrice: number
+    regularQuantity: number
+    bonificationQuantity: number
+    totalQuantity: number
+    totalAmount: number
+    orderCount: number
+  }>()
+
+  for (const order of orders) {
+    uniqueClients.add(order.clientId)
+    statusCounts[order.status] = (statusCounts[order.status] || 0) + 1
+
+    const orderSubtotal = order.items.reduce((s, i) => s + (i.isBonification ? 0 : i.quantity * i.unitPrice), 0)
+    const orderDiscount = order.discount || 0
+    const orderNet = Math.max(0, orderSubtotal - orderDiscount)
+    totalBruto += orderSubtotal
+    totalDiscount += orderDiscount
+    totalAmount += orderNet
+
+    for (const item of order.items) {
+      const isBoni = Boolean(item.isBonification)
+      const itemSubtotal = isBoni ? 0 : item.quantity * item.unitPrice
+      totalProductsUnits += item.quantity
+      if (isBoni) {
+        totalBonificationUnits += item.quantity
+      } else {
+        totalRegularUnits += item.quantity
+      }
+
+      const existing = productsMap.get(item.productId)
+      if (existing) {
+        existing.totalQuantity += item.quantity
+        if (isBoni) {
+          existing.bonificationQuantity += item.quantity
+        } else {
+          existing.regularQuantity += item.quantity
+          if (!existing.unitPrice && item.unitPrice > 0) {
+            existing.unitPrice = item.unitPrice
+          }
+        }
+        existing.totalAmount += itemSubtotal
+        existing.orderCount += 1
+      } else {
+        productsMap.set(item.productId, {
+          productId: item.productId,
+          name: item.product.name,
+          category: item.product.category,
+          unit: item.product.unit,
+          unitPrice: isBoni ? item.product.price : item.unitPrice,
+          regularQuantity: isBoni ? 0 : item.quantity,
+          bonificationQuantity: isBoni ? item.quantity : 0,
+          totalQuantity: item.quantity,
+          totalAmount: itemSubtotal,
+          orderCount: 1
+        })
+      }
+    }
+  }
+
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const formattedStart = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`
+  const formattedEnd = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`
+
+  const bonificationsSummary = Array.from(productsMap.values())
+    .filter(p => p.bonificationQuantity > 0)
+    .map(p => ({
+      productId: p.productId,
+      name: p.name,
+      category: p.category,
+      unit: p.unit,
+      bonificationQuantity: p.bonificationQuantity
+    }))
+    .sort((a, b) => b.bonificationQuantity - a.bonificationQuantity)
+
+  return {
+    date: formattedStart,
+    startDate: formattedStart,
+    endDate: formattedEnd,
+    isRange: formattedStart !== formattedEnd,
+    summary: {
+      totalOrders: orders.length,
+      totalStores: uniqueClients.size,
+      totalBruto: Math.round(totalBruto * 100) / 100,
+      totalDiscount: Math.round(totalDiscount * 100) / 100,
+      totalAmount: Math.round(totalAmount * 100) / 100,
+      totalProductsUnits,
+      totalRegularUnits,
+      totalBonificationUnits,
+      statusCounts
+    },
+    bonificationsSummary,
+    productsSummary: Array.from(productsMap.values()).sort((a, b) => b.totalAmount - a.totalAmount)
+  }
+}
+
+
 
 export const getOrderById = async (id: number) => {
   const order = await prisma.order.findUnique({
@@ -122,20 +352,23 @@ export const createOrder = async (
   data: {
     clientId: number
     notes?: string
-    items: { productId: number; quantity: number }[]
+    discount?: number
+    items: { productId: number; quantity: number; isBonification?: boolean }[]
   },
   preventistaId: number
 ) => {
-  if (!data.items || data.items.length === 0) {
-    throw new Error('El pedido debe tener al menos un producto')
+  const regularItems = data.items.filter(i => !i.isBonification)
+  if (!regularItems.length) {
+    throw new Error('El pedido debe tener al menos un producto regular')
   }
 
-  const productIds = data.items.map(i => i.productId)
+  // Obtener todos los productIds (regulares + bonificaciones)
+  const allProductIds = [...new Set(data.items.map(i => i.productId))]
   const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, isActive: true }
+    where: { id: { in: allProductIds }, isActive: true }
   })
 
-  if (products.length !== productIds.length) {
+  if (products.length !== allProductIds.length) {
     throw new Error('Uno o más productos no existen o están inactivos')
   }
 
@@ -150,14 +383,17 @@ export const createOrder = async (
         preventistaId,
         regionId: client.regionId,
         notes: data.notes,
+        discount: data.discount !== undefined && data.discount > 0 ? Number(data.discount) : 0,
         status: 'aceptado',
         items: {
           create: data.items.map(item => {
             const product = products.find(p => p.id === item.productId)!
+            const isBoni = item.isBonification === true
             return {
               productId: item.productId,
               quantity: item.quantity,
-              unitPrice: product.price
+              unitPrice: isBoni ? 0 : product.price,  // bonificación = precio 0
+              isBonification: isBoni
             }
           })
         }
@@ -176,7 +412,8 @@ export const updateOrder = async (
   id: number,
   data: {
     notes?: string
-    items?: { productId: number; quantity: number }[]
+    discount?: number
+    items?: { productId: number; quantity: number; isBonification?: boolean }[]
   },
   userId: number
 ) => {
@@ -188,19 +425,22 @@ export const updateOrder = async (
   }
 
   await prisma.$transaction(async (tx) => {
-    // Actualizar notas
-    if (data.notes !== undefined) {
-      await tx.order.update({ where: { id }, data: { notes: data.notes } })
+    const updateData: any = {}
+    if (data.notes !== undefined) updateData.notes = data.notes
+    if (data.discount !== undefined) updateData.discount = data.discount > 0 ? Number(data.discount) : 0
+
+    if (Object.keys(updateData).length > 0) {
+      await tx.order.update({ where: { id }, data: updateData })
     }
 
     // Si mandan nuevos items, reemplazar todos
     if (data.items && data.items.length > 0) {
-      const productIds = data.items.map(i => i.productId)
+      const allProductIds = [...new Set(data.items.map(i => i.productId))]
       const products = await tx.product.findMany({
-        where: { id: { in: productIds }, isActive: true }
+        where: { id: { in: allProductIds }, isActive: true }
       })
 
-      if (products.length !== productIds.length) {
+      if (products.length !== allProductIds.length) {
         throw new Error('Uno o más productos no existen o están inactivos')
       }
 
@@ -211,11 +451,13 @@ export const updateOrder = async (
       await tx.orderItem.createMany({
         data: data.items.map(item => {
           const product = products.find(p => p.id === item.productId)!
+          const isBoni = item.isBonification === true
           return {
             orderId: id,
             productId: item.productId,
             quantity: item.quantity,
-            unitPrice: product.price
+            unitPrice: isBoni ? 0 : product.price,
+            isBonification: isBoni
           }
         })
       })
@@ -299,14 +541,22 @@ export const getOrdersForMap = async () => {
 }
 
 // Retorna los IDs de clientes que YA tienen pedido HOY creado por este preventista
+// Se calcula con el huso horario de Bolivia (-04:00) para que cada día a medianoche se resetee automáticamente
 export const getTodayVisitedClientIds = async (preventistaId: number): Promise<number[]> => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const now = new Date()
+  const boliviaTime = new Date(now.getTime() - 4 * 60 * 60 * 1000)
+  const yyyy = boliviaTime.getUTCFullYear()
+  const mm = String(boliviaTime.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(boliviaTime.getUTCDate()).padStart(2, '0')
+  const todayStr = `${yyyy}-${mm}-${dd}`
+
+  const start = new Date(`${todayStr}T00:00:00.000-04:00`)
+  const end = new Date(`${todayStr}T23:59:59.999-04:00`)
 
   const orders = await prisma.order.findMany({
     where: {
       preventistaId,
-      createdAt: { gte: today }
+      createdAt: { gte: start, lte: end }
     },
     select: { clientId: true }
   })

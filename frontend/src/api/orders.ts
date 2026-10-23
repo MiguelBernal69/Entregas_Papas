@@ -12,3 +12,8 @@ export const getMyVisitedToday = async (): Promise<number[]> => {
   const res = await api.get('/orders/my-visited-today')
   return res.data.clientIds
 }
+export const getDailyReport = async (params?: { date?: string; startDate?: string; endDate?: string } | string) => {
+  const queryParams = typeof params === 'string' ? { date: params } : params
+  return (await api.get('/orders/daily-report', { params: queryParams })).data
+}
+

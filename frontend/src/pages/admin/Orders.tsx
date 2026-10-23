@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
+import OrderThermalReceiptModal from '../../components/OrderThermalReceiptModal'
 import { getOrders, assignOrders } from '../../api/orders'
 import { getUsers } from '../../api/users'
 import { getRegions } from '../../api/regions'
@@ -23,6 +24,7 @@ export default function AdminOrders() {
   const [regions, setRegions] = useState<any[]>([])
   const [assigning, setAssigning] = useState(false)
   const [detail, setDetail] = useState<Order | null>(null)
+  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
 
   const fetchOrders = async () => {
     try {
@@ -238,12 +240,20 @@ export default function AdminOrders() {
                     <td className="px-4 py-4 text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 flex items-center gap-1.5">
                       <button
                         onClick={() => setDetail(order)}
-                        className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                        className="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                       >
                         Ver
+                      </button>
+                      <button
+                        onClick={() => setReceiptOrder(order)}
+                        className="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                        title="Imprimir Boleta Epson / Bluetooth"
+                      >
+                        <span>🖨️</span>
+                        <span>Boleta</span>
                       </button>
                     </td>
                   </tr>
@@ -298,22 +308,78 @@ export default function AdminOrders() {
               <div className="border-t pt-4">
                 <p className="text-sm font-medium text-gray-700 mb-3">Productos</p>
                 <div className="space-y-2">
-                  {detail.items.map(item => (
+                  {/* Items regulares */}
+                  {detail.items.filter(i => !i.isBonification).map(item => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span className="text-gray-600">{item.product.name} x{item.quantity}</span>
                       <span className="font-medium">Bs. {(item.unitPrice * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between text-sm font-bold border-t pt-2">
-                    <span>Total</span>
-                    <span>Bs. {detail.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0).toFixed(2)}</span>
-                  </div>
+
+                  {/* Bonificaciones */}
+                  {detail.items.some(i => i.isBonification) && (
+                    <div className="mt-2 pt-2 border-t border-dashed">
+                      <p className="text-xs font-bold text-green-700 mb-1">🎁 Bonificaciones (sin costo)</p>
+                      {detail.items.filter(i => i.isBonification).map(item => (
+                        <div key={`bon-${item.id}`} className="flex justify-between text-sm text-green-700">
+                          <span>{item.product.name} x{item.quantity}</span>
+                          <span className="font-semibold">GRATIS</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Totales y descuentos */}
+                  {detail.discount && detail.discount > 0 ? (
+                    <div className="border-t pt-2 space-y-1">
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Subtotal</span>
+                        <span>Bs. {detail.items.filter(i => !i.isBonification).reduce((s, i) => s + i.unitPrice * i.quantity, 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-semibold text-red-600">
+                        <span>🏷️ Descuento preventa</span>
+                        <span>- Bs. {detail.discount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-base font-bold border-t pt-2 text-gray-900">
+                        <span>Total a cobrar</span>
+                        <span className="text-blue-600">
+                          Bs. {Math.max(0, detail.items.filter(i => !i.isBonification).reduce((s, i) => s + i.unitPrice * i.quantity, 0) - detail.discount).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-sm font-bold border-t pt-2">
+                      <span>Total</span>
+                      <span>Bs. {detail.items.filter(i => !i.isBonification).reduce((s, i) => s + i.unitPrice * i.quantity, 0).toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              {/* Botón Imprimir Boleta Epson / Bluetooth */}
+              <div className="border-t pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReceiptOrder(detail)
+                    setDetail(null)
+                  }}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+                >
+                  <span>🖨️</span>
+                  <span>Imprimir Boleta (Epson TM-T20III / Bluetooth)</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Modal Térmico Epson / Bluetooth */}
+      <OrderThermalReceiptModal
+        order={receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+      />
     </Layout>
   )
 }

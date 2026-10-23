@@ -5,12 +5,13 @@ import { OrderStatus } from '../../generated/prisma'
 
 export const getAll = async (req: AuthRequest, res: Response) => {
   try {
-    const { status, regionId, preventistaId, page, limit } = req.query
+    const { status, regionId, preventistaId, page, limit, date } = req.query
 
     // Preventista solo ve sus propios pedidos
     const filters = {
       status: status as OrderStatus | undefined,
       regionId: regionId ? Number(regionId) : undefined,
+      date: date as string | undefined,
       preventistaId: req.user?.role === 'preventista'
         ? req.user.id
         : preventistaId ? Number(preventistaId) : undefined
@@ -27,6 +28,27 @@ export const getAll = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message })
   }
 }
+
+export const getDailyReport = async (req: AuthRequest, res: Response) => {
+  try {
+    const { date, startDate, endDate } = req.query
+    const preventistaId = req.user?.role === 'preventista'
+      ? req.user.id
+      : (req.query.preventistaId ? Number(req.query.preventistaId) : undefined)
+
+    const report = await service.getDailyReport({
+      date: date as string | undefined,
+      startDate: startDate as string | undefined,
+      endDate: endDate as string | undefined,
+      preventistaId
+    })
+    res.json(report)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+
 
 export const getOne = async (req: AuthRequest, res: Response) => {
   try {
@@ -48,7 +70,7 @@ export const getMap = async (req: AuthRequest, res: Response) => {
 
 export const create = async (req: AuthRequest, res: Response) => {
   try {
-    const { clientId, notes, items } = req.body
+    const { clientId, notes, items, discount } = req.body
 
     if (!clientId || !items) {
       res.status(400).json({ message: 'clientId e items son requeridos' })
@@ -56,7 +78,12 @@ export const create = async (req: AuthRequest, res: Response) => {
     }
 
     const order = await service.createOrder(
-      { clientId: Number(clientId), notes, items },
+      { 
+        clientId: Number(clientId), 
+        notes, 
+        items,
+        discount: discount !== undefined ? Number(discount) : 0
+      },
       req.user!.id
     )
     res.status(201).json(order)

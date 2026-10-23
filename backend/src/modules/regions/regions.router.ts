@@ -2,7 +2,8 @@ import { Router } from 'express'
 import {
   getAll, getOne, create, update, remove,
   getOrdersInRegion, detectRegion,
-  assignRegion, assignBulk, removeRegion, getPreventistasInRegion
+  assignRegion, assignBulk, removeRegion, getPreventistasInRegion,
+  getMyRegions
 } from './regions.controller'
 import { authenticate } from '../../middlewares/auth.middleware'
 import { authorize } from '../../middlewares/role.middleware'
@@ -10,6 +11,9 @@ import { authorize } from '../../middlewares/role.middleware'
 const router = Router()
 
 router.use(authenticate)
+
+// Ruta especial para que el preventista consulte sus propias zonas
+router.get('/me', authorize('admin', 'preventista', 'distribuidor'), getMyRegions)
 
 router.get('/detect', authorize('admin', 'preventista'), detectRegion)
 router.get('/:id/orders', authorize('admin'), getOrdersInRegion)

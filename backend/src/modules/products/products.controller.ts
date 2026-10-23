@@ -24,7 +24,7 @@ export const getOne = async (req: AuthRequest, res: Response) => {
 
 export const create = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, description, price, unit } = req.body
+    const { name, description, price, unit, category } = req.body
 
     if (!name || !price || !unit) {
       res.status(400).json({ message: 'name, price y unit son requeridos' })
@@ -35,7 +35,8 @@ export const create = async (req: AuthRequest, res: Response) => {
       name,
       description,
       price: Number(price),
-      unit
+      unit,
+      category
     })
     res.status(201).json(product)
   } catch (error: any) {

@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import 'map_screen.dart';
 import '../widgets/client_details_sheet.dart';
 import '../widgets/delivery_form.dart';
+import '../widgets/order_receipt_modal.dart';
 import '../config/api.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -89,6 +90,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
           SnackBar(
             content: Text(isPartial ? '⚠️ Entrega parcial registrada' : '✅ Pedido entregado'),
             backgroundColor: isPartial ? Colors.orange : Colors.green,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'VER BOLETA',
+              textColor: Colors.white,
+              onPressed: () {
+                final userName = context.read<AuthProvider>().user?.name;
+                OrderReceiptModal.show(
+                  context,
+                  order: order,
+                  distributorName: userName,
+                );
+              },
+            ),
           ),
         );
         _fetchData();
@@ -379,21 +393,31 @@ class _OrderCard extends StatelessWidget {
 
             const Divider(height: 20),
 
-            // Productos
-            ...order.items.map(
+            // Productos Regulares
+            ...order.items.where((i) => !i.isBonification).map(
               (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
+                padding: const EdgeInsets.symmetric(vertical: 2.5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Row(
                         children: [
-                          Text(
-                            '${item.productName} x${item.quantity}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black87,
+                          Flexible(
+                            child: RichText(
+                              text: TextSpan(
+                                style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                children: [
+                                  TextSpan(
+                                    text: '${item.productName} x${item.quantity}',
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                  TextSpan(
+                                    text: ' (Bs. ${item.unitPrice.toStringAsFixed(1)} c/u)',
+                                    style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           // Mostrar cantidad entregada si es parcial
@@ -419,10 +443,11 @@ class _OrderCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Bs. ${(item.unitPrice * item.actualDelivered).toStringAsFixed(2)}',
+                      'Bs. ${(item.unitPrice * (isHistory ? item.actualDelivered : item.quantity)).toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
@@ -430,18 +455,115 @@ class _OrderCard extends StatelessWidget {
               ),
             ),
 
+            // Ítems de Bonificación (Regalos sin costo)
+            if (order.items.any((i) => i.isBonification)) ...[
+              const SizedBox(height: 4),
+              ...order.items.where((i) => i.isBonification).map(
+                (item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: const Color(0xFFA7F3D0)),
+                            ),
+                            child: const Text(
+                              '🎁 Bonif.',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF059669),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${item.productName} x${item.quantity}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF065F46),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'GRATIS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF059669),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
             const Divider(height: 16),
+            if (order.discount > 0) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Subtotal productos:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    'Bs. ${(isHistory ? order.subtotalEntregado : order.subtotal).toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.amber.shade300),
+                    ),
+                    child: const Text(
+                      '🏷️ Descuento preventista',
+                      style: TextStyle(fontSize: 11, color: Color(0xFFB45309), fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Text(
+                    '- Bs. ${order.discount.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  isHistory && order.isPartial ? 'Total cobrado' : 'Total',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  isHistory && order.isPartial
+                      ? 'Total cobrado'
+                      : (order.discount > 0 ? 'Total a cobrar' : 'Total'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 Text(
-                  'Bs. ${order.totalEntregado.toStringAsFixed(2)}',
+                  'Bs. ${(isHistory ? order.totalEntregado : order.total).toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 17,
                     color: Color(0xFF3B82F6),
                   ),
                 ),
@@ -450,29 +572,48 @@ class _OrderCard extends StatelessWidget {
 
             if (!isHistory) ...[
               const SizedBox(height: 12),
-              // Botones
+              // Botones en pendientes
               Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              MapScreen(orders: [order], focusOrder: order),
-                        ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            MapScreen(orders: [order], focusOrder: order),
                       ),
-                      icon: const Icon(Icons.map_outlined, size: 16),
-                      label: const Text('Ver en mapa'),
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                    ),
+                    icon: const Icon(Icons.map_outlined, size: 16),
+                    label: const Text('Mapa'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      final userName = context.read<AuthProvider>().user?.name;
+                      OrderReceiptModal.show(
+                        context,
+                        order: order,
+                        distributorName: userName,
+                      );
+                    },
+                    icon: const Icon(Icons.print, size: 16, color: Color(0xFF2563EB)),
+                    label: const Text('Boleta', style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+                      side: const BorderSide(color: Color(0xFFBFDBFE)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
                   if (onDeliver != null) ...[
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: onDeliver,
@@ -482,6 +623,7 @@ class _OrderCard extends StatelessWidget {
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
                           elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 11),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -490,6 +632,35 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ],
                 ],
+              ),
+            ],
+
+            if (isHistory) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    final userName = context.read<AuthProvider>().user?.name;
+                    OrderReceiptModal.show(
+                      context,
+                      order: order,
+                      distributorName: userName,
+                    );
+                  },
+                  icon: const Icon(Icons.print, size: 16, color: Color(0xFF2563EB)),
+                  label: const Text(
+                    'Ver / Imprimir Boleta',
+                    style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFBFDBFE)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                  ),
+                ),
               ),
             ],
           ],

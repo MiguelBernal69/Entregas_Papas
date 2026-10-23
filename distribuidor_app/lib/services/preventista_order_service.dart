@@ -14,9 +14,14 @@ class PreventistaOrderService {
     };
   }
 
-  static Future<List<Order>> getMyOrders({int page = 1, int limit = 30}) async {
+  static Future<List<Order>> getMyOrders({
+    int page = 1,
+    int limit = 30,
+    String? date,
+  }) async {
+    final dateParam = (date != null && date != 'all') ? '&date=$date' : '';
     final res = await http.get(
-      Uri.parse('${Api.baseUrl}/orders?page=$page&limit=$limit'),
+      Uri.parse('${Api.baseUrl}/orders?page=$page&limit=$limit$dateParam'),
       headers: await _headers(),
     );
     if (res.statusCode == 200) {
@@ -25,6 +30,30 @@ class PreventistaOrderService {
     }
     throw Exception('Error al cargar pedidos');
   }
+
+  static Future<Map<String, dynamic>> getDailyReport({
+    String? date,
+    String? startDate,
+    String? endDate,
+  }) async {
+    String query = '';
+    if (startDate != null && endDate != null) {
+      query = '?startDate=$startDate&endDate=$endDate';
+    } else if (date != null && date.isNotEmpty) {
+      query = '?date=$date';
+    }
+    final url = '${Api.baseUrl}/orders/daily-report$query';
+    final res = await http.get(
+      Uri.parse(url),
+      headers: await _headers(),
+    );
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body) as Map<String, dynamic>;
+    }
+    throw Exception('Error al cargar reporte de ventas');
+  }
+
+
 
   static Future<List<Product>> getProducts() async {
     final res = await http.get(
@@ -41,12 +70,18 @@ class PreventistaOrderService {
   static Future<Order> createOrder({
     required int clientId,
     String? notes,
+    double? discount,
     required List<Map<String, dynamic>> items,
   }) async {
     final res = await http.post(
       Uri.parse('${Api.baseUrl}/orders'),
       headers: await _headers(),
-      body: jsonEncode({'clientId': clientId, 'notes': notes, 'items': items}),
+      body: jsonEncode({
+        'clientId': clientId,
+        'notes': notes,
+        'discount': discount ?? 0.0,
+        'items': items, // cada item puede tener isBonification: true
+      }),
     );
     final data = jsonDecode(res.body);
     if (res.statusCode == 201) return Order.fromJson(data);
@@ -56,12 +91,17 @@ class PreventistaOrderService {
   static Future<Order> updateOrder({
     required int orderId,
     String? notes,
+    double? discount,
     required List<Map<String, dynamic>> items,
   }) async {
     final res = await http.put(
       Uri.parse('${Api.baseUrl}/orders/$orderId'),
       headers: await _headers(),
-      body: jsonEncode({'notes': notes, 'items': items}),
+      body: jsonEncode({
+        'notes': notes,
+        if (discount != null) 'discount': discount,
+        'items': items,
+      }),
     );
     final data = jsonDecode(res.body);
     if (res.statusCode == 200) return Order.fromJson(data);

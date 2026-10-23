@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
+import 'order_receipt_modal.dart';
 
 class DeliveryForm extends StatefulWidget {
   final Order order;
@@ -14,6 +15,8 @@ class _DeliveryFormState extends State<DeliveryForm> {
   double _calculatedTotal = 0;
   final TextEditingController _notesCtrl = TextEditingController();
   final Map<int, TextEditingController> _controllers = {};
+
+  double _calculatedSubtotal = 0;
 
   @override
   void dispose() {
@@ -35,13 +38,17 @@ class _DeliveryFormState extends State<DeliveryForm> {
   }
 
   void _calculateTotal() {
-    double total = 0;
+    double subtotal = 0;
     for (var item in widget.order.items) {
       final text = _controllers[item.id]?.text ?? '0';
       final qty = int.tryParse(text) ?? 0;
-      total += qty * item.unitPrice;
+      subtotal += qty * item.unitPrice;
     }
-    setState(() => _calculatedTotal = total);
+    final net = subtotal - widget.order.discount;
+    setState(() {
+      _calculatedSubtotal = subtotal;
+      _calculatedTotal = net > 0 ? net : 0.0;
+    });
   }
 
   @override
@@ -106,18 +113,45 @@ class _DeliveryFormState extends State<DeliveryForm> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item.productName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
+                          Row(
+                            children: [
+                              if (item.isBonification)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECFDF5),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                                  ),
+                                  child: const Text(
+                                    '🎁 Bonif.',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF059669),
+                                    ),
+                                  ),
+                                ),
+                              Flexible(
+                                child: Text(
+                                  item.productName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: item.isBonification ? const Color(0xFF065F46) : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Text(
-                            'Pedido: ${item.quantity} ${item.productUnit} · Bs. ${item.unitPrice.toStringAsFixed(2)} c/u',
+                            item.isBonification
+                                ? 'Pedido: ${item.quantity} ${item.productUnit} · GRATIS (Promoción)'
+                                : 'Pedido: ${item.quantity} ${item.productUnit} · Bs. ${item.unitPrice.toStringAsFixed(2)} c/u',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: item.isBonification ? const Color(0xFF059669) : Colors.grey.shade500,
                             ),
                           ),
                         ],
@@ -176,6 +210,32 @@ class _DeliveryFormState extends State<DeliveryForm> {
             }),
 
             const Divider(height: 16),
+            if (widget.order.discount > 0) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Subtotal productos:', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  Text('Bs. ${_calculatedSubtotal.toStringAsFixed(2)}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.amber.shade300),
+                    ),
+                    child: const Text('🏷️ Descuento preventista', style: TextStyle(fontSize: 11, color: Color(0xFFB45309), fontWeight: FontWeight.bold)),
+                  ),
+                  Text('- Bs. ${widget.order.discount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+                ],
+              ),
+              const Divider(height: 14),
+            ],
 
             // Total calculado
             Row(
@@ -238,6 +298,40 @@ class _DeliveryFormState extends State<DeliveryForm> {
                 maxLines: 2,
               ),
             ],
+
+            const SizedBox(height: 12),
+
+            // Botón para previsualizar boleta
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  final Map<int, int> customQty = {};
+                  for (var item in widget.order.items) {
+                    final text = _controllers[item.id]?.text ?? '0';
+                    int qty = int.tryParse(text) ?? item.quantity;
+                    customQty[item.id] = qty;
+                  }
+                  OrderReceiptModal.show(
+                    context,
+                    order: widget.order,
+                    customDeliveredQuantities: customQty,
+                  );
+                },
+                icon: const Icon(Icons.receipt_long, size: 18, color: Color(0xFF2563EB)),
+                label: const Text(
+                  'Previsualizar Boleta de Entrega',
+                  style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFBFDBFE)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
 
             const SizedBox(height: 16),
 

@@ -16,6 +16,7 @@ export interface Product {
     description?: string
     price: number
     unit: string
+    category: string
     isActive: boolean
 }
 
@@ -48,6 +49,7 @@ export interface OrderItem {
     quantity: number
     unitPrice: number
     deliveredQuantity?: number
+    isBonification?: boolean
     product: Product
 }
 
@@ -61,6 +63,7 @@ export interface Order {
     regionId?: number
     status: OrderStatus
     notes?: string
+    discount?: number
     deliveredAt?: string
     createdAt: string
     client: Client

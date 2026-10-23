@@ -70,6 +70,7 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string, d
                     product: { select: { id: true, name: true, unit: true } }
                 }
             },
+            preventista: { select: { id: true, name: true } },
             region: { select: { id: true, name: true } }
         },
         orderBy: { createdAt: 'desc' }
@@ -95,6 +96,7 @@ export const getMyOrderById = async (orderId: number, distributorId: number) => 
                     photoUrl: true
                 }
             },
+            preventista: { select: { id: true, name: true } },
             items: {
                 include: {
                     product: true

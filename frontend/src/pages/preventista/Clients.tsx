@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Polygon, Tooltip, useMapEvents } from 'react-leaflet'
+
 import { getClients, createClient, updateClient, deleteClient } from '../../api/clients'
 import { getProducts } from '../../api/products'
 import { createOrder, getMyVisitedToday } from '../../api/orders'
 import { getImageUrl } from '../../api/axios'
+import { getMyRegions } from '../../api/regions'
 import type { Client, Product } from '../../types'
 import L from 'leaflet'
 
@@ -111,6 +113,13 @@ export default function PreventistaClients() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
+  // Zonas asignadas al preventista (con polígono para el mapa)
+  const [myZones, setMyZones] = useState<{ id: number; name: string; color: string; polygon?: any }[]>([])
+
+  const toLeafletCoords = (coords: number[][]): [number, number][] => {
+    return coords.map(c => [c[1], c[0]])
+  }
+
   // Visited clients tracking (mapa)
   const [visitedClientIds, setVisitedClientIds] = useState<Set<number>>(new Set())
   const [showVisited, setShowVisited] = useState(false)
@@ -164,6 +173,17 @@ export default function PreventistaClients() {
   useEffect(() => {
     fetchData()
     refreshVisited()
+    // Cargar las zonas asignadas al preventista
+    getMyRegions()
+      .then(setMyZones)
+      .catch(err => console.error('Error fetching my zones:', err))
+
+    // Refrescar al volver a la pestaña o ventana para detectar nuevo día
+    const handleFocus = () => {
+      refreshVisited()
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
   const filtered = clients.filter(c =>
@@ -354,6 +374,34 @@ export default function PreventistaClients() {
           </div>
         </div>
 
+        {/* Banner de Zonas Asignadas al Preventista */}
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-base">🗺️</span>
+              <span className="text-sm font-bold text-gray-700">Tus zonas de preventa:</span>
+            </div>
+            {myZones.length === 0 ? (
+              <span className="text-xs text-amber-600 font-semibold bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
+                ⚠️ Sin zonas asignadas — contacta al administrador
+              </span>
+            ) : (
+              myZones.map(zone => (
+                <span
+                  key={zone.id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-sm"
+                  style={{ backgroundColor: zone.color }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-white/60"
+                  />
+                  {zone.name}
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Search Bar */}
         <div className="relative group">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">🔍</span>
@@ -481,6 +529,18 @@ export default function PreventistaClients() {
                   >
                     👁️ {showVisited ? 'Ocultar visitados' : 'Ver visitados'}
                   </button>
+                  <div className="w-px h-5 bg-gray-200" />
+                  {/* Botón Actualizar Día */}
+                  <button
+                    onClick={() => {
+                      fetchData()
+                      refreshVisited()
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all shadow-sm"
+                    title="Actualizar clientes y pedidos de hoy"
+                  >
+                    🔄 Actualizar
+                  </button>
                 </div>
 
                 <MapContainer
@@ -489,6 +549,29 @@ export default function PreventistaClients() {
                   style={{ height: '100%', width: '100%' }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+                  {/* Polígonos de zonas asignadas al preventista */}
+                  {myZones.map(zone => {
+                    if (!zone.polygon?.coordinates) return null
+                    const coords = toLeafletCoords(zone.polygon.coordinates[0])
+                    return (
+                      <Polygon
+                        key={zone.id}
+                        positions={coords}
+                        pathOptions={{
+                          color: zone.color,
+                          fillColor: zone.color,
+                          fillOpacity: 0.18,
+                          weight: 2,
+                          dashArray: '5, 5'
+                        }}
+                      >
+                        <Tooltip sticky direction="center">
+                          <span className="font-bold text-xs">{zone.name}</span>
+                        </Tooltip>
+                      </Polygon>
+                    )
+                  })}
 
                   {/* Marcadores pendientes (rojo) — siempre visibles */}
                   {filtered
@@ -530,6 +613,23 @@ export default function PreventistaClients() {
                       <span className="text-xs text-gray-600">Visitado — pedido registrado hoy</span>
                     </div>
                   </div>
+
+                  {myZones.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <p className="text-[11px] font-black text-gray-700 uppercase tracking-wider mb-1.5">Tus Zonas Asignadas</p>
+                      <div className="flex flex-col gap-1.5">
+                        {myZones.map(z => (
+                          <div key={z.id} className="flex items-center gap-2">
+                            <span
+                              className="w-3.5 h-3.5 rounded-md border inline-block flex-shrink-0"
+                              style={{ backgroundColor: z.color + '40', borderColor: z.color }}
+                            />
+                            <span className="text-xs font-medium text-gray-700 truncate">{z.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../../models/client.dart';
 import '../../services/client_service.dart';
 import '../../services/preventista_order_service.dart';
+import '../../services/region_service.dart';
 import '../../config/api.dart';
 import '../../widgets/client_details_sheet.dart';
 import 'preventista_orders_screen.dart';
@@ -18,16 +19,49 @@ class ClientsScreen extends StatefulWidget {
   State<ClientsScreen> createState() => _ClientsScreenState();
 }
 
-class _ClientsScreenState extends State<ClientsScreen> {
+class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserver {
   List<Client> _clients = [];
   Set<int> _visitedClientIds = {};
+  List<RegionInfo> _myZones = [];
   bool _loading = true;
   bool _showVisited = false;
+  DateTime _lastFetchDate = DateTime.now();
+
+  Color _parseZoneColor(String hex) {
+    try {
+      final clean = hex.replaceAll('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return const Color(0xFF3B82F6);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _lastFetchDate = DateTime.now();
     _fetchClients();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final now = DateTime.now();
+      // Si el día calendario cambió (a medianoche o al reabrir la app), recargar para resetear visitados
+      if (now.day != _lastFetchDate.day || now.month != _lastFetchDate.month || now.year != _lastFetchDate.year) {
+        _lastFetchDate = now;
+        _fetchClients();
+      } else {
+        _refreshVisited();
+      }
+    }
   }
 
   Future<void> _fetchClients() async {
@@ -36,16 +70,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
       final results = await Future.wait([
         ClientService.getClients(),
         PreventistaOrderService.getMyVisitedToday(),
+        RegionService.getMyRegions(),
       ]);
       setState(() {
         _clients = results[0] as List<Client>;
         _visitedClientIds = (results[1] as List<int>).toSet();
+        _myZones = results[2] as List<RegionInfo>;
         _loading = false;
       });
     } catch (e) {
       setState(() => _loading = false);
     }
   }
+
 
   Future<void> _refreshVisited() async {
     try {
@@ -141,6 +178,11 @@ class _ClientsScreenState extends State<ClientsScreen> {
       appBar: AppBar(
         title: const Text('Directorio de Clientes'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualizar clientes y pedidos de hoy',
+            onPressed: _fetchClients,
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: SegmentedButton<bool>(
@@ -200,6 +242,23 @@ class _ClientsScreenState extends State<ClientsScreen> {
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.distribuidor_app',
                     ),
+                    if (_myZones.isNotEmpty)
+                      PolygonLayer(
+                        polygons: _myZones
+                            .where((z) => z.points.isNotEmpty)
+                            .map((zone) {
+                              final color = _parseZoneColor(zone.color);
+                              return Polygon(
+                                points: zone.points,
+                                color: color.withValues(alpha: 0.18),
+                                borderColor: color,
+                                borderStrokeWidth: 2.5,
+                                isFilled: true,
+                                label: zone.name,
+                              );
+                            })
+                            .toList(),
+                      ),
                     MarkerLayer(
                       markers: _clients
                           .where((c) {
@@ -219,10 +278,10 @@ class _ClientsScreenState extends State<ClientsScreen> {
                               child: GestureDetector(
                                 onTap: () => _showClientDetails(client),
                                 child: Icon(
-                                  Icons.location_pin,
-                                  color: isVisited ? Colors.blue : Colors.red,
-                                  size: 40,
-                                ),
+                                    Icons.location_pin,
+                                    color: isVisited ? Colors.blue : Colors.red,
+                                    size: 40,
+                                  ),
                               ),
                             );
                           })
@@ -348,10 +407,80 @@ class _ClientsScreenState extends State<ClientsScreen> {
                             ),
                           ),
                         ),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: Colors.grey.shade300,
+                        ),
+                        InkWell(
+                          onTap: _fetchClients,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            child: const Icon(
+                              Icons.refresh,
+                              size: 20,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
+                // Chips de Zonas asignadas sobre el mapa
+                if (_myZones.isNotEmpty)
+                  Positioned(
+                    top: 75,
+                    left: 10,
+                    right: 10,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _myZones.map((zone) {
+                          final color = _parseZoneColor(zone.color);
+                          return Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: color, width: 1.5),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 4),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  zone.name,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+
               ],
             )
           : RefreshIndicator(

@@ -20,11 +20,16 @@ import DistributionSessions from '../pages/admin/DistributionSessions'
 // Preventista
 import PreventistaClients from '../pages/preventista/Clients'
 import PreventistaOrders from '../pages/preventista/Orders'
+import PreventistaReport from '../pages/preventista/Report'
+
+// Distribuidor
+import DistributorOrders from '../pages/distribuidor/Orders'
 
 const RedirectByRole = () => {
   const { user } = useAuth()
   if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />
   if (user?.role === 'preventista') return <Navigate to="/preventista/clients" replace />
+  if (user?.role === 'distribuidor') return <Navigate to="/distribuidor/orders" replace />
   return <Navigate to="/login" replace />
 }
 
@@ -49,9 +54,13 @@ export const AppRouter = () => {
         {/* Preventista */}
         <Route path="/preventista/clients" element={<ProtectedRoute roles={['preventista']}><PreventistaClients /></ProtectedRoute>} />
         <Route path="/preventista/orders" element={<ProtectedRoute roles={['preventista']}><PreventistaOrders /></ProtectedRoute>} />
+        <Route path="/preventista/report" element={<ProtectedRoute roles={['preventista']}><PreventistaReport /></ProtectedRoute>} />
+
+        {/* Distribuidor */}
+        <Route path="/distribuidor/orders" element={<ProtectedRoute roles={['distribuidor']}><DistributorOrders /></ProtectedRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )
-}
+}

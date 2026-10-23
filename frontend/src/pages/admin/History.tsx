@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
+import OrderThermalReceiptModal from '../../components/OrderThermalReceiptModal'
 import { getOrders } from '../../api/orders'
 import { getRegions } from '../../api/regions'
 import type { Order } from '../../types'
@@ -9,6 +10,7 @@ export default function AdminHistory() {
   const [regions, setRegions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [detail, setDetail] = useState<Order | null>(null)
+  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
 
   // Filtros
   const [filterRegion, setFilterRegion] = useState('')
@@ -262,10 +264,31 @@ export default function AdminHistory() {
                   </div>
                 </div>
               </div>
+
+              {/* Botón Imprimir Boleta Térmica */}
+              <div className="border-t pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReceiptOrder(detail)
+                    setDetail(null)
+                  }}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+                >
+                  <span>🖨️</span>
+                  <span>Imprimir Boleta Térmica (Epson / Bluetooth)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Modal Térmico Nítido */}
+      <OrderThermalReceiptModal
+        order={receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+      />
     </Layout>
   )
 }

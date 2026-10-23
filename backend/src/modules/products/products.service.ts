@@ -33,11 +33,17 @@ export const createProduct = async (data: {
   description?: string
   price: number
   unit: string
+  category?: string
 }) => {
   const exists = await prisma.product.findFirst({ where: { name: data.name } })
   if (exists) throw new Error('Ya existe un producto con ese nombre')
 
-  return prisma.product.create({ data })
+  return prisma.product.create({
+    data: {
+      ...data,
+      category: data.category?.trim() || 'Categoría A'
+    }
+  })
 }
 
 export const updateProduct = async (id: number, data: {
@@ -45,11 +51,18 @@ export const updateProduct = async (id: number, data: {
   description?: string
   price?: number
   unit?: string
+  category?: string
 }) => {
   const product = await prisma.product.findUnique({ where: { id } })
   if (!product) throw new Error('Producto no encontrado')
 
-  return prisma.product.update({ where: { id }, data })
+  return prisma.product.update({
+    where: { id },
+    data: {
+      ...data,
+      ...(data.category && { category: data.category.trim() })
+    }
+  })
 }
 
 export const toggleProduct = async (id: number) => {

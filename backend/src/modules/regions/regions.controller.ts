@@ -1,6 +1,7 @@
 import { Response } from 'express'
 import { AuthRequest } from '../../middlewares/auth.middleware'
 import * as service from './regions.service'
+import pool from '../../config/db'
 
 export const recalculate = async (req: AuthRequest, res: Response) => {
   try {
@@ -134,6 +135,25 @@ export const getPreventistasInRegion = async (req: AuthRequest, res: Response) =
   try {
     const result = await service.getPreventistasInRegion(Number(req.params.id))
     res.json(result)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+export const getMyRegions = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id
+    // Traemos las regiones con polígono GeoJSON para poder dibujarlas en el mapa
+    const result = await pool.query(`
+      SELECT
+        r.id, r.name, r.color,
+        ST_AsGeoJSON(r.polygon)::json AS polygon
+      FROM "UserRegion" ur
+      JOIN "Region" r ON r.id = ur."regionId"
+      WHERE ur."userId" = $1
+      ORDER BY r.name
+    `, [userId])
+    res.json(result.rows)
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
