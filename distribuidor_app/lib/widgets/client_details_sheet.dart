@@ -16,7 +16,11 @@ class ClientDetailsSheet {
     required double longitude,
     String? photoUrl,
     VoidCallback? onUpdate,
-    VoidCallback? onCreateOrder, // Restaurado
+    VoidCallback? onCreateOrder,
+    bool isVisited = false,
+    bool visitedWithOrder = false,
+    VoidCallback? onMarkNoOrder,
+    VoidCallback? onUnmarkNoOrder,
   }) {
     showModalBottomSheet(
       context: context,
@@ -32,7 +36,11 @@ class ClientDetailsSheet {
         longitude: longitude,
         photoUrl: photoUrl,
         onUpdate: onUpdate,
-        onCreateOrder: onCreateOrder, // Restaurado
+        onCreateOrder: onCreateOrder,
+        isVisited: isVisited,
+        visitedWithOrder: visitedWithOrder,
+        onMarkNoOrder: onMarkNoOrder,
+        onUnmarkNoOrder: onUnmarkNoOrder,
       ),
     );
   }
@@ -48,7 +56,11 @@ class _ClientDetailsSheetWidget extends StatefulWidget {
   final double longitude;
   final String? photoUrl;
   final VoidCallback? onUpdate;
-  final VoidCallback? onCreateOrder; // Restaurado
+  final VoidCallback? onCreateOrder;
+  final bool isVisited;
+  final bool visitedWithOrder;
+  final VoidCallback? onMarkNoOrder;
+  final VoidCallback? onUnmarkNoOrder;
 
   const _ClientDetailsSheetWidget({
     required this.id,
@@ -60,7 +72,11 @@ class _ClientDetailsSheetWidget extends StatefulWidget {
     required this.longitude,
     this.photoUrl,
     this.onUpdate,
-    this.onCreateOrder, // Restaurado
+    this.onCreateOrder,
+    this.isVisited = false,
+    this.visitedWithOrder = false,
+    this.onMarkNoOrder,
+    this.onUnmarkNoOrder,
   });
 
   @override
@@ -171,8 +187,91 @@ class _ClientDetailsSheetWidgetState extends State<_ClientDetailsSheetWidget> {
                   _buildImageSection(),
                   const SizedBox(height: 24),
                   _buildFormFields(),
-                  const SizedBox(height: 32),
-                  if (_isEditing || _selectedImage != null) _buildSaveButton(),
+                  const SizedBox(height: 24),
+                  if (_isEditing || _selectedImage != null)
+                    _buildSaveButton()
+                  else ...[
+                    if (widget.onCreateOrder != null)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            widget.onCreateOrder!();
+                          },
+                          icon: const Icon(Icons.shopping_cart_checkout),
+                          label: Text(
+                            widget.visitedWithOrder
+                                ? 'Hacer otro pedido'
+                                : 'Hacer Preventa / Pedido',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 1,
+                          ),
+                        ),
+                      ),
+                    if (!widget.isVisited && widget.onMarkNoOrder != null) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            widget.onMarkNoOrder!();
+                          },
+                          icon: const Icon(
+                            Icons.storefront_outlined,
+                            color: Color(0xFFD97706),
+                            size: 18,
+                          ),
+                          label: const Text(
+                            'No compró / Marcar como visitado',
+                            style: TextStyle(
+                              color: Color(0xFFD97706),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFF59E0B)),
+                            backgroundColor: const Color(0xFFFFFBEB),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ] else if (widget.isVisited &&
+                        !widget.visitedWithOrder &&
+                        widget.onUnmarkNoOrder != null) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            widget.onUnmarkNoOrder!();
+                          },
+                          icon: const Icon(Icons.undo, color: Colors.grey, size: 18),
+                          label: const Text(
+                            'Desmarcar visita (Volver a pendiente)',
+                            style: TextStyle(color: Colors.grey, fontSize: 13),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ],
               ),
             ),
@@ -203,19 +302,53 @@ class _ClientDetailsSheetWidgetState extends State<_ClientDetailsSheetWidget> {
             _isEditing ? 'Editando Perfil' : 'Perfil del Cliente',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
+          if (widget.isVisited) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: widget.visitedWithOrder
+                    ? const Color(0xFFDCFCE7)
+                    : const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: widget.visitedWithOrder
+                      ? const Color(0xFF16A34A)
+                      : const Color(0xFFD97706),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    widget.visitedWithOrder
+                        ? Icons.check_circle
+                        : Icons.storefront,
+                    size: 13,
+                    color: widget.visitedWithOrder
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFD97706),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    widget.visitedWithOrder ? 'Con Pedido' : 'Sin Compra',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: widget.visitedWithOrder
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFD97706),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const Spacer(),
           IconButton(
             icon: Icon(_isEditing ? Icons.close : Icons.edit, color: Colors.blue),
             onPressed: () => setState(() => _isEditing = !_isEditing),
           ),
-          if (widget.onCreateOrder != null)
-            IconButton(
-              icon: const Icon(Icons.shopping_cart, color: Colors.green),
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onCreateOrder!();
-              },
-            ),
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.pop(context),

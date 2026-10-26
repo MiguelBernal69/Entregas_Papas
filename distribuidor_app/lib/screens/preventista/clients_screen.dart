@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import '../../models/client.dart';
 import '../../services/client_service.dart';
 import '../../services/preventista_order_service.dart';
+import '../../services/visit_service.dart';
 import '../../services/region_service.dart';
 import '../../config/api.dart';
 import '../../widgets/client_details_sheet.dart';
@@ -21,11 +23,18 @@ class ClientsScreen extends StatefulWidget {
 
 class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserver {
   List<Client> _clients = [];
-  Set<int> _visitedClientIds = {};
+  Set<int> _orderVisitedClientIds = {};
+  Set<int> _noOrderVisitedClientIds = {};
+  Set<int> get _visitedClientIds => {..._orderVisitedClientIds, ..._noOrderVisitedClientIds};
+
   List<RegionInfo> _myZones = [];
   bool _loading = true;
   bool _showVisited = false;
   DateTime _lastFetchDate = DateTime.now();
+
+  Position? _myPosition;
+  StreamSubscription<Position>? _positionStream;
+  final MapController _mapController = MapController();
 
   Color _parseZoneColor(String hex) {
     try {
@@ -42,12 +51,45 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
     _lastFetchDate = DateTime.now();
     _fetchClients();
+    _initLocationStream();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _positionStream?.cancel();
     super.dispose();
+  }
+
+  Future<void> _initLocationStream() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+
+      if (permission == LocationPermission.deniedForever) return;
+
+      try {
+        final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        if (mounted) setState(() => _myPosition = pos);
+      } catch (_) {}
+
+      _positionStream = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 3,
+        ),
+      ).listen((Position position) {
+        if (mounted) setState(() => _myPosition = position);
+      });
+    } catch (_) {}
   }
 
   @override
@@ -70,12 +112,14 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
       final results = await Future.wait([
         ClientService.getClients(),
         PreventistaOrderService.getMyVisitedToday(),
+        VisitService.getNoOrderVisitedToday(),
         RegionService.getMyRegions(),
       ]);
       setState(() {
         _clients = results[0] as List<Client>;
-        _visitedClientIds = (results[1] as List<int>).toSet();
-        _myZones = results[2] as List<RegionInfo>;
+        _orderVisitedClientIds = (results[1] as List<int>).toSet();
+        _noOrderVisitedClientIds = results[2] as Set<int>;
+        _myZones = results[3] as List<RegionInfo>;
         _loading = false;
       });
     } catch (e) {
@@ -83,14 +127,78 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
     }
   }
 
-
   Future<void> _refreshVisited() async {
     try {
-      final visited = await PreventistaOrderService.getMyVisitedToday();
+      final results = await Future.wait([
+        PreventistaOrderService.getMyVisitedToday(),
+        VisitService.getNoOrderVisitedToday(),
+      ]);
       setState(() {
-        _visitedClientIds = visited.toSet();
+        _orderVisitedClientIds = (results[0] as List<int>).toSet();
+        _noOrderVisitedClientIds = results[1] as Set<int>;
       });
     } catch (_) {}
+  }
+
+  Future<void> _markNoOrder(Client client) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.storefront_outlined, color: Colors.amber.shade700),
+            const SizedBox(width: 8),
+            const Text('Registrar Visita', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: Text(
+          '¿Marcar a "${client.name}" como visitado sin compra hoy?\n\nEl punto se marcará como visitado y no quedará pendiente.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD97706),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await VisitService.markAsVisitedNoOrder(client.id);
+      await _refreshVisited();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Visita registrada para ${client.name} (Sin pedido)'),
+            backgroundColor: Colors.amber.shade800,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _unmarkNoOrder(Client client) async {
+    await VisitService.unmarkVisitedNoOrder(client.id);
+    await _refreshVisited();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"${client.name}" volvió a estar pendiente de visita'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   void _showClientDetails(Client client) {
@@ -104,8 +212,12 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
       latitude: client.latitude,
       longitude: client.longitude,
       photoUrl: client.photoUrl,
+      isVisited: _visitedClientIds.contains(client.id),
+      visitedWithOrder: _orderVisitedClientIds.contains(client.id),
       onUpdate: _fetchClients,
       onCreateOrder: () => _openOrderSheet(client),
+      onMarkNoOrder: () => _markNoOrder(client),
+      onUnmarkNoOrder: () => _unmarkNoOrder(client),
     );
   }
 
@@ -226,15 +338,17 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
           ? Stack(
               children: [
                 FlutterMap(
+                  mapController: _mapController,
                   options: MapOptions(
-                    initialCenter:
-                        _clients.isNotEmpty && _clients.first.latitude != 0.0
-                        ? LatLng(
-                            _clients.first.latitude,
-                            _clients.first.longitude,
-                          )
-                        : const LatLng(-17.3895, -66.1568),
-                    initialZoom: 13,
+                    initialCenter: _myPosition != null
+                        ? LatLng(_myPosition!.latitude, _myPosition!.longitude)
+                        : (_clients.isNotEmpty && _clients.first.latitude != 0.0
+                            ? LatLng(
+                                _clients.first.latitude,
+                                _clients.first.longitude,
+                              )
+                            : const LatLng(-17.3895, -66.1568)),
+                    initialZoom: 14,
                   ),
                   children: [
                     TileLayer(
@@ -260,32 +374,84 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
                             .toList(),
                       ),
                     MarkerLayer(
-                      markers: _clients
-                          .where((c) {
-                            if (_visitedClientIds.contains(c.id)) {
-                              return _showVisited;
-                            }
-                            return true;
-                          })
-                          .map((client) {
-                            final isVisited = _visitedClientIds.contains(
-                              client.id,
-                            );
-                            return Marker(
-                              point: LatLng(client.latitude, client.longitude),
-                              width: 40,
-                              height: 40,
-                              child: GestureDetector(
-                                onTap: () => _showClientDetails(client),
-                                child: Icon(
+                      markers: [
+                        ..._clients
+                            .where((c) {
+                              if (_visitedClientIds.contains(c.id)) {
+                                return _showVisited;
+                              }
+                              return true;
+                            })
+                            .map((client) {
+                              final isVisited = _visitedClientIds.contains(
+                                client.id,
+                              );
+                              final withOrder = _orderVisitedClientIds.contains(
+                                client.id,
+                              );
+                              return Marker(
+                                point: LatLng(client.latitude, client.longitude),
+                                width: 40,
+                                height: 40,
+                                child: GestureDetector(
+                                  onTap: () => _showClientDetails(client),
+                                  child: Icon(
                                     Icons.location_pin,
-                                    color: isVisited ? Colors.blue : Colors.red,
+                                    color: !isVisited
+                                        ? Colors.red
+                                        : (withOrder
+                                            ? Colors.blue
+                                            : Colors.amber.shade700),
                                     size: 40,
                                   ),
-                              ),
-                            );
-                          })
-                          .toList(),
+                                ),
+                              );
+                            }),
+                        // Mi ubicación en tiempo real
+                        if (_myPosition != null)
+                          Marker(
+                            point: LatLng(
+                              _myPosition!.latitude,
+                              _myPosition!.longitude,
+                            ),
+                            width: 44,
+                            height: 44,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Container(
+                                  width: 22,
+                                  height: 22,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2563EB),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 3),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.person,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -481,6 +647,40 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
                     ),
                   ),
 
+                // Botón flotante para centrar en mi ubicación GPS
+                Positioned(
+                  bottom: 80,
+                  right: 16,
+                  child: FloatingActionButton.small(
+                    heroTag: 'my_location_clients_map',
+                    backgroundColor: Colors.white,
+                    elevation: 4,
+                    onPressed: () async {
+                      if (_myPosition != null) {
+                        _mapController.move(
+                          LatLng(_myPosition!.latitude, _myPosition!.longitude),
+                          16,
+                        );
+                      } else {
+                        final messenger = ScaffoldMessenger.of(context);
+                        await _initLocationStream();
+                        if (_myPosition != null) {
+                          _mapController.move(
+                            LatLng(_myPosition!.latitude, _myPosition!.longitude),
+                            16,
+                          );
+                        } else {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Obteniendo ubicación GPS... Verifica tener el GPS activado.'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: const Icon(Icons.my_location, color: Color(0xFF2563EB)),
+                  ),
+                ),
               ],
             )
           : RefreshIndicator(
@@ -490,6 +690,9 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
                 itemCount: _clients.length,
                 itemBuilder: (context, index) {
                   final client = _clients[index];
+                  final isVisited = _visitedClientIds.contains(client.id);
+                  final withOrder = _orderVisitedClientIds.contains(client.id);
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     shape: RoundedRectangleBorder(
@@ -503,10 +706,23 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
                         vertical: 8,
                       ),
                       leading: CircleAvatar(
-                        backgroundColor: const Color(
-                          0xFF3B82F6,
-                        ).withValues(alpha: 0.1),
-                        child: const Text('🏪', style: TextStyle(fontSize: 20)),
+                        backgroundColor: isVisited
+                            ? (withOrder
+                                ? const Color(0xFFDCFCE7)
+                                : const Color(0xFFFEF3C7))
+                            : const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                        child: Text(
+                          isVisited ? '✓' : '🏪',
+                          style: TextStyle(
+                            fontSize: isVisited ? 18 : 20,
+                            fontWeight: FontWeight.bold,
+                            color: isVisited
+                                ? (withOrder
+                                    ? const Color(0xFF16A34A)
+                                    : const Color(0xFFD97706))
+                                : Colors.black,
+                          ),
+                        ),
                       ),
                       title: Text(
                         client.name,
@@ -515,6 +731,30 @@ class _ClientsScreenState extends State<ClientsScreen> with WidgetsBindingObserv
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (isVisited)
+                            Container(
+                              margin: const EdgeInsets.only(top: 2, bottom: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: withOrder
+                                    ? const Color(0xFFDCFCE7)
+                                    : const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                withOrder ? '✓ Con Pedido' : '✓ Visitado (Sin Compra)',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: withOrder
+                                      ? const Color(0xFF16A34A)
+                                      : const Color(0xFFD97706),
+                                ),
+                              ),
+                            ),
                           Text(
                             client.ownerName,
                             style: const TextStyle(fontSize: 13),
