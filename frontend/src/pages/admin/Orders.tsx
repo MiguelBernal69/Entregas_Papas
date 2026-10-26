@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
 import OrderThermalReceiptModal from '../../components/OrderThermalReceiptModal'
+import BatchThermalReceiptModal from '../../components/BatchThermalReceiptModal'
 import { getOrders, assignOrders } from '../../api/orders'
 import { getUsers } from '../../api/users'
 import { getRegions } from '../../api/regions'
@@ -25,6 +26,7 @@ export default function AdminOrders() {
   const [assigning, setAssigning] = useState(false)
   const [detail, setDetail] = useState<Order | null>(null)
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
+  const [batchPrintOrders, setBatchPrintOrders] = useState<Order[] | null>(null)
 
   const fetchOrders = async () => {
     try {
@@ -35,8 +37,7 @@ export default function AdminOrders() {
         getUsers(),
         getRegions()
       ])
-      // Excluir pedidos entregados o parciales — van a la página de Historial
-      setOrders(ordersData.filter((o: Order) => o.status !== 'entregado' && o.status !== 'entrega_parcial'))
+      setOrders(ordersData)
       setDistributors(usersData.filter((u: User) => u.role === 'distribuidor' && u.isActive))
       setRegions(regionsData)
     } catch (err) {
@@ -165,6 +166,15 @@ export default function AdminOrders() {
                 className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
               >
                 {assigning ? 'Asignando...' : 'Asignar'}
+              </button>
+
+              <button
+                onClick={() => setBatchPrintOrders(orders.filter(o => selected.includes(o.id)))}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                title="Imprime todas las boletas térmicas de los pedidos seleccionados"
+              >
+                <span>🖨️</span>
+                <span>Imprimir Boletas ({selected.length})</span>
               </button>
             </>
           )}
@@ -375,11 +385,20 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* Modal Térmico Epson / Bluetooth */}
+      {/* Modal Térmico Epson / Bluetooth Individual */}
       <OrderThermalReceiptModal
         order={receiptOrder}
         onClose={() => setReceiptOrder(null)}
       />
+
+      {/* Modal de Impresión Todo en Uno (Masiva) */}
+      {batchPrintOrders && (
+        <BatchThermalReceiptModal
+          orders={batchPrintOrders}
+          title={`Imprimir Boletas en Lote (${batchPrintOrders.length} pedidos)`}
+          onClose={() => setBatchPrintOrders(null)}
+        />
+      )}
     </Layout>
   )
 }

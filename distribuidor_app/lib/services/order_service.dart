@@ -13,11 +13,22 @@ class OrderService {
     };
   }
 
-  static Future<List<Order>> getMyOrders({String? status, String? date}) async {
+  static Future<List<Order>> getMyOrders({
+    String? status,
+    String? date,
+    int? page,
+    int? limit,
+    int? skip,
+    int? take,
+  }) async {
     String url = '${Api.baseUrl}/distributor/orders';
     List<String> params = [];
     if (status != null) params.add('status=$status');
     if (date != null) params.add('date=$date');
+    if (page != null) params.add('page=$page');
+    if (limit != null) params.add('limit=$limit');
+    if (skip != null) params.add('skip=$skip');
+    if (take != null) params.add('take=$take');
 
     if (params.isNotEmpty) {
       url += '?${params.join('&')}';

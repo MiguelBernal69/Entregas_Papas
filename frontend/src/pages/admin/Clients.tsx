@@ -5,6 +5,7 @@ import { getClients, createClient, updateClient, deleteClient } from '../../api/
 import { getRegions } from '../../api/regions'
 import { getImageUrl } from '../../api/axios'
 import type { Client } from '../../types'
+import Pagination from '../../components/Pagination'
 import L from 'leaflet'
 
 // Leaflet icon fix
@@ -71,6 +72,9 @@ export default function AdminClients() {
     latitude: '', longitude: '', regionId: ''
   })
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 30
+
   const fetchClients = async () => {
     try {
       const [data, rData] = await Promise.all([getClients(), getRegions()])
@@ -90,6 +94,8 @@ export default function AdminClients() {
     c.ownerName.toLowerCase().includes(search.toLowerCase()) ||
     c.address.toLowerCase().includes(search.toLowerCase())
   )
+
+  const paginatedClients = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const openCreate = () => {
     setEditing(null)
@@ -180,7 +186,10 @@ export default function AdminClients() {
           type="text"
           placeholder="Buscar por nombre, dueño o dirección..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => {
+            setSearch(e.target.value)
+            setCurrentPage(1)
+          }}
           className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
@@ -191,70 +200,79 @@ export default function AdminClients() {
           ) : filtered.length === 0 ? (
             <div className="text-center text-gray-400 py-12">No hay clientes</div>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-5 py-3 text-gray-600 font-medium">Negocio</th>
-                  <th className="text-left px-5 py-3 text-gray-600 font-medium">Dueño</th>
-                  <th className="text-left px-5 py-3 text-gray-600 font-medium">Teléfono</th>
-                  <th className="text-left px-5 py-3 text-gray-600 font-medium">Región</th>
-                  <th className="text-left px-5 py-3 text-gray-600 font-medium">Estado</th>
-                  <th className="text-left px-5 py-3 text-gray-600 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filtered.map(client => (
-                  <tr key={client.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        {client.photoUrl ? (
-                          <img src={getImageUrl(client.photoUrl)} alt={client.name}
-                            className="w-9 h-9 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg">🏪</div>
-                        )}
-                        <span className="font-medium text-gray-800">{client.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-gray-600">{client.ownerName}</td>
-                    <td className="px-5 py-4 text-gray-500">{client.phone}</td>
-                    <td className="px-5 py-4">
-                      {client.region ? (
-                        <span className="text-xs font-medium px-2.5 py-1 rounded-full"
-                          style={{ background: client.region.color + '20', color: client.region.color }}>
-                          {client.region.name}
-                        </span>
-                      ) : <span className="text-gray-400">—</span>}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${client.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {client.isActive ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 flex gap-2">
-                      <button
-                        onClick={() => setDetail(client)}
-                        className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                      >
-                        Ver detalle
-                      </button>
-                      <button
-                        onClick={() => openEdit(client)}
-                        className="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(client.id)}
-                        className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                      >
-                        Desactivar
-                      </button>
-                    </td>
+            <>
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-5 py-3 text-gray-600 font-medium">Negocio</th>
+                    <th className="text-left px-5 py-3 text-gray-600 font-medium">Dueño</th>
+                    <th className="text-left px-5 py-3 text-gray-600 font-medium">Teléfono</th>
+                    <th className="text-left px-5 py-3 text-gray-600 font-medium">Región</th>
+                    <th className="text-left px-5 py-3 text-gray-600 font-medium">Estado</th>
+                    <th className="text-left px-5 py-3 text-gray-600 font-medium">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y">
+                  {paginatedClients.map(client => (
+                    <tr key={client.id} className="hover:bg-gray-50">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          {client.photoUrl ? (
+                            <img src={getImageUrl(client.photoUrl)} alt={client.name}
+                              className="w-9 h-9 rounded-lg object-cover" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg">🏪</div>
+                          )}
+                          <span className="font-medium text-gray-800">{client.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-gray-600">{client.ownerName}</td>
+                      <td className="px-5 py-4 text-gray-500">{client.phone}</td>
+                      <td className="px-5 py-4">
+                        {client.region ? (
+                          <span className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            style={{ background: client.region.color + '20', color: client.region.color }}>
+                            {client.region.name}
+                          </span>
+                        ) : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${client.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {client.isActive ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 flex gap-2">
+                        <button
+                          onClick={() => setDetail(client)}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                        >
+                          Ver detalle
+                        </button>
+                        <button
+                          onClick={() => openEdit(client)}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(client.id)}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                        >
+                          Desactivar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+              />
+            </>
           )}
         </div>
       </div>

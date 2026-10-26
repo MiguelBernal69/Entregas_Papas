@@ -18,15 +18,10 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
   const discountVal = Number(order.discount || 0)
   const subtotal = regularItems.reduce((acc, i) => acc + i.unitPrice * i.quantity, 0)
   const finalTotal = Math.max(0, subtotal - discountVal)
-  const regularBultos = regularItems.reduce((acc, i) => acc + i.quantity, 0)
-  const bonifBultos = bonifItems.reduce((acc, i) => acc + i.quantity, 0)
-  const totalBultos = regularBultos + bonifBultos
-
   // Texto térmico para Bluetooth / RawBT / Portapapeles
   const generateReceiptText = (width: '80mm' | '58mm'): string => {
     const colWidth = width === '80mm' ? 44 : 32
     const divider = '-'.repeat(colWidth)
-    const dblDivider = '='.repeat(colWidth)
 
     const center = (text: string) => {
       if (text.length >= colWidth) return text.substring(0, colWidth)
@@ -41,118 +36,63 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
     }
 
     const lines: string[] = []
-    lines.push(dblDivider)
-    lines.push(center('DISTRIBUIDORA DE PAPAS'))
-    lines.push(center(width === '80mm' ? 'EPSON TM-T20III (80mm)' : 'BOLETA TERMICA (58mm)'))
-    lines.push(dblDivider)
-    lines.push(row(`PEDIDO: #${order.id}`, `EST: ${order.status.toUpperCase()}`))
-    lines.push(row('FECHA:', new Date(order.createdAt).toLocaleDateString()))
-    lines.push(row('HORA:', new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })))
+    lines.push(center('DISTRIBUIDORA LUNOVA'))
+    lines.push(center('contacto: 74347987'))
     lines.push(divider)
-    lines.push(`CLIENTE: ${order.client.name}`)
-    if (order.client.ownerName) lines.push(`PROPIETARIO: ${order.client.ownerName}`)
-    if (order.client.phone) lines.push(`TEL: ${order.client.phone}`)
-    if (order.client.address) lines.push(`DIR: ${order.client.address}`)
-    if (order.preventista?.name) lines.push(`PREVENTISTA: ${order.preventista.name}`)
-    if (order.distributor?.name) lines.push(`DISTRIBUIDOR: ${order.distributor.name}`)
+    lines.push(`pedido #${order.id}`)
+    lines.push(`vendedor: ${order.preventista?.name || order.distributor?.name || 'Distribución'}`)
+    const dateToUse = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
+    const dateFormatted = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    lines.push(`fecha entrega: ${dateFormatted}`)
+    lines.push(`cliente: ${order.client.name}`)
+    if (order.client.phone) lines.push(`contacto: ${order.client.phone}`)
+    if (order.client.address) lines.push(`direccion: ${order.client.address}`)
     lines.push(divider)
 
-    if (width === '80mm') {
-      lines.push('CANT  DESCRIPCION                 P.UNIT    SUBTOT')
+    if (width === '58mm') {
+      lines.push('Descripcion         CANT  P.U  total')
     } else {
-      lines.push('CANT DESCRIPCION    P.U   SUBT')
+      lines.push('Descripcion                    CANT   P.U    total')
     }
     lines.push(divider)
 
     for (const it of regularItems) {
-      const cant = `${it.quantity}x`
+      const cant = `x${it.quantity}`
       const price = it.unitPrice.toFixed(2)
       const subt = (it.unitPrice * it.quantity).toFixed(2)
-      const maxLen = width === '80mm' ? 24 : 14
+      const maxLen = width === '58mm' ? 16 : 26
 
-      if (it.product.name.length <= maxLen) {
-        if (width === '80mm') {
-          lines.push(`${cant.padEnd(5)} ${it.product.name.padEnd(maxLen)} ${price.padStart(7)} ${subt.padStart(8)}`)
-        } else {
-          lines.push(`${cant.padEnd(4)} ${it.product.name.padEnd(maxLen)} ${price.padStart(5)} ${subt.padStart(6)}`)
-        }
-      } else {
-        const first = it.product.name.substring(0, maxLen)
-        if (width === '80mm') {
-          lines.push(`${cant.padEnd(5)} ${first} ${price.padStart(7)} ${subt.padStart(8)}`)
-          let rem = it.product.name.substring(maxLen).trim()
-          while (rem.length > 0) {
-            lines.push(`      ${rem.substring(0, maxLen)}`)
-            rem = rem.substring(maxLen).trim()
-          }
-        } else {
-          lines.push(`${cant.padEnd(4)} ${first} ${price.padStart(5)} ${subt.padStart(6)}`)
-          let rem = it.product.name.substring(maxLen).trim()
-          while (rem.length > 0) {
-            lines.push(`     ${rem.substring(0, maxLen)}`)
-            rem = rem.substring(maxLen).trim()
-          }
-        }
-      }
+      lines.push(
+        `${it.product.name.substring(0, maxLen).padEnd(maxLen)} ${cant.padStart(4)} ${price.padStart(5)} ${subt.padStart(6)}`
+      )
     }
 
+    // Solo si el pedido tiene bonificaciones
     if (bonifItems.length > 0) {
       lines.push(divider)
-      lines.push(width === '80mm' ? '*** BONIFICACIONES (GRATIS) ***' : '** BONIFICACIONES (GRATIS) **')
+      lines.push('*** BONIFICACIONES (GRATIS) ***')
       for (const it of bonifItems) {
-        const cant = `${it.quantity}x`
-        const maxLen = width === '80mm' ? 24 : 14
-        const fullName = `[BONIF] ${it.product.name}`
-
-        if (fullName.length <= maxLen) {
-          if (width === '80mm') {
-            lines.push(`${cant.padEnd(5)} ${fullName.padEnd(maxLen)}    0.00     0.00`)
-          } else {
-            lines.push(`${cant.padEnd(4)} ${fullName.padEnd(maxLen)}  0.00   0.00`)
-          }
-        } else {
-          const first = fullName.substring(0, maxLen)
-          if (width === '80mm') {
-            lines.push(`${cant.padEnd(5)} ${first}    0.00     0.00`)
-            let rem = fullName.substring(maxLen).trim()
-            while (rem.length > 0) {
-              lines.push(`      ${rem.substring(0, maxLen)}`)
-              rem = rem.substring(maxLen).trim()
-            }
-          } else {
-            lines.push(`${cant.padEnd(4)} ${first}  0.00   0.00`)
-            let rem = fullName.substring(maxLen).trim()
-            while (rem.length > 0) {
-              lines.push(`     ${rem.substring(0, maxLen)}`)
-              rem = rem.substring(maxLen).trim()
-            }
-          }
-        }
+        lines.push(`[BONIF] ${it.product.name} x${it.quantity} (GRATIS)`)
       }
     }
 
     lines.push(divider)
-    lines.push(row('SUBTOTAL:', `Bs. ${subtotal.toFixed(2)}`))
+    // Solo si el pedido tiene descuento
     if (discountVal > 0) {
-      lines.push(row('DESCUENTO PREVENTA:', `-Bs. ${discountVal.toFixed(2)}`))
-    }
-    lines.push(dblDivider)
-    lines.push(row('TOTAL A COBRAR:', `Bs. ${finalTotal.toFixed(2)}`))
-    lines.push(dblDivider)
-
-    lines.push(row('BULTOS VENTA:', `${regularBultos}`))
-    if (bonifBultos > 0) {
-      lines.push(row('BULTOS BONIFICACION:', `${bonifBultos} [GRATIS]`))
-    }
-    lines.push(row('TOTAL BULTOS/UNDS:', `${totalBultos}`))
-    lines.push(dblDivider)
-
-    if (order.notes) {
-      lines.push(`OBS: ${order.notes}`)
+      lines.push(row('subtotal:', `Bs. ${subtotal.toFixed(2)}`))
+      lines.push(row('descuento:', `-Bs. ${discountVal.toFixed(2)}`))
       lines.push(divider)
     }
 
-    lines.push(center('¡Gracias por su preferencia!'))
+    lines.push(row('total:', `Bs. ${finalTotal.toFixed(2)}`))
+    lines.push(divider)
+
+    if (order.notes) {
+      lines.push(`obs: ${order.notes}`)
+      lines.push(divider)
+    }
+
+    lines.push(center('gracias por su compra'))
     lines.push('')
     lines.push('')
     return lines.join('\n')
@@ -271,50 +211,43 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
           >
             {/* Cabecera */}
             <div className="text-center pb-2">
-              <h4 className="font-black text-[15px] tracking-wide">DISTRIBUIDORA DE PAPAS</h4>
-              <p className="text-[11px] font-bold text-gray-700 mt-0.5">
-                {printerMode === '80mm' ? 'EPSON TM-T20III (80mm)' : 'IMPRESORA TERMICA (58mm)'}
-              </p>
-              <div className="border-b-2 border-dashed border-black my-2" />
+              <h4 className="font-black text-[15px] tracking-wide">DISTRIBUIDORA LUNOVA</h4>
+              <p className="text-[12px] font-bold text-black mt-0.5">contacto: 74347987</p>
+              <div className="border-b border-black my-1.5" />
             </div>
 
             {/* Datos del Pedido */}
-            <div className="space-y-1 mb-2 font-bold text-[13px]">
-              <div className="flex justify-between font-black">
-                <span>PEDIDO: #{order.id}</span>
-                <span className="uppercase text-[11px] px-1.5 bg-gray-100 border border-black font-black">
-                  {order.status}
-                </span>
+            <div className="space-y-1 mb-2 font-bold text-[12px]">
+              <div className="font-black">pedido #{order.id}</div>
+              <div><span className="font-black">vendedor:</span> {order.preventista?.name || order.distributor?.name || 'Distribución'}</div>
+              <div>
+                <span className="font-black">fecha entrega:</span>{' '}
+                {(() => {
+                  const d = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
+                  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                })()}
               </div>
-              <div className="flex justify-between text-black">
-                <span>FECHA: {new Date(order.createdAt).toLocaleDateString()}</span>
-                <span>HORA: {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
-              <div className="border-b border-dashed border-black my-1.5" />
-              <div><span className="font-black">CLIENTE:</span> {order.client.name}</div>
-              {order.client.ownerName && <div><span className="font-black">PROP:</span> {order.client.ownerName}</div>}
-              {order.client.address && <div><span className="font-black">DIR:</span> {order.client.address}</div>}
-              {order.client.phone && <div><span className="font-black">TEL:</span> {order.client.phone}</div>}
-              {order.preventista?.name && <div><span className="font-black">PREVENTISTA:</span> {order.preventista.name}</div>}
-              {order.distributor?.name && <div><span className="font-black">DISTRIBUIDOR:</span> {order.distributor.name}</div>}
+              <div><span className="font-black">cliente:</span> {order.client.name}</div>
+              {order.client.phone && <div><span className="font-black">contacto:</span> {order.client.phone}</div>}
+              {order.client.address && <div><span className="font-black">direccion:</span> {order.client.address}</div>}
             </div>
 
-            <div className="border-b-2 border-black my-2" />
+            <div className="border-b border-black my-1.5" />
 
             {/* Encabezado de Productos */}
-            <div className="flex justify-between font-black text-[13px] pb-1 border-b border-dashed border-black">
-              <span className="w-8">CANT</span>
-              <span className="flex-1 px-1">DESCRIPCION</span>
+            <div className="flex justify-between font-black text-[12px] pb-1 border-b border-black">
+              <span className="flex-1 min-w-0 pr-1">Descripcion</span>
+              <span className="w-10 text-center">CANT</span>
               <span className="w-12 text-right">P.U</span>
-              <span className="w-14 text-right">TOTAL</span>
+              <span className="w-14 text-right">total</span>
             </div>
 
             {/* Items Regulares */}
-            <div className="py-1 space-y-1.5">
+            <div className="py-1 space-y-1">
               {regularItems.map(item => (
-                <div key={item.id} className="flex items-start gap-1 text-[13px] font-bold">
-                  <span className="w-8 shrink-0 font-black">{item.quantity}x</span>
-                  <span className="flex-1 min-w-0 px-1 break-all leading-tight">{item.product.name}</span>
+                <div key={item.id} className="flex items-start gap-1 text-[12px] font-bold">
+                  <span className="flex-1 min-w-0 pr-1 break-all leading-tight">{item.product.name}</span>
+                  <span className="w-10 shrink-0 text-center font-black">x{item.quantity}</span>
                   <span className="w-12 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
                   <span className="w-14 shrink-0 text-right font-black">
                     {(item.unitPrice * item.quantity).toFixed(2)}
@@ -325,65 +258,56 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
 
             {/* Bonificaciones */}
             {bonifItems.length > 0 && (
-              <div className="my-1.5 border-t border-dashed border-black pt-1.5">
-                <div className="text-[12px] font-black tracking-wide text-black">
+              <div className="my-1 border-t border-dashed border-black pt-1">
+                <div className="text-[11px] font-black tracking-wide text-black">
                   🎁 BONIFICACIONES (GRATIS)
                 </div>
-                <div className="space-y-1.5 mt-1 font-bold">
+                <div className="space-y-1 mt-0.5 font-bold">
                   {bonifItems.map(item => (
-                    <div key={`bon-${item.id}`} className="flex items-start gap-1 text-[13px] text-black">
-                      <span className="w-8 shrink-0 font-black">{item.quantity}x</span>
-                      <span className="flex-1 min-w-0 px-1 break-all leading-tight">[BONIF] {item.product.name}</span>
-                      <span className="w-12 shrink-0 text-right text-[11px]">0.00</span>
-                      <span className="w-14 shrink-0 text-right font-black text-[11px]">GRATIS</span>
+                    <div key={`bon-${item.id}`} className="flex items-start gap-1 text-[12px] text-black">
+                      <span className="flex-1 min-w-0 pr-1 break-all leading-tight">[BONIF] {item.product.name}</span>
+                      <span className="w-10 shrink-0 text-center font-black">x{item.quantity}</span>
+                      <span className="w-12 shrink-0 text-right text-[10px]">0.00</span>
+                      <span className="w-14 shrink-0 text-right font-black text-[10px]">GRATIS</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="border-b-2 border-dashed border-black my-2" />
+            <div className="border-b border-black my-1.5" />
 
             {/* Totales y Descuentos */}
-            <div className="space-y-1 text-[13px] font-bold">
-              {discountVal > 0 ? (
+            <div className="space-y-0.5 text-[12px] font-bold">
+              {discountVal > 0 && (
                 <>
                   <div className="flex justify-between text-black">
-                    <span>Subtotal:</span>
+                    <span>subtotal:</span>
                     <span>Bs. {subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-black text-black">
-                    <span>🏷️ Descuento preventa:</span>
+                    <span>descuento:</span>
                     <span>-Bs. {discountVal.toFixed(2)}</span>
                   </div>
-                  <div className="border-b border-black my-1" />
-                  <div className="flex justify-between font-black text-[15px] pt-0.5">
-                    <span>TOTAL A COBRAR:</span>
-                    <span>Bs. {finalTotal.toFixed(2)}</span>
-                  </div>
+                  <div className="border-b border-dashed border-black my-1" />
                 </>
-              ) : (
-                <div className="flex justify-between font-black text-[15px] pt-0.5">
-                  <span>TOTAL:</span>
-                  <span>Bs. {finalTotal.toFixed(2)}</span>
-                </div>
               )}
-              <div className="flex justify-between text-[12px] text-black pt-1 border-t border-dashed border-black font-bold">
-                <span>Total bultos / unidades:</span>
-                <span className="font-black">{totalBultos}</span>
+              <div className="flex justify-between font-black text-[14px] pt-0.5">
+                <span>total:</span>
+                <span>Bs. {finalTotal.toFixed(2)}</span>
               </div>
             </div>
 
             {order.notes && (
-              <div className="mt-3 border-t border-dashed border-black pt-1.5 text-[11px] text-black font-bold">
-                <span className="font-black">OBS:</span> {order.notes}
+              <div className="mt-2 border-t border-dashed border-black pt-1 text-[11px] text-black font-bold">
+                <span className="font-black">obs:</span> {order.notes}
               </div>
             )}
 
-            {/* Pie de Boleta */}
-            <div className="text-center mt-5 pt-3 border-t-2 border-dashed border-black font-bold">
-              <p className="font-black text-[13px]">¡GRACIAS POR SU COMPRA!</p>
-              <p className="text-[10px] text-gray-700 mt-0.5">Comprobante de Entrega y Pedido</p>
+            <div className="border-t border-black my-2" />
+
+            <div className="text-center pb-1 text-[12px] font-bold lowercase">
+              gracias por su compra
             </div>
           </div>
         </div>

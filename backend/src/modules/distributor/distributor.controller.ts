@@ -7,7 +7,17 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
     try {
         const statusQuery = req.query.status as string | undefined
         const dateQuery = req.query.date as string | undefined
-        const orders = await service.getMyOrders(req.user!.id, statusQuery, dateQuery)
+        const page = req.query.page ? Number(req.query.page) : undefined
+        const limit = req.query.limit ? Number(req.query.limit) : undefined
+        const skip = req.query.skip ? Number(req.query.skip) : undefined
+        const take = req.query.take ? Number(req.query.take) : undefined
+
+        const orders = await service.getMyOrders(
+            req.user!.id,
+            statusQuery,
+            dateQuery,
+            { page, limit, skip, take }
+        )
         res.json(orders)
     } catch (error: any) {
         res.status(500).json({ message: error.message })

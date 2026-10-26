@@ -16,44 +16,141 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
+class _OrdersScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final GlobalKey<_PaginatedOrderListState> _pendingListKey = GlobalKey();
+  final GlobalKey<_PaginatedOrderListState> _historyListKey = GlobalKey();
   List<Order> _pendingOrders = [];
-  List<Order> _deliveredOrders = [];
-  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
-  Future<void> _fetchData() async {
-    setState(() => _loading = true);
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onPendingOrdersUpdated(List<Order> orders) {
+    _pendingOrders = orders;
+  }
+
+  void _refreshAll() {
+    _pendingListKey.currentState?.refresh();
+    _historyListKey.currentState?.refresh();
+  }
+
+  Future<void> _openPendingMap() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
-      final now = DateTime.now();
-      final today =
-          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final allPending = await OrderService.getMyOrders(status: 'asignado');
+      if (mounted) {
+        Navigator.pop(context);
+        if (allPending.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No tienes pedidos pendientes para mostrar en el mapa'),
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MapScreen(
+              orders: allPending,
+              title: 'Mapa - Pendientes (${allPending.length})',
+            ),
+          ),
+        ).then((_) => _refreshAll());
+      }
+    } catch (_) {
+      if (mounted) {
+        Navigator.pop(context);
+        if (_pendingOrders.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MapScreen(
+                orders: _pendingOrders,
+                title: 'Mapa - Pendientes (${_pendingOrders.length})',
+              ),
+            ),
+          ).then((_) => _refreshAll());
+        }
+      }
+    }
+  }
 
-      // Cargamos ambos tipos de pedidos para hoy
-      final results = await Future.wait([
-        OrderService.getMyOrders(status: 'asignado'),
-        OrderService.getMyOrders(status: 'entregado', date: today),
-      ]);
+  Future<void> _openDeliveredMap() async {
+    final now = DateTime.now();
+    final today =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
-      setState(() {
-        _pendingOrders = results[0];
-        _deliveredOrders = results[1];
-        _loading = false;
-      });
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final delivered = await OrderService.getMyOrders(
+        status: 'entregado',
+        date: today,
+      );
+      if (mounted) {
+        Navigator.pop(context);
+        if (delivered.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Aún no tienes pedidos entregados hoy para ver en el mapa'),
+              duration: Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MapScreen(
+              orders: delivered,
+              title: 'Mapa - Entregados Hoy (${delivered.length})',
+            ),
+          ),
+        );
+      }
     } catch (e) {
-      setState(() => _loading = false);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar mapa de entregados: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
   /// Muestra el diálogo de entrega con cantidades editables para entrega parcial
-  Future<void> _deliver(int orderId) async {
-    final order = _pendingOrders.firstWhere((o) => o.id == orderId);
-
+  Future<void> _deliver(Order order) async {
     final result = await showModalBottomSheet<Map<String, dynamic>?>(
       context: context,
       isScrollControlled: true,
@@ -80,21 +177,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
     try {
       final ok = await OrderService.deliverOrder(
-        orderId,
+        order.id,
         deliveredItems: deliveredItems,
         notes: notes,
       );
 
       if (ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: Text(isPartial ? '⚠️ Entrega parcial registrada' : '✅ Pedido entregado'),
             backgroundColor: isPartial ? Colors.orange : Colors.green,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             action: SnackBarAction(
               label: 'VER BOLETA',
               textColor: Colors.white,
               onPressed: () {
+                messenger.hideCurrentSnackBar();
                 final userName = context.read<AuthProvider>().user?.name;
                 OrderReceiptModal.show(
                   context,
@@ -105,7 +207,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
           ),
         );
-        _fetchData();
+
+        // Forzar cierre a los 3 segundos para evitar que el sistema de accesibilidad de Android/Samsung lo deje congelado
+        Future.delayed(const Duration(seconds: 3), () {
+          try {
+            messenger.hideCurrentSnackBar();
+          } catch (_) {}
+        });
+
+        // Quitar de pendientes al instante y actualizar historial
+        _pendingListKey.currentState?.removeOrder(order.id);
+        _historyListKey.currentState?.refresh();
       }
     } catch (e) {
       if (mounted) {
@@ -122,121 +234,344 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.read<AuthProvider>().user;
+    final now = DateTime.now();
+    final today =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF3F4F6),
-        appBar: AppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Mi Ruta',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              Text(
-                'Hola, ${user?.name ?? ''}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.map_outlined),
-              tooltip: 'Ver mapa',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => MapScreen(orders: _pendingOrders),
-                ),
-              ).then((_) => _fetchData()), // Refrescar al volver del mapa
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Mi Ruta',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () => context.read<AuthProvider>().logout(),
+            Text(
+              'Hola, ${user?.name ?? ''}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
-          bottom: const TabBar(
-            indicatorColor: Color(0xFF3B82F6),
-            labelColor: Color(0xFF3B82F6),
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              Tab(text: 'Pendientes', icon: Icon(Icons.pending_actions)),
-              Tab(text: 'Historial Hoy', icon: Icon(Icons.history)),
-            ],
-          ),
         ),
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : TabBarView(
-                children: [
-                  _OrderList(
-                    orders: _pendingOrders,
-                    emptyMessage: 'No tienes pedidos pendientes',
-                    onRefresh: _fetchData,
-                    onDeliver: _deliver,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _tabController.index == 0 ? Icons.map_outlined : Icons.pin_drop,
+              color: _tabController.index == 0 ? null : const Color(0xFF10B981),
+            ),
+            tooltip: _tabController.index == 0
+                ? 'Ver mapa de ruta pendiente'
+                : 'Ver mapa de entregados hoy',
+            onPressed: () {
+              if (_tabController.index == 0) {
+                _openPendingMap();
+              } else {
+                _openDeliveredMap();
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<AuthProvider>().logout(),
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: const Color(0xFF3B82F6),
+          labelColor: const Color(0xFF3B82F6),
+          unselectedLabelColor: Colors.grey,
+          tabs: const [
+            Tab(text: 'Pendientes', icon: Icon(Icons.pending_actions)),
+            Tab(text: 'Historial Hoy', icon: Icon(Icons.history)),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _PaginatedOrderList(
+            key: _pendingListKey,
+            status: 'asignado',
+            emptyMessage: 'No tienes pedidos pendientes',
+            onDeliver: _deliver,
+            onOrdersUpdated: _onPendingOrdersUpdated,
+          ),
+          _PaginatedOrderList(
+            key: _historyListKey,
+            status: 'entregado',
+            date: today,
+            emptyMessage: 'Aún no has entregado pedidos hoy',
+            isHistory: true,
+            headerWidget: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _openDeliveredMap,
+                icon: const Icon(Icons.map_outlined, color: Colors.white, size: 20),
+                label: const Text(
+                  'Ver mapa de entregados hoy',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  _OrderList(
-                    orders: _deliveredOrders,
-                    emptyMessage: 'Aún no has entregado pedidos hoy',
-                    onRefresh: _fetchData,
-                    isHistory: true,
-                  ),
-                ],
+                ),
               ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// Formulario removido a widgets/delivery_form.dart
+// ─── Lista de pedidos con Paginación Infinita ──────────────────────
 
-// ─── Lista de pedidos (reutilizable) ───────────────────────
-
-class _OrderList extends StatelessWidget {
-  final List<Order> orders;
+class _PaginatedOrderList extends StatefulWidget {
+  final String status;
+  final String? date;
   final String emptyMessage;
-  final RefreshCallback onRefresh;
-  final Function(int)? onDeliver;
   final bool isHistory;
+  final Function(Order)? onDeliver;
+  final Function(List<Order>)? onOrdersUpdated;
+  final Widget? headerWidget;
 
-  const _OrderList({
-    required this.orders,
+  const _PaginatedOrderList({
+    super.key,
+    required this.status,
+    this.date,
     required this.emptyMessage,
-    required this.onRefresh,
-    this.onDeliver,
     this.isHistory = false,
+    this.onDeliver,
+    this.onOrdersUpdated,
+    this.headerWidget,
   });
 
   @override
+  State<_PaginatedOrderList> createState() => _PaginatedOrderListState();
+}
+
+class _PaginatedOrderListState extends State<_PaginatedOrderList>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  final ScrollController _scrollController = ScrollController();
+  final List<Order> _orders = [];
+  bool _loading = true;
+  bool _loadingMore = false;
+  bool _hasMore = true;
+
+  // Tamaño de página: carga rápida inicial y al bajar scroll
+  static const int _pageSize = 15;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInitial();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 250 &&
+        !_loadingMore &&
+        !_loading &&
+        _hasMore) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _fetchInitial() async {
+    setState(() {
+      _loading = true;
+      _hasMore = true;
+    });
+
+    try {
+      final results = await OrderService.getMyOrders(
+        status: widget.status,
+        date: widget.date,
+        skip: 0,
+        take: _pageSize,
+      );
+
+      if (mounted) {
+        setState(() {
+          _orders.clear();
+          _orders.addAll(results);
+          _loading = false;
+          _hasMore = results.length >= _pageSize;
+        });
+        widget.onOrdersUpdated?.call(_orders);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore) return;
+
+    setState(() => _loadingMore = true);
+
+    try {
+      final results = await OrderService.getMyOrders(
+        status: widget.status,
+        date: widget.date,
+        skip: _orders.length,
+        take: _pageSize,
+      );
+
+      if (mounted) {
+        setState(() {
+          _orders.addAll(results);
+          _loadingMore = false;
+          _hasMore = results.length >= _pageSize;
+        });
+        widget.onOrdersUpdated?.call(_orders);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _loadingMore = false);
+      }
+    }
+  }
+
+  Future<void> refresh() async {
+    await _fetchInitial();
+  }
+
+  void removeOrder(int orderId) {
+    setState(() {
+      _orders.removeWhere((o) => o.id == orderId);
+    });
+    widget.onOrdersUpdated?.call(_orders);
+    // Si quedan pocos elementos en pantalla y hay más en el servidor, pedir la siguiente tanda
+    if (_orders.length < 5 && _hasMore && !_loadingMore) {
+      _loadMore();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    super.build(context);
+
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final hasHeader = widget.headerWidget != null;
+
+    if (_orders.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _fetchInitial,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
           children: [
-            Text(isHistory ? '🕒' : '📦', style: const TextStyle(fontSize: 48)),
-            const SizedBox(height: 12),
-            Text(emptyMessage, style: const TextStyle(color: Colors.grey)),
+            if (hasHeader) widget.headerWidget!,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(widget.isHistory ? '🕒' : '📦',
+                      style: const TextStyle(fontSize: 48)),
+                  const SizedBox(height: 12),
+                  Text(widget.emptyMessage,
+                      style: const TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
           ],
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: onRefresh,
+      onRefresh: _fetchInitial,
       child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        itemCount: orders.length,
+        itemCount: _orders.length + 1 + (hasHeader ? 1 : 0),
         itemBuilder: (context, index) {
-          final order = orders[index];
-          return _OrderCard(
-            order: order,
-            onDeliver: onDeliver != null ? () => onDeliver!(order.id) : null,
-            isHistory: isHistory,
-            onUpdate: onRefresh,
-          );
+          if (hasHeader && index == 0) {
+            return widget.headerWidget!;
+          }
+
+          final orderIndex = hasHeader ? index - 1 : index;
+
+          if (orderIndex < _orders.length) {
+            final order = _orders[orderIndex];
+            return _OrderCard(
+              order: order,
+              onDeliver: widget.onDeliver != null
+                  ? () => widget.onDeliver!(order)
+                  : null,
+              isHistory: widget.isHistory,
+              onUpdate: _fetchInitial,
+            );
+          }
+
+          // Pie de lista: indicador de carga infinita o fin de lista
+          if (_loadingMore) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Cargando más pedidos...',
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (!_hasMore && _orders.length >= _pageSize) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 24),
+              child: Center(
+                child: Text(
+                  'Has llegado al final • ${_orders.length} pedidos',
+                  style: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return const SizedBox(height: 16);
         },
       ),
     );
@@ -637,30 +972,61 @@ class _OrderCard extends StatelessWidget {
 
             if (isHistory) ...[
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    final userName = context.read<AuthProvider>().user?.name;
-                    OrderReceiptModal.show(
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
                       context,
-                      order: order,
-                      distributorName: userName,
-                    );
-                  },
-                  icon: const Icon(Icons.print, size: 16, color: Color(0xFF2563EB)),
-                  label: const Text(
-                    'Ver / Imprimir Boleta',
-                    style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFBFDBFE)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      MaterialPageRoute(
+                        builder: (_) => MapScreen(
+                          orders: [order],
+                          focusOrder: order,
+                          title: 'Ubicación entrega #${order.id}',
+                        ),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    icon: const Icon(Icons.map_outlined, size: 16, color: Color(0xFF10B981)),
+                    label: const Text(
+                      'Mapa',
+                      style: TextStyle(
+                        color: Color(0xFF10B981),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                      side: const BorderSide(color: Color(0xFFA7F3D0)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        final userName = context.read<AuthProvider>().user?.name;
+                        OrderReceiptModal.show(
+                          context,
+                          order: order,
+                          distributorName: userName,
+                        );
+                      },
+                      icon: const Icon(Icons.print, size: 16, color: Color(0xFF2563EB)),
+                      label: const Text(
+                        'Ver / Imprimir Boleta',
+                        style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFBFDBFE)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],

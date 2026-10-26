@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
 import OrderThermalReceiptModal from '../../components/OrderThermalReceiptModal'
+import BatchThermalReceiptModal from '../../components/BatchThermalReceiptModal'
 import {
   getDistributorOrders,
   getDistributorSession,
@@ -17,6 +18,7 @@ export default function DistributorOrders() {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'pendientes' | 'entregados'>('pendientes')
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
+  const [batchPrintOrders, setBatchPrintOrders] = useState<Order[] | null>(null)
   const [deliverModalOrder, setDeliverModalOrder] = useState<Order | null>(null)
   const [deliveredQuantities, setDeliveredQuantities] = useState<Record<number, number>>({})
   const [deliveryNotes, setDeliveryNotes] = useState('')
@@ -206,35 +208,60 @@ export default function DistributorOrders() {
               </div>
             </div>
 
-            {/* Pestañas: Pendientes vs Entregados */}
-            <div className="flex border-b border-gray-200 gap-4">
-              <button
-                onClick={() => setActiveTab('pendientes')}
-                className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors ${
-                  activeTab === 'pendientes'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <span>📦 Pedidos Pendientes</span>
-                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                  {orders.length}
-                </span>
-              </button>
+            {/* Pestañas: Pendientes vs Entregados y Botón Imprimir Todo en Uno */}
+            <div className="flex flex-wrap items-center justify-between border-b border-gray-200 gap-3 pb-2">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setActiveTab('pendientes')}
+                  className={`pb-2 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors ${
+                    activeTab === 'pendientes'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <span>📦 Pedidos Pendientes</span>
+                  <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                    {orders.length}
+                  </span>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('entregados')}
-                className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors ${
-                  activeTab === 'entregados'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <span>✅ Entregados Hoy</span>
-                <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full">
-                  {deliveredOrders.length}
-                </span>
-              </button>
+                <button
+                  onClick={() => setActiveTab('entregados')}
+                  className={`pb-2 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors ${
+                    activeTab === 'entregados'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <span>✅ Entregados Hoy</span>
+                  <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full">
+                    {deliveredOrders.length}
+                  </span>
+                </button>
+              </div>
+
+              {/* Botón Imprimir Todo en Uno */}
+              {activeTab === 'pendientes' && orders.length > 0 && (
+                <button
+                  onClick={() => setBatchPrintOrders(orders)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                  title="Imprime todas las boletas continuas para salir a repartir"
+                >
+                  <span className="text-sm">🖨️</span>
+                  <span>Imprimir Todo en Uno ({orders.length} boletas)</span>
+                </button>
+              )}
+
+              {activeTab === 'entregados' && deliveredOrders.length > 0 && (
+                <button
+                  onClick={() => setBatchPrintOrders(deliveredOrders)}
+                  className="bg-emerald-800 hover:bg-emerald-900 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                  title="Imprime las boletas de las entregas de hoy"
+                >
+                  <span className="text-sm">🖨️</span>
+                  <span>Imprimir Entregados ({deliveredOrders.length} boletas)</span>
+                </button>
+              )}
             </div>
 
             {/* Lista de Pedidos */}
@@ -538,11 +565,24 @@ export default function DistributorOrders() {
           </div>
         )}
 
-        {/* Modal de Boleta Térmica Nítida */}
+        {/* Modal de Boleta Térmica Nítida Individual */}
         <OrderThermalReceiptModal
           order={receiptOrder}
           onClose={() => setReceiptOrder(null)}
         />
+
+        {/* Modal de Impresión Todo en Uno (Masiva) */}
+        {batchPrintOrders && (
+          <BatchThermalReceiptModal
+            orders={batchPrintOrders}
+            title={
+              activeTab === 'pendientes'
+                ? `Imprimir Boletas de Carga (${batchPrintOrders.length} pedidos)`
+                : `Imprimir Boletas Entregadas (${batchPrintOrders.length} pedidos)`
+            }
+            onClose={() => setBatchPrintOrders(null)}
+          />
+        )}
       </div>
     </Layout>
   )

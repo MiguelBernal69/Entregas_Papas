@@ -3,17 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
 import '../config/api.dart';
 import '../widgets/client_details_sheet.dart';
 import '../widgets/delivery_form.dart';
+import '../widgets/order_receipt_modal.dart';
+import '../providers/auth_provider.dart';
 
 class MapScreen extends StatefulWidget {
   final List<Order> orders;
   final Order? focusOrder;
+  final String title;
 
-  const MapScreen({super.key, required this.orders, this.focusOrder});
+  const MapScreen({
+    super.key,
+    required this.orders,
+    this.focusOrder,
+    this.title = 'Mapa de entregas',
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -113,12 +122,22 @@ class _MapScreenState extends State<MapScreen> {
       );
 
       if (ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: Text(isPartial ? '⚠️ Entrega parcial registrada' : '✅ Pedido entregado'),
             backgroundColor: isPartial ? Colors.orange : Colors.green,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
+        Future.delayed(const Duration(seconds: 3), () {
+          try {
+            messenger.hideCurrentSnackBar();
+          } catch (_) {}
+        });
         setState(() {
           widget.orders.removeWhere((o) => o.id == orderId);
           _selectedOrder = null;
@@ -140,9 +159,9 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Mapa de entregas',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Stack(
@@ -161,19 +180,48 @@ class _MapScreenState extends State<MapScreen> {
                   // Marcadores de pedidos primero (abajo)
                   ...widget.orders.map((order) {
                     final isSelected = _selectedOrder?.id == order.id;
+                    final isDelivered = order.status == 'entregado' ||
+                        order.status == 'entrega_parcial';
+                    final markerColor = isSelected
+                        ? Colors.red
+                        : (isDelivered
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFF8B5CF6));
+
                     return Marker(
                       point: ll.LatLng(
                         order.client.latitude,
                         order.client.longitude,
                       ),
-                      width: 40,
-                      height: 40,
+                      width: 44,
+                      height: 44,
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedOrder = order),
-                        child: Icon(
-                          Icons.location_pin,
-                          color: isSelected ? Colors.red : const Color(0xFF8B5CF6),
-                          size: isSelected ? 42 : 34,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.location_pin,
+                              color: markerColor,
+                              size: isSelected ? 44 : 36,
+                            ),
+                            if (isDelivered)
+                              Positioned(
+                                top: 7,
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(1.5),
+                                  child: const Icon(
+                                    Icons.check,
+                                    size: 10,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     );
@@ -423,6 +471,36 @@ class _MapScreenState extends State<MapScreen> {
                               label: const Text('Entregar'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else if (_selectedOrder!.status == 'entregado' ||
+                            _selectedOrder!.status == 'entrega_parcial') ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                final userName = context.read<AuthProvider>().user?.name;
+                                OrderReceiptModal.show(
+                                  context,
+                                  order: _selectedOrder!,
+                                  distributorName: userName,
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.print,
+                                size: 16,
+                              ),
+                              label: const Text('Ver Boleta'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),

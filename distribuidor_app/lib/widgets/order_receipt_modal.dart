@@ -96,7 +96,6 @@ class OrderReceiptModal extends StatefulWidget {
 
     final discount = order.discount;
     final totalNeto = (subtotal - discount) > 0 ? (subtotal - discount) : 0.0;
-    final totalFisico = totalRegularQty + totalBoniQty;
 
     // Formateo de fecha
     String dateStr;
@@ -108,36 +107,24 @@ class OrderReceiptModal extends StatefulWidget {
       dateStr = order.createdAt;
     }
 
-    buffer.writeln(sepDouble);
-    buffer.writeln(center("DISTRIBUIDORA PAPAS"));
-    buffer.writeln(center("BOLETA DE ENTREGA Y VENTA"));
-    buffer.writeln(sepDouble);
-    buffer.writeln("Pedido:      #${order.id}");
-    buffer.writeln("Fecha:       $dateStr");
-    buffer.writeln("Estado:      ${order.status.toUpperCase()}");
-    if (order.preventistaName != null && order.preventistaName!.trim().isNotEmpty) {
-      buffer.writeln("Preventista: ${order.preventistaName}");
-    }
-    if (distributorName != null && distributorName.trim().isNotEmpty) {
-      buffer.writeln("Repartidor:  $distributorName");
-    }
+    buffer.writeln(center("DISTRIBUIDORA LUNOVA"));
+    buffer.writeln(center("contacto: 74347987"));
     buffer.writeln(sepSingle);
-    buffer.writeln("DATOS DEL CLIENTE:");
-    buffer.writeln("Cliente:   ${order.client.name}");
-    if (order.client.ownerName.trim().isNotEmpty) {
-      buffer.writeln("Titular:   ${order.client.ownerName}");
-    }
+    buffer.writeln("pedido #${order.id}");
+    buffer.writeln("vendedor: ${order.preventistaName ?? distributorName ?? 'Distribución'}");
+    buffer.writeln("fecha entrega: $dateStr");
+    buffer.writeln("cliente: ${order.client.name}");
     if (order.client.phone.trim().isNotEmpty) {
-      buffer.writeln("Teléfono:  ${order.client.phone}");
+      buffer.writeln("contacto: ${order.client.phone}");
     }
     if (order.client.address.trim().isNotEmpty) {
-      buffer.writeln("Dirección: ${order.client.address}");
+      buffer.writeln("direccion: ${order.client.address}");
     }
     buffer.writeln(sepSingle);
 
     if (is80mm) {
-      // Formato para 80mm Epson TM-T20III (44 columnas)
-      buffer.writeln("Cant  Producto                 P.U.    Total");
+      // Formato para 80mm Epson TM-T20III
+      buffer.writeln("Descripcion                    CANT   P.U    total");
       buffer.writeln(sepSingle);
 
       for (final item in regularItems) {
@@ -145,69 +132,48 @@ class OrderReceiptModal extends StatefulWidget {
             ? getDeliveredQty(item)
             : item.quantity;
         final itemTotal = qty * item.unitPrice;
-        final qtyStr = padRight("$qty${item.productUnit}", 5);
-        final puStr = padLeft(item.unitPrice.toStringAsFixed(2), 7);
-        final totStr = padLeft(itemTotal.toStringAsFixed(2), 9);
-        const maxLen = 21;
+        final qtyStr = padLeft("x$qty", 4);
+        final puStr = padLeft(item.unitPrice.toStringAsFixed(2), 6);
+        final totStr = padLeft(itemTotal.toStringAsFixed(2), 8);
+        const maxLen = 24;
 
         if (item.productName.length <= maxLen) {
           final nameStr = padRight(item.productName, maxLen);
-          buffer.writeln("$qtyStr $nameStr $puStr $totStr");
+          buffer.writeln("$nameStr $qtyStr $puStr $totStr");
         } else {
           final first = item.productName.substring(0, maxLen);
-          buffer.writeln("$qtyStr $first $puStr $totStr");
+          buffer.writeln("$first $qtyStr $puStr $totStr");
           var rem = item.productName.substring(maxLen).trim();
           while (rem.isNotEmpty) {
             final take = rem.length > maxLen ? maxLen : rem.length;
             final chunk = rem.substring(0, take);
-            buffer.writeln("      $chunk");
+            buffer.writeln(chunk);
             rem = rem.substring(take).trim();
           }
-        }
-
-        if (item.deliveredQuantity != null && item.deliveredQuantity! < item.quantity) {
-          buffer.writeln("   (Pedido: ${item.quantity} -> Devuelto: ${item.quantity - qty})");
         }
       }
 
       if (boniItems.isNotEmpty) {
         buffer.writeln(sepSingle);
-        buffer.writeln("*** BONIFICACIONES (100% GRATIS) ***");
+        buffer.writeln("*** BONIFICACIONES (GRATIS) ***");
         for (final item in boniItems) {
           final qty = isHistory || customDeliveredQuantities != null
               ? getDeliveredQty(item)
               : item.quantity;
-          final qtyStr = padRight("$qty${item.productUnit}", 5);
-          final fullName = "[BONIF] ${item.productName}";
-          const maxLen = 28;
-
-          if (fullName.length <= maxLen) {
-            final nameStr = padRight(fullName, maxLen);
-            buffer.writeln("$qtyStr $nameStr  GRATIS");
-          } else {
-            final first = fullName.substring(0, maxLen);
-            buffer.writeln("$qtyStr $first  GRATIS");
-            var rem = fullName.substring(maxLen).trim();
-            while (rem.isNotEmpty) {
-              final take = rem.length > maxLen ? maxLen : rem.length;
-              final chunk = rem.substring(0, take);
-              buffer.writeln("      $chunk");
-              rem = rem.substring(take).trim();
-            }
-          }
+          buffer.writeln("[BONIF] ${item.productName} x$qty (GRATIS)");
         }
       }
 
       buffer.writeln(sepSingle);
-      buffer.writeln("Subtotal venta:           ${padLeft('Bs. ${subtotal.toStringAsFixed(2)}', 16)}");
       if (discount > 0) {
-        buffer.writeln("Descuento preventa:       ${padLeft('-Bs. ${discount.toStringAsFixed(2)}', 16)}");
+        buffer.writeln("subtotal:                 ${padLeft('Bs. ${subtotal.toStringAsFixed(2)}', 16)}");
+        buffer.writeln("descuento:                ${padLeft('-Bs. ${discount.toStringAsFixed(2)}', 16)}");
         buffer.writeln(sepSingle);
       }
-      buffer.writeln("TOTAL A COBRAR:           ${padLeft('Bs. ${totalNeto.toStringAsFixed(2)}', 16)}");
+      buffer.writeln("total:                    ${padLeft('Bs. ${totalNeto.toStringAsFixed(2)}', 16)}");
     } else {
       // Formato para 58mm Bluetooth Portátil (32 columnas)
-      buffer.writeln("Cant  Producto            P.U.  Total");
+      buffer.writeln("Descripcion         CANT  P.U  total");
       buffer.writeln(sepSingle);
 
       for (final item in regularItems) {
@@ -215,86 +181,55 @@ class OrderReceiptModal extends StatefulWidget {
             ? getDeliveredQty(item)
             : item.quantity;
         final itemTotal = qty * item.unitPrice;
-        final qtyStr = padRight("$qty${item.productUnit}", 5);
-        final puStr = padLeft(item.unitPrice.toStringAsFixed(1), 5);
-        final totStr = padLeft(itemTotal.toStringAsFixed(2), 7);
-        const maxLen = 17;
+        final qtyStr = padLeft("x$qty", 4);
+        final puStr = padLeft(item.unitPrice.toStringAsFixed(2), 5);
+        final totStr = padLeft(itemTotal.toStringAsFixed(2), 6);
+        const maxLen = 15;
 
         if (item.productName.length <= maxLen) {
           final nameStr = padRight(item.productName, maxLen);
-          buffer.writeln("$qtyStr $nameStr $puStr $totStr");
+          buffer.writeln("$nameStr $qtyStr $puStr $totStr");
         } else {
           final first = item.productName.substring(0, maxLen);
-          buffer.writeln("$qtyStr $first $puStr $totStr");
+          buffer.writeln("$first $qtyStr $puStr $totStr");
           var rem = item.productName.substring(maxLen).trim();
           while (rem.isNotEmpty) {
             final take = rem.length > maxLen ? maxLen : rem.length;
             final chunk = rem.substring(0, take);
-            buffer.writeln("     $chunk");
+            buffer.writeln(chunk);
             rem = rem.substring(take).trim();
           }
-        }
-
-        if (item.deliveredQuantity != null && item.deliveredQuantity! < item.quantity) {
-          buffer.writeln("   (Pedido: ${item.quantity} -> Dev: ${item.quantity - qty})");
         }
       }
 
       if (boniItems.isNotEmpty) {
         buffer.writeln(sepSingle);
-        buffer.writeln("** BONIFICACIONES (GRATIS) **");
+        buffer.writeln("*** BONIFICACIONES (GRATIS) ***");
         for (final item in boniItems) {
           final qty = isHistory || customDeliveredQuantities != null
               ? getDeliveredQty(item)
               : item.quantity;
-          final qtyStr = padRight("$qty${item.productUnit}", 5);
-          final fullName = "[BON] ${item.productName}";
-          const maxLen = 20;
-
-          if (fullName.length <= maxLen) {
-            final nameStr = padRight(fullName, maxLen);
-            buffer.writeln("$qtyStr $nameStr GRATIS");
-          } else {
-            final first = fullName.substring(0, maxLen);
-            buffer.writeln("$qtyStr $first GRATIS");
-            var rem = fullName.substring(maxLen).trim();
-            while (rem.isNotEmpty) {
-              final take = rem.length > maxLen ? maxLen : rem.length;
-              final chunk = rem.substring(0, take);
-              buffer.writeln("     $chunk");
-              rem = rem.substring(take).trim();
-            }
-          }
+          buffer.writeln("[BONIF] ${item.productName} x$qty (GRATIS)");
         }
       }
 
       buffer.writeln(sepSingle);
-      buffer.writeln("Subtotal venta:     ${padLeft('Bs. ${subtotal.toStringAsFixed(2)}', 12)}");
       if (discount > 0) {
-        buffer.writeln("Descuento prevent.: ${padLeft('-Bs. ${discount.toStringAsFixed(2)}', 12)}");
+        buffer.writeln("subtotal:           ${padLeft('Bs. ${subtotal.toStringAsFixed(2)}', 12)}");
+        buffer.writeln("descuento:          ${padLeft('-Bs. ${discount.toStringAsFixed(2)}', 12)}");
         buffer.writeln(sepSingle);
       }
-      buffer.writeln("TOTAL A COBRAR:     ${padLeft('Bs. ${totalNeto.toStringAsFixed(2)}', 12)}");
+      buffer.writeln("total:              ${padLeft('Bs. ${totalNeto.toStringAsFixed(2)}', 12)}");
     }
-
-    buffer.writeln(sepDouble);
-    buffer.writeln("RESUMEN DE BULTOS / CARGA:");
-    buffer.writeln("  • Venta regular:   $totalRegularQty unidades");
-    if (totalBoniQty > 0) {
-      buffer.writeln("  • Bonificaciones:  $totalBoniQty unidades [GRATIS 🎁]");
-    }
-    buffer.writeln("  • TOTAL ENTREGADO: $totalFisico unidades");
 
     if (order.notes != null && order.notes!.trim().isNotEmpty) {
       buffer.writeln(sepSingle);
-      buffer.writeln("OBSERVACIONES:");
-      buffer.writeln(order.notes!.trim());
+      buffer.writeln("obs: ${order.notes!.trim()}");
     }
 
     buffer.writeln(sepSingle);
-    buffer.writeln(center("¡Muchas gracias por su compra!"));
-    buffer.writeln(center("*** COMPROBANTE OFICIAL ***"));
-    buffer.writeln("$sepDouble\n");
+    buffer.writeln(center("gracias por su compra"));
+    buffer.writeln(sepDouble);
 
     return buffer.toString();
   }
@@ -343,7 +278,6 @@ class _OrderReceiptModalState extends State<OrderReceiptModal> {
 
     final discount = widget.order.discount;
     final totalNeto = (subtotal - discount) > 0 ? (subtotal - discount) : 0.0;
-    final totalFisico = totalRegularQty + totalBoniQty;
 
     String dateStr;
     try {
@@ -370,7 +304,7 @@ class _OrderReceiptModalState extends State<OrderReceiptModal> {
                 // Cabecera
                 pw.Center(
                   child: pw.Text(
-                    'DISTRIBUIDORA DE PAPAS',
+                    'DISTRIBUIDORA LUNOVA',
                     style: pw.TextStyle(
                       font: boldFont,
                       fontSize: _is80mm ? 14 : 12,
@@ -380,59 +314,33 @@ class _OrderReceiptModalState extends State<OrderReceiptModal> {
                 ),
                 pw.Center(
                   child: pw.Text(
-                    'COMPROBANTE DE ENTREGA Y VENTA',
+                    'contacto: 74347987',
                     style: pw.TextStyle(
                       font: boldFont,
-                      fontSize: _is80mm ? 9 : 8,
+                      fontSize: _is80mm ? 10 : 9,
                     ),
                   ),
                 ),
-                pw.SizedBox(height: 2),
-                pw.Center(
-                  child: pw.Text(
-                    _is80mm ? 'EPSON TM-T20III (80mm)' : 'BLUETOOTH TERMICA (58mm)',
-                    style: const pw.TextStyle(fontSize: 7),
-                  ),
-                ),
-                pw.Divider(thickness: 1.5),
-
-                // Datos de orden
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      'PEDIDO: #${widget.order.id}',
-                      style: pw.TextStyle(font: boldFont, fontSize: 10),
-                    ),
-                    pw.Text(
-                      widget.order.status.toUpperCase(),
-                      style: pw.TextStyle(font: boldFont, fontSize: 8),
-                    ),
-                  ],
-                ),
-                pw.Text('FECHA: $dateStr', style: const pw.TextStyle(fontSize: 8)),
-                if (widget.order.preventistaName != null && widget.order.preventistaName!.isNotEmpty)
-                  pw.Text('PREVENTISTA: ${widget.order.preventistaName}', style: const pw.TextStyle(fontSize: 8)),
-                if (widget.distributorName != null && widget.distributorName!.isNotEmpty)
-                  pw.Text('REPARTIDOR: ${widget.distributorName}', style: const pw.TextStyle(fontSize: 8)),
-                pw.Divider(thickness: 0.8),
-
-                pw.Text('CLIENTE: ${widget.order.client.name}', style: pw.TextStyle(font: boldFont, fontSize: 9)),
-                if (widget.order.client.ownerName.isNotEmpty)
-                  pw.Text('TITULAR: ${widget.order.client.ownerName}', style: const pw.TextStyle(fontSize: 8)),
-                if (widget.order.client.phone.isNotEmpty)
-                  pw.Text('TEL: ${widget.order.client.phone}', style: const pw.TextStyle(fontSize: 8)),
-                if (widget.order.client.address.isNotEmpty)
-                  pw.Text('DIR: ${widget.order.client.address}', style: const pw.TextStyle(fontSize: 8)),
                 pw.Divider(thickness: 1),
 
-                // Tabla de Productos Venta
+                // Datos de orden
+                pw.Text('pedido #${widget.order.id}', style: pw.TextStyle(font: boldFont, fontSize: 9)),
+                pw.Text('vendedor: ${widget.order.preventistaName ?? widget.distributorName ?? 'Distribución'}', style: const pw.TextStyle(fontSize: 8)),
+                pw.Text('fecha entrega: $dateStr', style: const pw.TextStyle(fontSize: 8)),
+                pw.Text('cliente: ${widget.order.client.name}', style: pw.TextStyle(font: boldFont, fontSize: 8.5)),
+                if (widget.order.client.phone.isNotEmpty)
+                  pw.Text('contacto: ${widget.order.client.phone}', style: const pw.TextStyle(fontSize: 8)),
+                if (widget.order.client.address.isNotEmpty)
+                  pw.Text('direccion: ${widget.order.client.address}', style: const pw.TextStyle(fontSize: 8)),
+                pw.Divider(thickness: 1),
+
+                // Tabla de Productos
                 pw.Row(
                   children: [
-                    pw.SizedBox(width: 25, child: pw.Text('CANT', style: pw.TextStyle(font: boldFont, fontSize: 8))),
-                    pw.Expanded(child: pw.Text('PRODUCTO', style: pw.TextStyle(font: boldFont, fontSize: 8))),
-                    pw.SizedBox(width: 35, child: pw.Text('P.U.', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 8))),
-                    pw.SizedBox(width: 45, child: pw.Text('TOTAL', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 8))),
+                    pw.Expanded(child: pw.Text('Descripcion', style: pw.TextStyle(font: boldFont, fontSize: 8))),
+                    pw.SizedBox(width: 30, child: pw.Text('CANT', textAlign: pw.TextAlign.center, style: pw.TextStyle(font: boldFont, fontSize: 8))),
+                    pw.SizedBox(width: 35, child: pw.Text('P.U', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 8))),
+                    pw.SizedBox(width: 45, child: pw.Text('total', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 8))),
                   ],
                 ),
                 pw.Divider(thickness: 0.5),
@@ -446,8 +354,8 @@ class _OrderReceiptModalState extends State<OrderReceiptModal> {
                     padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
                     child: pw.Row(
                       children: [
-                        pw.SizedBox(width: 25, child: pw.Text('${qty}x', style: pw.TextStyle(font: boldFont, fontSize: 8))),
                         pw.Expanded(child: pw.Text(item.productName, style: const pw.TextStyle(fontSize: 8))),
+                        pw.SizedBox(width: 30, child: pw.Text('x$qty', textAlign: pw.TextAlign.center, style: pw.TextStyle(font: boldFont, fontSize: 8))),
                         pw.SizedBox(width: 35, child: pw.Text(item.unitPrice.toStringAsFixed(2), textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 8))),
                         pw.SizedBox(width: 45, child: pw.Text(itemTotal.toStringAsFixed(2), textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 8))),
                       ],
@@ -455,37 +363,21 @@ class _OrderReceiptModalState extends State<OrderReceiptModal> {
                   );
                 }),
 
-                // Sección de Bonificaciones
+                // Sección de Bonificaciones (solo si tiene)
                 if (boniItems.isNotEmpty) ...[
-                  pw.Divider(thickness: 1),
-                  pw.Container(
-                    width: double.infinity,
-                    color: PdfColors.black,
-                    padding: const pw.EdgeInsets.symmetric(vertical: 2),
-                    child: pw.Center(
-                      child: pw.Text(
-                        'BONIFICACIONES (100% GRATIS)',
-                        style: pw.TextStyle(
-                          font: boldFont,
-                          color: PdfColors.white,
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  pw.SizedBox(height: 2),
+                  pw.Divider(thickness: 0.8),
+                  pw.Text('BONIFICACIONES (GRATIS)', style: pw.TextStyle(font: boldFont, fontSize: 7.5)),
                   ...boniItems.map((item) {
                     final qty = isHistory || widget.customDeliveredQuantities != null
                         ? getDeliveredQty(item)
                         : item.quantity;
                     return pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
+                      padding: const pw.EdgeInsets.symmetric(vertical: 1),
                       child: pw.Row(
                         children: [
-                          pw.SizedBox(width: 25, child: pw.Text('${qty}x', style: pw.TextStyle(font: boldFont, fontSize: 8))),
-                          pw.Expanded(child: pw.Text('[BONIF] ${item.productName}', style: pw.TextStyle(font: boldFont, fontSize: 8))),
-                          pw.SizedBox(width: 45, child: pw.Text('GRATIS', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 8))),
+                          pw.Expanded(child: pw.Text('[BONIF] ${item.productName}', style: const pw.TextStyle(fontSize: 7.5))),
+                          pw.SizedBox(width: 30, child: pw.Text('x$qty', textAlign: pw.TextAlign.center, style: pw.TextStyle(font: boldFont, fontSize: 7.5))),
+                          pw.SizedBox(width: 45, child: pw.Text('GRATIS', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: boldFont, fontSize: 7.5))),
                         ],
                       ),
                     );
@@ -495,47 +387,41 @@ class _OrderReceiptModalState extends State<OrderReceiptModal> {
                 pw.Divider(thickness: 1),
 
                 // Totales
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('Subtotal Venta:', style: const pw.TextStyle(fontSize: 8)),
-                    pw.Text('Bs. ${subtotal.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 8)),
-                  ],
-                ),
-                if (discount > 0)
+                if (discount > 0) ...[
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text('Descuento Preventa:', style: pw.TextStyle(font: boldFont, fontSize: 8)),
+                      pw.Text('subtotal:', style: const pw.TextStyle(fontSize: 8)),
+                      pw.Text('Bs. ${subtotal.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 8)),
+                    ],
+                  ),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text('descuento:', style: pw.TextStyle(font: boldFont, fontSize: 8)),
                       pw.Text('-Bs. ${discount.toStringAsFixed(2)}', style: pw.TextStyle(font: boldFont, fontSize: 8)),
                     ],
                   ),
-                pw.Divider(thickness: 1.5),
+                  pw.Divider(thickness: 0.5),
+                ],
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('TOTAL A COBRAR:', style: pw.TextStyle(font: boldFont, fontSize: _is80mm ? 12 : 10)),
+                    pw.Text('total:', style: pw.TextStyle(font: boldFont, fontSize: _is80mm ? 12 : 10)),
                     pw.Text('Bs. ${totalNeto.toStringAsFixed(2)}', style: pw.TextStyle(font: boldFont, fontSize: _is80mm ? 12 : 10)),
                   ],
                 ),
-                pw.Divider(thickness: 1),
-
-                // Resumen físico
-                pw.Text('• Venta regular: $totalRegularQty unidades', style: const pw.TextStyle(fontSize: 7.5)),
-                if (totalBoniQty > 0)
-                  pw.Text('• Bonificaciones: $totalBoniQty unidades (GRATIS)', style: pw.TextStyle(font: boldFont, fontSize: 7.5)),
-                pw.Text('• TOTAL BULTOS ENTREGADOS: $totalFisico unidades', style: pw.TextStyle(font: boldFont, fontSize: 8)),
 
                 if (widget.order.notes != null && widget.order.notes!.trim().isNotEmpty) ...[
-                  pw.SizedBox(height: 3),
-                  pw.Text('OBS: ${widget.order.notes!.trim()}', style: const pw.TextStyle(fontSize: 7.5)),
+                  pw.Divider(thickness: 0.5),
+                  pw.Text('obs: ${widget.order.notes!.trim()}', style: const pw.TextStyle(fontSize: 7.5)),
                 ],
 
-                pw.SizedBox(height: 6),
+                pw.Divider(thickness: 1),
                 pw.Center(
                   child: pw.Text(
-                    '¡GRACIAS POR SU COMPRA!',
-                    style: pw.TextStyle(font: boldFont, fontSize: 8),
+                    'gracias por su compra',
+                    style: pw.TextStyle(font: boldFont, fontSize: 8.5),
                   ),
                 ),
               ],

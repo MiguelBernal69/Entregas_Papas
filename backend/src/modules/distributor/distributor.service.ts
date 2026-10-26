@@ -1,7 +1,12 @@
 import prisma from '../../prisma/client'
 import { getActiveSession } from './sessions.service'
 
-export const getMyOrders = async (distributorId: number, statusQuery?: string, date?: string) => {
+export const getMyOrders = async (
+    distributorId: number,
+    statusQuery?: string,
+    date?: string,
+    pagination?: { page?: number; limit?: number; skip?: number; take?: number }
+) => {
     // Verificar si tiene sesión activa
     const session = await getActiveSession(distributorId)
     if (!session) {
@@ -50,6 +55,27 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string, d
         }
     }
 
+    let skip: number | undefined = undefined
+    let take: number | undefined = undefined
+
+    if (pagination) {
+        if (pagination.take !== undefined && !isNaN(pagination.take)) {
+            take = pagination.take
+            skip = pagination.skip !== undefined && !isNaN(pagination.skip) ? pagination.skip : 0
+        } else if (pagination.limit !== undefined && !isNaN(pagination.limit)) {
+            take = pagination.limit
+            if (pagination.page !== undefined && !isNaN(pagination.page) && pagination.page > 0) {
+                skip = (pagination.page - 1) * pagination.limit
+            } else if (pagination.skip !== undefined && !isNaN(pagination.skip)) {
+                skip = pagination.skip
+            } else {
+                skip = 0
+            }
+        } else if (pagination.skip !== undefined && !isNaN(pagination.skip)) {
+            skip = pagination.skip
+        }
+    }
+
     return prisma.order.findMany({
         where,
         include: {
@@ -73,7 +99,9 @@ export const getMyOrders = async (distributorId: number, statusQuery?: string, d
             preventista: { select: { id: true, name: true } },
             region: { select: { id: true, name: true } }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take
     })
 }
 

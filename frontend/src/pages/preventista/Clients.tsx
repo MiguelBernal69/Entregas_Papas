@@ -8,6 +8,7 @@ import { createOrder, getMyVisitedToday } from '../../api/orders'
 import { getImageUrl } from '../../api/axios'
 import { getMyRegions } from '../../api/regions'
 import type { Client, Product } from '../../types'
+import Pagination from '../../components/Pagination'
 import L from 'leaflet'
 
 // Fix for Leaflet default icon issues in Webpack/Vite
@@ -186,11 +187,16 @@ export default function PreventistaClients() {
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 30
+
   const filtered = clients.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.ownerName.toLowerCase().includes(search.toLowerCase()) ||
     c.address.toLowerCase().includes(search.toLowerCase())
   )
+
+  const paginatedClients = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   // --- Handlers: Client management ---
   const openCreate = () => {
@@ -409,7 +415,10 @@ export default function PreventistaClients() {
             type="text"
             placeholder="Buscar por nombre de negocio, dueño o dirección..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => {
+              setSearch(e.target.value)
+              setCurrentPage(1)
+            }}
             className="w-full border border-gray-200 bg-white rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all"
           />
         </div>
@@ -442,7 +451,7 @@ export default function PreventistaClients() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filtered.map(client => (
+                    {paginatedClients.map(client => (
                       <tr key={client.id} className="hover:bg-blue-50/30 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -497,6 +506,12 @@ export default function PreventistaClients() {
                     ))}
                   </tbody>
                 </table>
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filtered.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             ) : (
               /* --- Map View (Geographical) --- */
