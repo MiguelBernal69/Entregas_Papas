@@ -24,7 +24,7 @@ export default function AdminOrders() {
   const [distributorId, setDistributorId] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterRegion, setFilterRegion] = useState('')
-  const [filterDate, setFilterDate] = useState('today')
+  const [filterDate, setFilterDate] = useState('all')
   const [regions, setRegions] = useState<any[]>([])
   const [assigning, setAssigning] = useState(false)
   const [detail, setDetail] = useState<Order | null>(null)
@@ -135,12 +135,12 @@ export default function AdminOrders() {
             onChange={e => setFilterDate(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
+            <option value="all">Todas las fechas</option>
             <option value="today">Hoy</option>
             <option value="yesterday">Ayer</option>
             <option value="this_week">Esta semana</option>
             <option value="this_month">Este mes</option>
             <option value="last_month">Mes anterior</option>
-            <option value="all">Todos</option>
           </select>
 
           <select
