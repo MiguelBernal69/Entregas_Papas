@@ -134,15 +134,18 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
             position: absolute;
             left: 0;
             top: 0;
-            width: ${printerMode === '80mm' ? '80mm' : '58mm'} !important;
-            padding: 4mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 2mm 3mm 12mm 2mm !important;
             margin: 0 !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
             background: white !important;
             color: black !important;
             font-family: 'Courier New', Courier, monospace !important;
-            font-size: 13px !important;
+            font-size: 12px !important;
             font-weight: bold !important;
-            line-height: 1.25 !important;
+            line-height: 1.3 !important;
           }
           .no-print {
             display: none !important;

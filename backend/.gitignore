@@ -4,3 +4,4 @@ node_modules
 /backup_pedidos.sql
 
 /generated/prisma
+dist/
