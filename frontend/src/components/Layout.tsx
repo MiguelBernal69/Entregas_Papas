@@ -25,6 +25,7 @@ export default function Layout({ children }: Props) {
     { to: '/admin/users',     label: 'Usuarios',    icon: '👥' },
     { to: '/admin/clients',   label: 'Clientes',    icon: '🏪' }, // ← nuevo
     { to: '/admin/products',  label: 'Productos',   icon: '🥔' },
+    { to: '/admin/inventory', label: 'Inventario',  icon: '📈' },
     { to: '/admin/sessions',  label: 'Distribución', icon: '🚛' },
   ]
 

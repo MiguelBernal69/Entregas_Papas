@@ -13,6 +13,22 @@ export const getAll = async (req: AuthRequest, res: Response) => {
   }
 }
 
+export const getInventoryStats = async (req: AuthRequest, res: Response) => {
+  try {
+    const { startDate, endDate, category, preventistaId, distributorId } = req.query
+    const stats = await service.getInventoryStats({
+      startDate: startDate as string,
+      endDate: endDate as string,
+      category: category as string,
+      preventistaId: preventistaId ? Number(preventistaId) : undefined,
+      distributorId: distributorId ? Number(distributorId) : undefined
+    })
+    res.json(stats)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
 export const getOne = async (req: AuthRequest, res: Response) => {
   try {
     const product = await service.getProductById(Number(req.params.id))
