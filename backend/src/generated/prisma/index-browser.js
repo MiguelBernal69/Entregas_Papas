@@ -217,6 +217,16 @@ exports.Prisma.DistributionSessionScalarFieldEnum = {
   snapshotData: 'snapshotData'
 };
 
+exports.Prisma.ProductionEntryScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  quantity: 'quantity',
+  notes: 'notes',
+  createdBy: 'createdBy',
+  date: 'date',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -282,7 +292,8 @@ exports.Prisma.ModelName = {
   OrderItem: 'OrderItem',
   UserRegion: 'UserRegion',
   OrderHistory: 'OrderHistory',
-  DistributionSession: 'DistributionSession'
+  DistributionSession: 'DistributionSession',
+  ProductionEntry: 'ProductionEntry'
 };
 
 /**

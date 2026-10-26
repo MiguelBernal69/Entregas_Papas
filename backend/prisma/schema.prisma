@@ -50,6 +50,7 @@ model User {
   assignedRegions        UserRegion[]
   distributionSessions   DistributionSession[] @relation("DistributorSessions")
   sessionsClosedByMe     DistributionSession[] @relation("SessionClosedBy")
+  productionEntries      ProductionEntry[]
 }
 
 model Region {
@@ -95,7 +96,8 @@ model Product {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  orderItems OrderItem[]
+  orderItems        OrderItem[]
+  productionEntries ProductionEntry[]
 }
 
 model Order {
@@ -174,4 +176,17 @@ model DistributionSession {
 
   distributor   User  @relation("DistributorSessions", fields: [distributorId], references: [id])
   closedByAdmin User? @relation("SessionClosedBy", fields: [closedByAdminId], references: [id])
+}
+
+model ProductionEntry {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  quantity  Int
+  notes     String?
+  createdBy Int?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  creator User?   @relation(fields: [createdBy], references: [id])
 }

@@ -12,3 +12,26 @@ export const getInventoryStats = async (params?: {
   preventistaId?: number
   distributorId?: number
 }) => (await api.get('/products/inventory-stats', { params })).data
+
+export const getStockBalance = async (params?: {
+  startDate?: string
+  endDate?: string
+  category?: string
+}) => (await api.get('/products/stock-balance', { params })).data
+
+export const getProductionEntries = async (params?: {
+  productId?: number
+  startDate?: string
+  endDate?: string
+  limit?: number
+}) => (await api.get('/products/production', { params })).data
+
+export const createProductionEntry = async (data: {
+  productId: number
+  quantity: number
+  notes?: string
+  date?: string
+}) => (await api.post('/products/production', data)).data
+
+export const deleteProductionEntry = async (id: number) =>
+  (await api.delete(`/products/production/${id}`)).data

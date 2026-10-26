@@ -1,6 +1,7 @@
 import { Response } from 'express'
 import { AuthRequest } from '../../middlewares/auth.middleware'
 import * as service from './products.service'
+import * as prodService from './production.service'
 
 export const getAll = async (req: AuthRequest, res: Response) => {
   try {
@@ -24,6 +25,62 @@ export const getInventoryStats = async (req: AuthRequest, res: Response) => {
       distributorId: distributorId ? Number(distributorId) : undefined
     })
     res.json(stats)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// ─── CONTROLADORES DE PRODUCCIÓN Y STOCK ────────────────────
+
+export const addProduction = async (req: AuthRequest, res: Response) => {
+  try {
+    const { productId, quantity, notes, date } = req.body
+    const entry = await prodService.createProductionEntry({
+      productId: Number(productId),
+      quantity: Number(quantity),
+      notes,
+      date,
+      userId: req.user?.id
+    })
+    res.status(201).json(entry)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const getProductionList = async (req: AuthRequest, res: Response) => {
+  try {
+    const { productId, startDate, endDate, limit } = req.query
+    const list = await prodService.getProductionEntries({
+      productId: productId ? Number(productId) : undefined,
+      startDate: startDate as string,
+      endDate: endDate as string,
+      limit: limit ? Number(limit) : undefined
+    })
+    res.json(list)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+export const removeProduction = async (req: AuthRequest, res: Response) => {
+  try {
+    await prodService.deleteProductionEntry(Number(req.params.id))
+    res.json({ message: 'Entrada de producción eliminada correctamente' })
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const getStockBalance = async (req: AuthRequest, res: Response) => {
+  try {
+    const { startDate, endDate, category } = req.query
+    const balance = await prodService.getWarehouseStockBalance({
+      startDate: startDate as string,
+      endDate: endDate as string,
+      category: category as string
+    })
+    res.json(balance)
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }

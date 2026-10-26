@@ -58,6 +58,11 @@ export type OrderHistory = $Result.DefaultSelection<Prisma.$OrderHistoryPayload>
  * 
  */
 export type DistributionSession = $Result.DefaultSelection<Prisma.$DistributionSessionPayload>
+/**
+ * Model ProductionEntry
+ * 
+ */
+export type ProductionEntry = $Result.DefaultSelection<Prisma.$ProductionEntryPayload>
 
 /**
  * Enums
@@ -329,6 +334,16 @@ export class PrismaClient<
     * ```
     */
   get distributionSession(): Prisma.DistributionSessionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.productionEntry`: Exposes CRUD operations for the **ProductionEntry** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProductionEntries
+    * const productionEntries = await prisma.productionEntry.findMany()
+    * ```
+    */
+  get productionEntry(): Prisma.ProductionEntryDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -771,7 +786,8 @@ export namespace Prisma {
     OrderItem: 'OrderItem',
     UserRegion: 'UserRegion',
     OrderHistory: 'OrderHistory',
-    DistributionSession: 'DistributionSession'
+    DistributionSession: 'DistributionSession',
+    ProductionEntry: 'ProductionEntry'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -787,7 +803,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "region" | "client" | "product" | "order" | "orderItem" | "userRegion" | "orderHistory" | "distributionSession"
+      modelProps: "user" | "region" | "client" | "product" | "order" | "orderItem" | "userRegion" | "orderHistory" | "distributionSession" | "productionEntry"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1457,6 +1473,80 @@ export namespace Prisma {
           }
         }
       }
+      ProductionEntry: {
+        payload: Prisma.$ProductionEntryPayload<ExtArgs>
+        fields: Prisma.ProductionEntryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProductionEntryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProductionEntryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>
+          }
+          findFirst: {
+            args: Prisma.ProductionEntryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProductionEntryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>
+          }
+          findMany: {
+            args: Prisma.ProductionEntryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>[]
+          }
+          create: {
+            args: Prisma.ProductionEntryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>
+          }
+          createMany: {
+            args: Prisma.ProductionEntryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProductionEntryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>[]
+          }
+          delete: {
+            args: Prisma.ProductionEntryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>
+          }
+          update: {
+            args: Prisma.ProductionEntryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProductionEntryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProductionEntryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProductionEntryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>[]
+          }
+          upsert: {
+            args: Prisma.ProductionEntryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductionEntryPayload>
+          }
+          aggregate: {
+            args: Prisma.ProductionEntryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProductionEntry>
+          }
+          groupBy: {
+            args: Prisma.ProductionEntryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProductionEntryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProductionEntryCountArgs<ExtArgs>
+            result: $Utils.Optional<ProductionEntryCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1574,6 +1664,7 @@ export namespace Prisma {
     userRegion?: UserRegionOmit
     orderHistory?: OrderHistoryOmit
     distributionSession?: DistributionSessionOmit
+    productionEntry?: ProductionEntryOmit
   }
 
   /* Types for Logging */
@@ -1662,6 +1753,7 @@ export namespace Prisma {
     assignedRegions: number
     distributionSessions: number
     sessionsClosedByMe: number
+    productionEntries: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1673,6 +1765,7 @@ export namespace Prisma {
     assignedRegions?: boolean | UserCountOutputTypeCountAssignedRegionsArgs
     distributionSessions?: boolean | UserCountOutputTypeCountDistributionSessionsArgs
     sessionsClosedByMe?: boolean | UserCountOutputTypeCountSessionsClosedByMeArgs
+    productionEntries?: boolean | UserCountOutputTypeCountProductionEntriesArgs
   }
 
   // Custom InputTypes
@@ -1740,6 +1833,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountSessionsClosedByMeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DistributionSessionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountProductionEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductionEntryWhereInput
   }
 
 
@@ -1829,10 +1929,12 @@ export namespace Prisma {
 
   export type ProductCountOutputType = {
     orderItems: number
+    productionEntries: number
   }
 
   export type ProductCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orderItems?: boolean | ProductCountOutputTypeCountOrderItemsArgs
+    productionEntries?: boolean | ProductCountOutputTypeCountProductionEntriesArgs
   }
 
   // Custom InputTypes
@@ -1851,6 +1953,13 @@ export namespace Prisma {
    */
   export type ProductCountOutputTypeCountOrderItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OrderItemWhereInput
+  }
+
+  /**
+   * ProductCountOutputType without action
+   */
+  export type ProductCountOutputTypeCountProductionEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductionEntryWhereInput
   }
 
 
@@ -2128,6 +2237,7 @@ export namespace Prisma {
     assignedRegions?: boolean | User$assignedRegionsArgs<ExtArgs>
     distributionSessions?: boolean | User$distributionSessionsArgs<ExtArgs>
     sessionsClosedByMe?: boolean | User$sessionsClosedByMeArgs<ExtArgs>
+    productionEntries?: boolean | User$productionEntriesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2174,6 +2284,7 @@ export namespace Prisma {
     assignedRegions?: boolean | User$assignedRegionsArgs<ExtArgs>
     distributionSessions?: boolean | User$distributionSessionsArgs<ExtArgs>
     sessionsClosedByMe?: boolean | User$sessionsClosedByMeArgs<ExtArgs>
+    productionEntries?: boolean | User$productionEntriesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2190,6 +2301,7 @@ export namespace Prisma {
       assignedRegions: Prisma.$UserRegionPayload<ExtArgs>[]
       distributionSessions: Prisma.$DistributionSessionPayload<ExtArgs>[]
       sessionsClosedByMe: Prisma.$DistributionSessionPayload<ExtArgs>[]
+      productionEntries: Prisma.$ProductionEntryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2602,6 +2714,7 @@ export namespace Prisma {
     assignedRegions<T extends User$assignedRegionsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignedRegionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserRegionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     distributionSessions<T extends User$distributionSessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$distributionSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sessionsClosedByMe<T extends User$sessionsClosedByMeArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsClosedByMeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistributionSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    productionEntries<T extends User$productionEntriesArgs<ExtArgs> = {}>(args?: Subset<T, User$productionEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3221,6 +3334,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: DistributionSessionScalarFieldEnum | DistributionSessionScalarFieldEnum[]
+  }
+
+  /**
+   * User.productionEntries
+   */
+  export type User$productionEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    where?: ProductionEntryWhereInput
+    orderBy?: ProductionEntryOrderByWithRelationInput | ProductionEntryOrderByWithRelationInput[]
+    cursor?: ProductionEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductionEntryScalarFieldEnum | ProductionEntryScalarFieldEnum[]
   }
 
   /**
@@ -5917,6 +6054,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     orderItems?: boolean | Product$orderItemsArgs<ExtArgs>
+    productionEntries?: boolean | Product$productionEntriesArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
@@ -5956,6 +6094,7 @@ export namespace Prisma {
   export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "price" | "unit" | "category" | "isActive" | "createdAt", ExtArgs["result"]["product"]>
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orderItems?: boolean | Product$orderItemsArgs<ExtArgs>
+    productionEntries?: boolean | Product$productionEntriesArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProductIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5965,6 +6104,7 @@ export namespace Prisma {
     name: "Product"
     objects: {
       orderItems: Prisma.$OrderItemPayload<ExtArgs>[]
+      productionEntries: Prisma.$ProductionEntryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -6370,6 +6510,7 @@ export namespace Prisma {
   export interface Prisma__ProductClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     orderItems<T extends Product$orderItemsArgs<ExtArgs> = {}>(args?: Subset<T, Product$orderItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    productionEntries<T extends Product$productionEntriesArgs<ExtArgs> = {}>(args?: Subset<T, Product$productionEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6821,6 +6962,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OrderItemScalarFieldEnum | OrderItemScalarFieldEnum[]
+  }
+
+  /**
+   * Product.productionEntries
+   */
+  export type Product$productionEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    where?: ProductionEntryWhereInput
+    orderBy?: ProductionEntryOrderByWithRelationInput | ProductionEntryOrderByWithRelationInput[]
+    cursor?: ProductionEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProductionEntryScalarFieldEnum | ProductionEntryScalarFieldEnum[]
   }
 
   /**
@@ -12711,6 +12876,1168 @@ export namespace Prisma {
 
 
   /**
+   * Model ProductionEntry
+   */
+
+  export type AggregateProductionEntry = {
+    _count: ProductionEntryCountAggregateOutputType | null
+    _avg: ProductionEntryAvgAggregateOutputType | null
+    _sum: ProductionEntrySumAggregateOutputType | null
+    _min: ProductionEntryMinAggregateOutputType | null
+    _max: ProductionEntryMaxAggregateOutputType | null
+  }
+
+  export type ProductionEntryAvgAggregateOutputType = {
+    id: number | null
+    productId: number | null
+    quantity: number | null
+    createdBy: number | null
+  }
+
+  export type ProductionEntrySumAggregateOutputType = {
+    id: number | null
+    productId: number | null
+    quantity: number | null
+    createdBy: number | null
+  }
+
+  export type ProductionEntryMinAggregateOutputType = {
+    id: number | null
+    productId: number | null
+    quantity: number | null
+    notes: string | null
+    createdBy: number | null
+    date: Date | null
+    createdAt: Date | null
+  }
+
+  export type ProductionEntryMaxAggregateOutputType = {
+    id: number | null
+    productId: number | null
+    quantity: number | null
+    notes: string | null
+    createdBy: number | null
+    date: Date | null
+    createdAt: Date | null
+  }
+
+  export type ProductionEntryCountAggregateOutputType = {
+    id: number
+    productId: number
+    quantity: number
+    notes: number
+    createdBy: number
+    date: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ProductionEntryAvgAggregateInputType = {
+    id?: true
+    productId?: true
+    quantity?: true
+    createdBy?: true
+  }
+
+  export type ProductionEntrySumAggregateInputType = {
+    id?: true
+    productId?: true
+    quantity?: true
+    createdBy?: true
+  }
+
+  export type ProductionEntryMinAggregateInputType = {
+    id?: true
+    productId?: true
+    quantity?: true
+    notes?: true
+    createdBy?: true
+    date?: true
+    createdAt?: true
+  }
+
+  export type ProductionEntryMaxAggregateInputType = {
+    id?: true
+    productId?: true
+    quantity?: true
+    notes?: true
+    createdBy?: true
+    date?: true
+    createdAt?: true
+  }
+
+  export type ProductionEntryCountAggregateInputType = {
+    id?: true
+    productId?: true
+    quantity?: true
+    notes?: true
+    createdBy?: true
+    date?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ProductionEntryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductionEntry to aggregate.
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductionEntries to fetch.
+     */
+    orderBy?: ProductionEntryOrderByWithRelationInput | ProductionEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProductionEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductionEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductionEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProductionEntries
+    **/
+    _count?: true | ProductionEntryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProductionEntryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProductionEntrySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProductionEntryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProductionEntryMaxAggregateInputType
+  }
+
+  export type GetProductionEntryAggregateType<T extends ProductionEntryAggregateArgs> = {
+        [P in keyof T & keyof AggregateProductionEntry]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProductionEntry[P]>
+      : GetScalarType<T[P], AggregateProductionEntry[P]>
+  }
+
+
+
+
+  export type ProductionEntryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductionEntryWhereInput
+    orderBy?: ProductionEntryOrderByWithAggregationInput | ProductionEntryOrderByWithAggregationInput[]
+    by: ProductionEntryScalarFieldEnum[] | ProductionEntryScalarFieldEnum
+    having?: ProductionEntryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProductionEntryCountAggregateInputType | true
+    _avg?: ProductionEntryAvgAggregateInputType
+    _sum?: ProductionEntrySumAggregateInputType
+    _min?: ProductionEntryMinAggregateInputType
+    _max?: ProductionEntryMaxAggregateInputType
+  }
+
+  export type ProductionEntryGroupByOutputType = {
+    id: number
+    productId: number
+    quantity: number
+    notes: string | null
+    createdBy: number | null
+    date: Date
+    createdAt: Date
+    _count: ProductionEntryCountAggregateOutputType | null
+    _avg: ProductionEntryAvgAggregateOutputType | null
+    _sum: ProductionEntrySumAggregateOutputType | null
+    _min: ProductionEntryMinAggregateOutputType | null
+    _max: ProductionEntryMaxAggregateOutputType | null
+  }
+
+  type GetProductionEntryGroupByPayload<T extends ProductionEntryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProductionEntryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProductionEntryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProductionEntryGroupByOutputType[P]>
+            : GetScalarType<T[P], ProductionEntryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProductionEntrySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    productId?: boolean
+    quantity?: boolean
+    notes?: boolean
+    createdBy?: boolean
+    date?: boolean
+    createdAt?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+    creator?: boolean | ProductionEntry$creatorArgs<ExtArgs>
+  }, ExtArgs["result"]["productionEntry"]>
+
+  export type ProductionEntrySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    productId?: boolean
+    quantity?: boolean
+    notes?: boolean
+    createdBy?: boolean
+    date?: boolean
+    createdAt?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+    creator?: boolean | ProductionEntry$creatorArgs<ExtArgs>
+  }, ExtArgs["result"]["productionEntry"]>
+
+  export type ProductionEntrySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    productId?: boolean
+    quantity?: boolean
+    notes?: boolean
+    createdBy?: boolean
+    date?: boolean
+    createdAt?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+    creator?: boolean | ProductionEntry$creatorArgs<ExtArgs>
+  }, ExtArgs["result"]["productionEntry"]>
+
+  export type ProductionEntrySelectScalar = {
+    id?: boolean
+    productId?: boolean
+    quantity?: boolean
+    notes?: boolean
+    createdBy?: boolean
+    date?: boolean
+    createdAt?: boolean
+  }
+
+  export type ProductionEntryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "productId" | "quantity" | "notes" | "createdBy" | "date" | "createdAt", ExtArgs["result"]["productionEntry"]>
+  export type ProductionEntryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+    creator?: boolean | ProductionEntry$creatorArgs<ExtArgs>
+  }
+  export type ProductionEntryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+    creator?: boolean | ProductionEntry$creatorArgs<ExtArgs>
+  }
+  export type ProductionEntryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+    creator?: boolean | ProductionEntry$creatorArgs<ExtArgs>
+  }
+
+  export type $ProductionEntryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProductionEntry"
+    objects: {
+      product: Prisma.$ProductPayload<ExtArgs>
+      creator: Prisma.$UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      productId: number
+      quantity: number
+      notes: string | null
+      createdBy: number | null
+      date: Date
+      createdAt: Date
+    }, ExtArgs["result"]["productionEntry"]>
+    composites: {}
+  }
+
+  type ProductionEntryGetPayload<S extends boolean | null | undefined | ProductionEntryDefaultArgs> = $Result.GetResult<Prisma.$ProductionEntryPayload, S>
+
+  type ProductionEntryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProductionEntryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProductionEntryCountAggregateInputType | true
+    }
+
+  export interface ProductionEntryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProductionEntry'], meta: { name: 'ProductionEntry' } }
+    /**
+     * Find zero or one ProductionEntry that matches the filter.
+     * @param {ProductionEntryFindUniqueArgs} args - Arguments to find a ProductionEntry
+     * @example
+     * // Get one ProductionEntry
+     * const productionEntry = await prisma.productionEntry.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProductionEntryFindUniqueArgs>(args: SelectSubset<T, ProductionEntryFindUniqueArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProductionEntry that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProductionEntryFindUniqueOrThrowArgs} args - Arguments to find a ProductionEntry
+     * @example
+     * // Get one ProductionEntry
+     * const productionEntry = await prisma.productionEntry.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProductionEntryFindUniqueOrThrowArgs>(args: SelectSubset<T, ProductionEntryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProductionEntry that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryFindFirstArgs} args - Arguments to find a ProductionEntry
+     * @example
+     * // Get one ProductionEntry
+     * const productionEntry = await prisma.productionEntry.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProductionEntryFindFirstArgs>(args?: SelectSubset<T, ProductionEntryFindFirstArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProductionEntry that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryFindFirstOrThrowArgs} args - Arguments to find a ProductionEntry
+     * @example
+     * // Get one ProductionEntry
+     * const productionEntry = await prisma.productionEntry.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProductionEntryFindFirstOrThrowArgs>(args?: SelectSubset<T, ProductionEntryFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProductionEntries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProductionEntries
+     * const productionEntries = await prisma.productionEntry.findMany()
+     * 
+     * // Get first 10 ProductionEntries
+     * const productionEntries = await prisma.productionEntry.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const productionEntryWithIdOnly = await prisma.productionEntry.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProductionEntryFindManyArgs>(args?: SelectSubset<T, ProductionEntryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProductionEntry.
+     * @param {ProductionEntryCreateArgs} args - Arguments to create a ProductionEntry.
+     * @example
+     * // Create one ProductionEntry
+     * const ProductionEntry = await prisma.productionEntry.create({
+     *   data: {
+     *     // ... data to create a ProductionEntry
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProductionEntryCreateArgs>(args: SelectSubset<T, ProductionEntryCreateArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProductionEntries.
+     * @param {ProductionEntryCreateManyArgs} args - Arguments to create many ProductionEntries.
+     * @example
+     * // Create many ProductionEntries
+     * const productionEntry = await prisma.productionEntry.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProductionEntryCreateManyArgs>(args?: SelectSubset<T, ProductionEntryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProductionEntries and returns the data saved in the database.
+     * @param {ProductionEntryCreateManyAndReturnArgs} args - Arguments to create many ProductionEntries.
+     * @example
+     * // Create many ProductionEntries
+     * const productionEntry = await prisma.productionEntry.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProductionEntries and only return the `id`
+     * const productionEntryWithIdOnly = await prisma.productionEntry.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProductionEntryCreateManyAndReturnArgs>(args?: SelectSubset<T, ProductionEntryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProductionEntry.
+     * @param {ProductionEntryDeleteArgs} args - Arguments to delete one ProductionEntry.
+     * @example
+     * // Delete one ProductionEntry
+     * const ProductionEntry = await prisma.productionEntry.delete({
+     *   where: {
+     *     // ... filter to delete one ProductionEntry
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProductionEntryDeleteArgs>(args: SelectSubset<T, ProductionEntryDeleteArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProductionEntry.
+     * @param {ProductionEntryUpdateArgs} args - Arguments to update one ProductionEntry.
+     * @example
+     * // Update one ProductionEntry
+     * const productionEntry = await prisma.productionEntry.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProductionEntryUpdateArgs>(args: SelectSubset<T, ProductionEntryUpdateArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProductionEntries.
+     * @param {ProductionEntryDeleteManyArgs} args - Arguments to filter ProductionEntries to delete.
+     * @example
+     * // Delete a few ProductionEntries
+     * const { count } = await prisma.productionEntry.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProductionEntryDeleteManyArgs>(args?: SelectSubset<T, ProductionEntryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductionEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProductionEntries
+     * const productionEntry = await prisma.productionEntry.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProductionEntryUpdateManyArgs>(args: SelectSubset<T, ProductionEntryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductionEntries and returns the data updated in the database.
+     * @param {ProductionEntryUpdateManyAndReturnArgs} args - Arguments to update many ProductionEntries.
+     * @example
+     * // Update many ProductionEntries
+     * const productionEntry = await prisma.productionEntry.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProductionEntries and only return the `id`
+     * const productionEntryWithIdOnly = await prisma.productionEntry.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProductionEntryUpdateManyAndReturnArgs>(args: SelectSubset<T, ProductionEntryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProductionEntry.
+     * @param {ProductionEntryUpsertArgs} args - Arguments to update or create a ProductionEntry.
+     * @example
+     * // Update or create a ProductionEntry
+     * const productionEntry = await prisma.productionEntry.upsert({
+     *   create: {
+     *     // ... data to create a ProductionEntry
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProductionEntry we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProductionEntryUpsertArgs>(args: SelectSubset<T, ProductionEntryUpsertArgs<ExtArgs>>): Prisma__ProductionEntryClient<$Result.GetResult<Prisma.$ProductionEntryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProductionEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryCountArgs} args - Arguments to filter ProductionEntries to count.
+     * @example
+     * // Count the number of ProductionEntries
+     * const count = await prisma.productionEntry.count({
+     *   where: {
+     *     // ... the filter for the ProductionEntries we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProductionEntryCountArgs>(
+      args?: Subset<T, ProductionEntryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProductionEntryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProductionEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProductionEntryAggregateArgs>(args: Subset<T, ProductionEntryAggregateArgs>): Prisma.PrismaPromise<GetProductionEntryAggregateType<T>>
+
+    /**
+     * Group by ProductionEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductionEntryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProductionEntryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProductionEntryGroupByArgs['orderBy'] }
+        : { orderBy?: ProductionEntryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProductionEntryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProductionEntryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProductionEntry model
+   */
+  readonly fields: ProductionEntryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProductionEntry.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProductionEntryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    creator<T extends ProductionEntry$creatorArgs<ExtArgs> = {}>(args?: Subset<T, ProductionEntry$creatorArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProductionEntry model
+   */
+  interface ProductionEntryFieldRefs {
+    readonly id: FieldRef<"ProductionEntry", 'Int'>
+    readonly productId: FieldRef<"ProductionEntry", 'Int'>
+    readonly quantity: FieldRef<"ProductionEntry", 'Int'>
+    readonly notes: FieldRef<"ProductionEntry", 'String'>
+    readonly createdBy: FieldRef<"ProductionEntry", 'Int'>
+    readonly date: FieldRef<"ProductionEntry", 'DateTime'>
+    readonly createdAt: FieldRef<"ProductionEntry", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProductionEntry findUnique
+   */
+  export type ProductionEntryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductionEntry to fetch.
+     */
+    where: ProductionEntryWhereUniqueInput
+  }
+
+  /**
+   * ProductionEntry findUniqueOrThrow
+   */
+  export type ProductionEntryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductionEntry to fetch.
+     */
+    where: ProductionEntryWhereUniqueInput
+  }
+
+  /**
+   * ProductionEntry findFirst
+   */
+  export type ProductionEntryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductionEntry to fetch.
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductionEntries to fetch.
+     */
+    orderBy?: ProductionEntryOrderByWithRelationInput | ProductionEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductionEntries.
+     */
+    cursor?: ProductionEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductionEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductionEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductionEntries.
+     */
+    distinct?: ProductionEntryScalarFieldEnum | ProductionEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ProductionEntry findFirstOrThrow
+   */
+  export type ProductionEntryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductionEntry to fetch.
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductionEntries to fetch.
+     */
+    orderBy?: ProductionEntryOrderByWithRelationInput | ProductionEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductionEntries.
+     */
+    cursor?: ProductionEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductionEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductionEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductionEntries.
+     */
+    distinct?: ProductionEntryScalarFieldEnum | ProductionEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ProductionEntry findMany
+   */
+  export type ProductionEntryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductionEntries to fetch.
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductionEntries to fetch.
+     */
+    orderBy?: ProductionEntryOrderByWithRelationInput | ProductionEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProductionEntries.
+     */
+    cursor?: ProductionEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductionEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductionEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductionEntries.
+     */
+    distinct?: ProductionEntryScalarFieldEnum | ProductionEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ProductionEntry create
+   */
+  export type ProductionEntryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProductionEntry.
+     */
+    data: XOR<ProductionEntryCreateInput, ProductionEntryUncheckedCreateInput>
+  }
+
+  /**
+   * ProductionEntry createMany
+   */
+  export type ProductionEntryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProductionEntries.
+     */
+    data: ProductionEntryCreateManyInput | ProductionEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProductionEntry createManyAndReturn
+   */
+  export type ProductionEntryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProductionEntries.
+     */
+    data: ProductionEntryCreateManyInput | ProductionEntryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProductionEntry update
+   */
+  export type ProductionEntryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProductionEntry.
+     */
+    data: XOR<ProductionEntryUpdateInput, ProductionEntryUncheckedUpdateInput>
+    /**
+     * Choose, which ProductionEntry to update.
+     */
+    where: ProductionEntryWhereUniqueInput
+  }
+
+  /**
+   * ProductionEntry updateMany
+   */
+  export type ProductionEntryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProductionEntries.
+     */
+    data: XOR<ProductionEntryUpdateManyMutationInput, ProductionEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductionEntries to update
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * Limit how many ProductionEntries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProductionEntry updateManyAndReturn
+   */
+  export type ProductionEntryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * The data used to update ProductionEntries.
+     */
+    data: XOR<ProductionEntryUpdateManyMutationInput, ProductionEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductionEntries to update
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * Limit how many ProductionEntries to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProductionEntry upsert
+   */
+  export type ProductionEntryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProductionEntry to update in case it exists.
+     */
+    where: ProductionEntryWhereUniqueInput
+    /**
+     * In case the ProductionEntry found by the `where` argument doesn't exist, create a new ProductionEntry with this data.
+     */
+    create: XOR<ProductionEntryCreateInput, ProductionEntryUncheckedCreateInput>
+    /**
+     * In case the ProductionEntry was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProductionEntryUpdateInput, ProductionEntryUncheckedUpdateInput>
+  }
+
+  /**
+   * ProductionEntry delete
+   */
+  export type ProductionEntryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+    /**
+     * Filter which ProductionEntry to delete.
+     */
+    where: ProductionEntryWhereUniqueInput
+  }
+
+  /**
+   * ProductionEntry deleteMany
+   */
+  export type ProductionEntryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductionEntries to delete
+     */
+    where?: ProductionEntryWhereInput
+    /**
+     * Limit how many ProductionEntries to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProductionEntry.creator
+   */
+  export type ProductionEntry$creatorArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * ProductionEntry without action
+   */
+  export type ProductionEntryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductionEntry
+     */
+    select?: ProductionEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductionEntry
+     */
+    omit?: ProductionEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductionEntryInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -12846,6 +14173,19 @@ export namespace Prisma {
   };
 
   export type DistributionSessionScalarFieldEnum = (typeof DistributionSessionScalarFieldEnum)[keyof typeof DistributionSessionScalarFieldEnum]
+
+
+  export const ProductionEntryScalarFieldEnum: {
+    id: 'id',
+    productId: 'productId',
+    quantity: 'quantity',
+    notes: 'notes',
+    createdBy: 'createdBy',
+    date: 'date',
+    createdAt: 'createdAt'
+  };
+
+  export type ProductionEntryScalarFieldEnum = (typeof ProductionEntryScalarFieldEnum)[keyof typeof ProductionEntryScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -13057,6 +14397,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionListRelationFilter
     distributionSessions?: DistributionSessionListRelationFilter
     sessionsClosedByMe?: DistributionSessionListRelationFilter
+    productionEntries?: ProductionEntryListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -13076,6 +14417,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionOrderByRelationAggregateInput
     distributionSessions?: DistributionSessionOrderByRelationAggregateInput
     sessionsClosedByMe?: DistributionSessionOrderByRelationAggregateInput
+    productionEntries?: ProductionEntryOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -13098,6 +14440,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionListRelationFilter
     distributionSessions?: DistributionSessionListRelationFilter
     sessionsClosedByMe?: DistributionSessionListRelationFilter
+    productionEntries?: ProductionEntryListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -13307,6 +14650,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     orderItems?: OrderItemListRelationFilter
+    productionEntries?: ProductionEntryListRelationFilter
   }
 
   export type ProductOrderByWithRelationInput = {
@@ -13319,6 +14663,7 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     orderItems?: OrderItemOrderByRelationAggregateInput
+    productionEntries?: ProductionEntryOrderByRelationAggregateInput
   }
 
   export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -13334,6 +14679,7 @@ export namespace Prisma {
     isActive?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     orderItems?: OrderItemListRelationFilter
+    productionEntries?: ProductionEntryListRelationFilter
   }, "id">
 
   export type ProductOrderByWithAggregationInput = {
@@ -13739,6 +15085,76 @@ export namespace Prisma {
     snapshotData?: JsonNullableWithAggregatesFilter<"DistributionSession">
   }
 
+  export type ProductionEntryWhereInput = {
+    AND?: ProductionEntryWhereInput | ProductionEntryWhereInput[]
+    OR?: ProductionEntryWhereInput[]
+    NOT?: ProductionEntryWhereInput | ProductionEntryWhereInput[]
+    id?: IntFilter<"ProductionEntry"> | number
+    productId?: IntFilter<"ProductionEntry"> | number
+    quantity?: IntFilter<"ProductionEntry"> | number
+    notes?: StringNullableFilter<"ProductionEntry"> | string | null
+    createdBy?: IntNullableFilter<"ProductionEntry"> | number | null
+    date?: DateTimeFilter<"ProductionEntry"> | Date | string
+    createdAt?: DateTimeFilter<"ProductionEntry"> | Date | string
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+    creator?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }
+
+  export type ProductionEntryOrderByWithRelationInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    product?: ProductOrderByWithRelationInput
+    creator?: UserOrderByWithRelationInput
+  }
+
+  export type ProductionEntryWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: ProductionEntryWhereInput | ProductionEntryWhereInput[]
+    OR?: ProductionEntryWhereInput[]
+    NOT?: ProductionEntryWhereInput | ProductionEntryWhereInput[]
+    productId?: IntFilter<"ProductionEntry"> | number
+    quantity?: IntFilter<"ProductionEntry"> | number
+    notes?: StringNullableFilter<"ProductionEntry"> | string | null
+    createdBy?: IntNullableFilter<"ProductionEntry"> | number | null
+    date?: DateTimeFilter<"ProductionEntry"> | Date | string
+    createdAt?: DateTimeFilter<"ProductionEntry"> | Date | string
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+    creator?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+  }, "id">
+
+  export type ProductionEntryOrderByWithAggregationInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+    _count?: ProductionEntryCountOrderByAggregateInput
+    _avg?: ProductionEntryAvgOrderByAggregateInput
+    _max?: ProductionEntryMaxOrderByAggregateInput
+    _min?: ProductionEntryMinOrderByAggregateInput
+    _sum?: ProductionEntrySumOrderByAggregateInput
+  }
+
+  export type ProductionEntryScalarWhereWithAggregatesInput = {
+    AND?: ProductionEntryScalarWhereWithAggregatesInput | ProductionEntryScalarWhereWithAggregatesInput[]
+    OR?: ProductionEntryScalarWhereWithAggregatesInput[]
+    NOT?: ProductionEntryScalarWhereWithAggregatesInput | ProductionEntryScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"ProductionEntry"> | number
+    productId?: IntWithAggregatesFilter<"ProductionEntry"> | number
+    quantity?: IntWithAggregatesFilter<"ProductionEntry"> | number
+    notes?: StringNullableWithAggregatesFilter<"ProductionEntry"> | string | null
+    createdBy?: IntNullableWithAggregatesFilter<"ProductionEntry"> | number | null
+    date?: DateTimeWithAggregatesFilter<"ProductionEntry"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"ProductionEntry"> | Date | string
+  }
+
   export type UserCreateInput = {
     name: string
     email: string
@@ -13755,6 +15171,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -13774,6 +15191,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUpdateInput = {
@@ -13792,6 +15210,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -13811,6 +15230,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -14022,6 +15442,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateInput = {
@@ -14034,6 +15455,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductUpdateInput = {
@@ -14045,6 +15467,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateInput = {
@@ -14057,6 +15480,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductCreateManyInput = {
@@ -14436,6 +15860,71 @@ export namespace Prisma {
     snapshotData?: NullableJsonNullValueInput | InputJsonValue
   }
 
+  export type ProductionEntryCreateInput = {
+    quantity: number
+    notes?: string | null
+    date?: Date | string
+    createdAt?: Date | string
+    product: ProductCreateNestedOneWithoutProductionEntriesInput
+    creator?: UserCreateNestedOneWithoutProductionEntriesInput
+  }
+
+  export type ProductionEntryUncheckedCreateInput = {
+    id?: number
+    productId: number
+    quantity: number
+    notes?: string | null
+    createdBy?: number | null
+    date?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type ProductionEntryUpdateInput = {
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    product?: ProductUpdateOneRequiredWithoutProductionEntriesNestedInput
+    creator?: UserUpdateOneWithoutProductionEntriesNestedInput
+  }
+
+  export type ProductionEntryUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductionEntryCreateManyInput = {
+    id?: number
+    productId: number
+    quantity: number
+    notes?: string | null
+    createdBy?: number | null
+    date?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type ProductionEntryUpdateManyMutationInput = {
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductionEntryUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -14536,6 +16025,12 @@ export namespace Prisma {
     none?: DistributionSessionWhereInput
   }
 
+  export type ProductionEntryListRelationFilter = {
+    every?: ProductionEntryWhereInput
+    some?: ProductionEntryWhereInput
+    none?: ProductionEntryWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -14562,6 +16057,10 @@ export namespace Prisma {
   }
 
   export type DistributionSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProductionEntryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -15347,6 +16846,50 @@ export namespace Prisma {
     _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
+  export type ProductionEntryCountOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    notes?: SortOrder
+    createdBy?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProductionEntryAvgOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type ProductionEntryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    notes?: SortOrder
+    createdBy?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProductionEntryMinOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    notes?: SortOrder
+    createdBy?: SortOrder
+    date?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProductionEntrySumOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    quantity?: SortOrder
+    createdBy?: SortOrder
+  }
+
   export type ClientCreateNestedManyWithoutCreatorInput = {
     create?: XOR<ClientCreateWithoutCreatorInput, ClientUncheckedCreateWithoutCreatorInput> | ClientCreateWithoutCreatorInput[] | ClientUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutCreatorInput | ClientCreateOrConnectWithoutCreatorInput[]
@@ -15403,6 +16946,13 @@ export namespace Prisma {
     connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
   }
 
+  export type ProductionEntryCreateNestedManyWithoutCreatorInput = {
+    create?: XOR<ProductionEntryCreateWithoutCreatorInput, ProductionEntryUncheckedCreateWithoutCreatorInput> | ProductionEntryCreateWithoutCreatorInput[] | ProductionEntryUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutCreatorInput | ProductionEntryCreateOrConnectWithoutCreatorInput[]
+    createMany?: ProductionEntryCreateManyCreatorInputEnvelope
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+  }
+
   export type ClientUncheckedCreateNestedManyWithoutCreatorInput = {
     create?: XOR<ClientCreateWithoutCreatorInput, ClientUncheckedCreateWithoutCreatorInput> | ClientCreateWithoutCreatorInput[] | ClientUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: ClientCreateOrConnectWithoutCreatorInput | ClientCreateOrConnectWithoutCreatorInput[]
@@ -15457,6 +17007,13 @@ export namespace Prisma {
     connectOrCreate?: DistributionSessionCreateOrConnectWithoutClosedByAdminInput | DistributionSessionCreateOrConnectWithoutClosedByAdminInput[]
     createMany?: DistributionSessionCreateManyClosedByAdminInputEnvelope
     connect?: DistributionSessionWhereUniqueInput | DistributionSessionWhereUniqueInput[]
+  }
+
+  export type ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput = {
+    create?: XOR<ProductionEntryCreateWithoutCreatorInput, ProductionEntryUncheckedCreateWithoutCreatorInput> | ProductionEntryCreateWithoutCreatorInput[] | ProductionEntryUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutCreatorInput | ProductionEntryCreateOrConnectWithoutCreatorInput[]
+    createMany?: ProductionEntryCreateManyCreatorInputEnvelope
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -15591,6 +17148,20 @@ export namespace Prisma {
     deleteMany?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
   }
 
+  export type ProductionEntryUpdateManyWithoutCreatorNestedInput = {
+    create?: XOR<ProductionEntryCreateWithoutCreatorInput, ProductionEntryUncheckedCreateWithoutCreatorInput> | ProductionEntryCreateWithoutCreatorInput[] | ProductionEntryUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutCreatorInput | ProductionEntryCreateOrConnectWithoutCreatorInput[]
+    upsert?: ProductionEntryUpsertWithWhereUniqueWithoutCreatorInput | ProductionEntryUpsertWithWhereUniqueWithoutCreatorInput[]
+    createMany?: ProductionEntryCreateManyCreatorInputEnvelope
+    set?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    disconnect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    delete?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    update?: ProductionEntryUpdateWithWhereUniqueWithoutCreatorInput | ProductionEntryUpdateWithWhereUniqueWithoutCreatorInput[]
+    updateMany?: ProductionEntryUpdateManyWithWhereWithoutCreatorInput | ProductionEntryUpdateManyWithWhereWithoutCreatorInput[]
+    deleteMany?: ProductionEntryScalarWhereInput | ProductionEntryScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -15709,6 +17280,20 @@ export namespace Prisma {
     update?: DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput | DistributionSessionUpdateWithWhereUniqueWithoutClosedByAdminInput[]
     updateMany?: DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput | DistributionSessionUpdateManyWithWhereWithoutClosedByAdminInput[]
     deleteMany?: DistributionSessionScalarWhereInput | DistributionSessionScalarWhereInput[]
+  }
+
+  export type ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput = {
+    create?: XOR<ProductionEntryCreateWithoutCreatorInput, ProductionEntryUncheckedCreateWithoutCreatorInput> | ProductionEntryCreateWithoutCreatorInput[] | ProductionEntryUncheckedCreateWithoutCreatorInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutCreatorInput | ProductionEntryCreateOrConnectWithoutCreatorInput[]
+    upsert?: ProductionEntryUpsertWithWhereUniqueWithoutCreatorInput | ProductionEntryUpsertWithWhereUniqueWithoutCreatorInput[]
+    createMany?: ProductionEntryCreateManyCreatorInputEnvelope
+    set?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    disconnect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    delete?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    update?: ProductionEntryUpdateWithWhereUniqueWithoutCreatorInput | ProductionEntryUpdateWithWhereUniqueWithoutCreatorInput[]
+    updateMany?: ProductionEntryUpdateManyWithWhereWithoutCreatorInput | ProductionEntryUpdateManyWithWhereWithoutCreatorInput[]
+    deleteMany?: ProductionEntryScalarWhereInput | ProductionEntryScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutRegionsCreatedInput = {
@@ -15946,11 +17531,25 @@ export namespace Prisma {
     connect?: OrderItemWhereUniqueInput | OrderItemWhereUniqueInput[]
   }
 
+  export type ProductionEntryCreateNestedManyWithoutProductInput = {
+    create?: XOR<ProductionEntryCreateWithoutProductInput, ProductionEntryUncheckedCreateWithoutProductInput> | ProductionEntryCreateWithoutProductInput[] | ProductionEntryUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutProductInput | ProductionEntryCreateOrConnectWithoutProductInput[]
+    createMany?: ProductionEntryCreateManyProductInputEnvelope
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+  }
+
   export type OrderItemUncheckedCreateNestedManyWithoutProductInput = {
     create?: XOR<OrderItemCreateWithoutProductInput, OrderItemUncheckedCreateWithoutProductInput> | OrderItemCreateWithoutProductInput[] | OrderItemUncheckedCreateWithoutProductInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutProductInput | OrderItemCreateOrConnectWithoutProductInput[]
     createMany?: OrderItemCreateManyProductInputEnvelope
     connect?: OrderItemWhereUniqueInput | OrderItemWhereUniqueInput[]
+  }
+
+  export type ProductionEntryUncheckedCreateNestedManyWithoutProductInput = {
+    create?: XOR<ProductionEntryCreateWithoutProductInput, ProductionEntryUncheckedCreateWithoutProductInput> | ProductionEntryCreateWithoutProductInput[] | ProductionEntryUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutProductInput | ProductionEntryCreateOrConnectWithoutProductInput[]
+    createMany?: ProductionEntryCreateManyProductInputEnvelope
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
   }
 
   export type OrderItemUpdateManyWithoutProductNestedInput = {
@@ -15967,6 +17566,20 @@ export namespace Prisma {
     deleteMany?: OrderItemScalarWhereInput | OrderItemScalarWhereInput[]
   }
 
+  export type ProductionEntryUpdateManyWithoutProductNestedInput = {
+    create?: XOR<ProductionEntryCreateWithoutProductInput, ProductionEntryUncheckedCreateWithoutProductInput> | ProductionEntryCreateWithoutProductInput[] | ProductionEntryUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutProductInput | ProductionEntryCreateOrConnectWithoutProductInput[]
+    upsert?: ProductionEntryUpsertWithWhereUniqueWithoutProductInput | ProductionEntryUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: ProductionEntryCreateManyProductInputEnvelope
+    set?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    disconnect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    delete?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    update?: ProductionEntryUpdateWithWhereUniqueWithoutProductInput | ProductionEntryUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: ProductionEntryUpdateManyWithWhereWithoutProductInput | ProductionEntryUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: ProductionEntryScalarWhereInput | ProductionEntryScalarWhereInput[]
+  }
+
   export type OrderItemUncheckedUpdateManyWithoutProductNestedInput = {
     create?: XOR<OrderItemCreateWithoutProductInput, OrderItemUncheckedCreateWithoutProductInput> | OrderItemCreateWithoutProductInput[] | OrderItemUncheckedCreateWithoutProductInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutProductInput | OrderItemCreateOrConnectWithoutProductInput[]
@@ -15979,6 +17592,20 @@ export namespace Prisma {
     update?: OrderItemUpdateWithWhereUniqueWithoutProductInput | OrderItemUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: OrderItemUpdateManyWithWhereWithoutProductInput | OrderItemUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: OrderItemScalarWhereInput | OrderItemScalarWhereInput[]
+  }
+
+  export type ProductionEntryUncheckedUpdateManyWithoutProductNestedInput = {
+    create?: XOR<ProductionEntryCreateWithoutProductInput, ProductionEntryUncheckedCreateWithoutProductInput> | ProductionEntryCreateWithoutProductInput[] | ProductionEntryUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: ProductionEntryCreateOrConnectWithoutProductInput | ProductionEntryCreateOrConnectWithoutProductInput[]
+    upsert?: ProductionEntryUpsertWithWhereUniqueWithoutProductInput | ProductionEntryUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: ProductionEntryCreateManyProductInputEnvelope
+    set?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    disconnect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    delete?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    connect?: ProductionEntryWhereUniqueInput | ProductionEntryWhereUniqueInput[]
+    update?: ProductionEntryUpdateWithWhereUniqueWithoutProductInput | ProductionEntryUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: ProductionEntryUpdateManyWithWhereWithoutProductInput | ProductionEntryUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: ProductionEntryScalarWhereInput | ProductionEntryScalarWhereInput[]
   }
 
   export type ClientCreateNestedOneWithoutOrdersInput = {
@@ -16257,6 +17884,36 @@ export namespace Prisma {
     delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSessionsClosedByMeInput, UserUpdateWithoutSessionsClosedByMeInput>, UserUncheckedUpdateWithoutSessionsClosedByMeInput>
+  }
+
+  export type ProductCreateNestedOneWithoutProductionEntriesInput = {
+    create?: XOR<ProductCreateWithoutProductionEntriesInput, ProductUncheckedCreateWithoutProductionEntriesInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutProductionEntriesInput
+    connect?: ProductWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutProductionEntriesInput = {
+    create?: XOR<UserCreateWithoutProductionEntriesInput, UserUncheckedCreateWithoutProductionEntriesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProductionEntriesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type ProductUpdateOneRequiredWithoutProductionEntriesNestedInput = {
+    create?: XOR<ProductCreateWithoutProductionEntriesInput, ProductUncheckedCreateWithoutProductionEntriesInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutProductionEntriesInput
+    upsert?: ProductUpsertWithoutProductionEntriesInput
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutProductionEntriesInput, ProductUpdateWithoutProductionEntriesInput>, ProductUncheckedUpdateWithoutProductionEntriesInput>
+  }
+
+  export type UserUpdateOneWithoutProductionEntriesNestedInput = {
+    create?: XOR<UserCreateWithoutProductionEntriesInput, UserUncheckedCreateWithoutProductionEntriesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutProductionEntriesInput
+    upsert?: UserUpsertWithoutProductionEntriesInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutProductionEntriesInput, UserUpdateWithoutProductionEntriesInput>, UserUncheckedUpdateWithoutProductionEntriesInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -16857,6 +18514,33 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProductionEntryCreateWithoutCreatorInput = {
+    quantity: number
+    notes?: string | null
+    date?: Date | string
+    createdAt?: Date | string
+    product: ProductCreateNestedOneWithoutProductionEntriesInput
+  }
+
+  export type ProductionEntryUncheckedCreateWithoutCreatorInput = {
+    id?: number
+    productId: number
+    quantity: number
+    notes?: string | null
+    date?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type ProductionEntryCreateOrConnectWithoutCreatorInput = {
+    where: ProductionEntryWhereUniqueInput
+    create: XOR<ProductionEntryCreateWithoutCreatorInput, ProductionEntryUncheckedCreateWithoutCreatorInput>
+  }
+
+  export type ProductionEntryCreateManyCreatorInputEnvelope = {
+    data: ProductionEntryCreateManyCreatorInput | ProductionEntryCreateManyCreatorInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ClientUpsertWithWhereUniqueWithoutCreatorInput = {
     where: ClientWhereUniqueInput
     update: XOR<ClientUpdateWithoutCreatorInput, ClientUncheckedUpdateWithoutCreatorInput>
@@ -17068,6 +18752,35 @@ export namespace Prisma {
     data: XOR<DistributionSessionUpdateManyMutationInput, DistributionSessionUncheckedUpdateManyWithoutClosedByAdminInput>
   }
 
+  export type ProductionEntryUpsertWithWhereUniqueWithoutCreatorInput = {
+    where: ProductionEntryWhereUniqueInput
+    update: XOR<ProductionEntryUpdateWithoutCreatorInput, ProductionEntryUncheckedUpdateWithoutCreatorInput>
+    create: XOR<ProductionEntryCreateWithoutCreatorInput, ProductionEntryUncheckedCreateWithoutCreatorInput>
+  }
+
+  export type ProductionEntryUpdateWithWhereUniqueWithoutCreatorInput = {
+    where: ProductionEntryWhereUniqueInput
+    data: XOR<ProductionEntryUpdateWithoutCreatorInput, ProductionEntryUncheckedUpdateWithoutCreatorInput>
+  }
+
+  export type ProductionEntryUpdateManyWithWhereWithoutCreatorInput = {
+    where: ProductionEntryScalarWhereInput
+    data: XOR<ProductionEntryUpdateManyMutationInput, ProductionEntryUncheckedUpdateManyWithoutCreatorInput>
+  }
+
+  export type ProductionEntryScalarWhereInput = {
+    AND?: ProductionEntryScalarWhereInput | ProductionEntryScalarWhereInput[]
+    OR?: ProductionEntryScalarWhereInput[]
+    NOT?: ProductionEntryScalarWhereInput | ProductionEntryScalarWhereInput[]
+    id?: IntFilter<"ProductionEntry"> | number
+    productId?: IntFilter<"ProductionEntry"> | number
+    quantity?: IntFilter<"ProductionEntry"> | number
+    notes?: StringNullableFilter<"ProductionEntry"> | string | null
+    createdBy?: IntNullableFilter<"ProductionEntry"> | number | null
+    date?: DateTimeFilter<"ProductionEntry"> | Date | string
+    createdAt?: DateTimeFilter<"ProductionEntry"> | Date | string
+  }
+
   export type UserCreateWithoutRegionsCreatedInput = {
     name: string
     email: string
@@ -17083,6 +18796,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutRegionsCreatedInput = {
@@ -17101,6 +18815,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutRegionsCreatedInput = {
@@ -17231,6 +18946,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRegionsCreatedInput = {
@@ -17249,6 +18965,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type ClientUpsertWithWhereUniqueWithoutRegionInput = {
@@ -17338,6 +19055,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutClientsCreatedInput = {
@@ -17356,6 +19074,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutClientsCreatedInput = {
@@ -17456,6 +19175,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutClientsCreatedInput = {
@@ -17474,6 +19194,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type OrderUpsertWithWhereUniqueWithoutClientInput = {
@@ -17519,6 +19240,33 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProductionEntryCreateWithoutProductInput = {
+    quantity: number
+    notes?: string | null
+    date?: Date | string
+    createdAt?: Date | string
+    creator?: UserCreateNestedOneWithoutProductionEntriesInput
+  }
+
+  export type ProductionEntryUncheckedCreateWithoutProductInput = {
+    id?: number
+    quantity: number
+    notes?: string | null
+    createdBy?: number | null
+    date?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type ProductionEntryCreateOrConnectWithoutProductInput = {
+    where: ProductionEntryWhereUniqueInput
+    create: XOR<ProductionEntryCreateWithoutProductInput, ProductionEntryUncheckedCreateWithoutProductInput>
+  }
+
+  export type ProductionEntryCreateManyProductInputEnvelope = {
+    data: ProductionEntryCreateManyProductInput | ProductionEntryCreateManyProductInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrderItemUpsertWithWhereUniqueWithoutProductInput = {
     where: OrderItemWhereUniqueInput
     update: XOR<OrderItemUpdateWithoutProductInput, OrderItemUncheckedUpdateWithoutProductInput>
@@ -17546,6 +19294,22 @@ export namespace Prisma {
     unitPrice?: FloatFilter<"OrderItem"> | number
     deliveredQuantity?: IntNullableFilter<"OrderItem"> | number | null
     isBonification?: BoolFilter<"OrderItem"> | boolean
+  }
+
+  export type ProductionEntryUpsertWithWhereUniqueWithoutProductInput = {
+    where: ProductionEntryWhereUniqueInput
+    update: XOR<ProductionEntryUpdateWithoutProductInput, ProductionEntryUncheckedUpdateWithoutProductInput>
+    create: XOR<ProductionEntryCreateWithoutProductInput, ProductionEntryUncheckedCreateWithoutProductInput>
+  }
+
+  export type ProductionEntryUpdateWithWhereUniqueWithoutProductInput = {
+    where: ProductionEntryWhereUniqueInput
+    data: XOR<ProductionEntryUpdateWithoutProductInput, ProductionEntryUncheckedUpdateWithoutProductInput>
+  }
+
+  export type ProductionEntryUpdateManyWithWhereWithoutProductInput = {
+    where: ProductionEntryScalarWhereInput
+    data: XOR<ProductionEntryUpdateManyMutationInput, ProductionEntryUncheckedUpdateManyWithoutProductInput>
   }
 
   export type ClientCreateWithoutOrdersInput = {
@@ -17597,6 +19361,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutOrdersCreatedInput = {
@@ -17615,6 +19380,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutOrdersCreatedInput = {
@@ -17637,6 +19403,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutOrdersDeliveryInput = {
@@ -17655,6 +19422,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutOrdersDeliveryInput = {
@@ -17808,6 +19576,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersCreatedInput = {
@@ -17826,6 +19595,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUpsertWithoutOrdersDeliveryInput = {
@@ -17854,6 +19624,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersDeliveryInput = {
@@ -17872,6 +19643,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type RegionUpsertWithoutOrdersInput = {
@@ -17976,6 +19748,7 @@ export namespace Prisma {
     category?: string
     isActive?: boolean
     createdAt?: Date | string
+    productionEntries?: ProductionEntryCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutOrderItemsInput = {
@@ -17987,6 +19760,7 @@ export namespace Prisma {
     category?: string
     isActive?: boolean
     createdAt?: Date | string
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutOrderItemsInput = {
@@ -18051,6 +19825,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    productionEntries?: ProductionEntryUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutOrderItemsInput = {
@@ -18062,6 +19837,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type UserCreateWithoutAssignedRegionsInput = {
@@ -18079,6 +19855,7 @@ export namespace Prisma {
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutAssignedRegionsInput = {
@@ -18097,6 +19874,7 @@ export namespace Prisma {
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutAssignedRegionsInput = {
@@ -18154,6 +19932,7 @@ export namespace Prisma {
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignedRegionsInput = {
@@ -18172,6 +19951,7 @@ export namespace Prisma {
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type RegionUpsertWithoutAssignedUsersInput = {
@@ -18251,6 +20031,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutHistoryActionsInput = {
@@ -18269,6 +20050,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutHistoryActionsInput = {
@@ -18340,6 +20122,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutHistoryActionsInput = {
@@ -18358,6 +20141,7 @@ export namespace Prisma {
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserCreateWithoutDistributionSessionsInput = {
@@ -18375,6 +20159,7 @@ export namespace Prisma {
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutDistributionSessionsInput = {
@@ -18393,6 +20178,7 @@ export namespace Prisma {
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutDistributionSessionsInput = {
@@ -18415,6 +20201,7 @@ export namespace Prisma {
     regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    productionEntries?: ProductionEntryCreateNestedManyWithoutCreatorInput
   }
 
   export type UserUncheckedCreateWithoutSessionsClosedByMeInput = {
@@ -18433,6 +20220,7 @@ export namespace Prisma {
     regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
     assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
     distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutCreatorInput
   }
 
   export type UserCreateOrConnectWithoutSessionsClosedByMeInput = {
@@ -18466,6 +20254,7 @@ export namespace Prisma {
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDistributionSessionsInput = {
@@ -18484,6 +20273,7 @@ export namespace Prisma {
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUpsertWithoutSessionsClosedByMeInput = {
@@ -18512,6 +20302,7 @@ export namespace Prisma {
     regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    productionEntries?: ProductionEntryUpdateManyWithoutCreatorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsClosedByMeInput = {
@@ -18530,6 +20321,159 @@ export namespace Prisma {
     regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
     assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
     distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    productionEntries?: ProductionEntryUncheckedUpdateManyWithoutCreatorNestedInput
+  }
+
+  export type ProductCreateWithoutProductionEntriesInput = {
+    name: string
+    description?: string | null
+    price: number
+    unit: string
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    orderItems?: OrderItemCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductUncheckedCreateWithoutProductionEntriesInput = {
+    id?: number
+    name: string
+    description?: string | null
+    price: number
+    unit: string
+    category?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutProductionEntriesInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutProductionEntriesInput, ProductUncheckedCreateWithoutProductionEntriesInput>
+  }
+
+  export type UserCreateWithoutProductionEntriesInput = {
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionCreateNestedManyWithoutClosedByAdminInput
+  }
+
+  export type UserUncheckedCreateWithoutProductionEntriesInput = {
+    id?: number
+    name: string
+    email: string
+    phone?: string | null
+    password: string
+    role: $Enums.Role
+    isActive?: boolean
+    createdAt?: Date | string
+    clientsCreated?: ClientUncheckedCreateNestedManyWithoutCreatorInput
+    ordersCreated?: OrderUncheckedCreateNestedManyWithoutPreventistaInput
+    ordersDelivery?: OrderUncheckedCreateNestedManyWithoutDistributorInput
+    historyActions?: OrderHistoryUncheckedCreateNestedManyWithoutChangerInput
+    regionsCreated?: RegionUncheckedCreateNestedManyWithoutCreatorInput
+    assignedRegions?: UserRegionUncheckedCreateNestedManyWithoutUserInput
+    distributionSessions?: DistributionSessionUncheckedCreateNestedManyWithoutDistributorInput
+    sessionsClosedByMe?: DistributionSessionUncheckedCreateNestedManyWithoutClosedByAdminInput
+  }
+
+  export type UserCreateOrConnectWithoutProductionEntriesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutProductionEntriesInput, UserUncheckedCreateWithoutProductionEntriesInput>
+  }
+
+  export type ProductUpsertWithoutProductionEntriesInput = {
+    update: XOR<ProductUpdateWithoutProductionEntriesInput, ProductUncheckedUpdateWithoutProductionEntriesInput>
+    create: XOR<ProductCreateWithoutProductionEntriesInput, ProductUncheckedCreateWithoutProductionEntriesInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutProductionEntriesInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutProductionEntriesInput, ProductUncheckedUpdateWithoutProductionEntriesInput>
+  }
+
+  export type ProductUpdateWithoutProductionEntriesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orderItems?: OrderItemUpdateManyWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutProductionEntriesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: FloatFieldUpdateOperationsInput | number
+    unit?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
+  }
+
+  export type UserUpsertWithoutProductionEntriesInput = {
+    update: XOR<UserUpdateWithoutProductionEntriesInput, UserUncheckedUpdateWithoutProductionEntriesInput>
+    create: XOR<UserCreateWithoutProductionEntriesInput, UserUncheckedCreateWithoutProductionEntriesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutProductionEntriesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutProductionEntriesInput, UserUncheckedUpdateWithoutProductionEntriesInput>
+  }
+
+  export type UserUpdateWithoutProductionEntriesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUpdateManyWithoutClosedByAdminNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutProductionEntriesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    clientsCreated?: ClientUncheckedUpdateManyWithoutCreatorNestedInput
+    ordersCreated?: OrderUncheckedUpdateManyWithoutPreventistaNestedInput
+    ordersDelivery?: OrderUncheckedUpdateManyWithoutDistributorNestedInput
+    historyActions?: OrderHistoryUncheckedUpdateManyWithoutChangerNestedInput
+    regionsCreated?: RegionUncheckedUpdateManyWithoutCreatorNestedInput
+    assignedRegions?: UserRegionUncheckedUpdateManyWithoutUserNestedInput
+    distributionSessions?: DistributionSessionUncheckedUpdateManyWithoutDistributorNestedInput
+    sessionsClosedByMe?: DistributionSessionUncheckedUpdateManyWithoutClosedByAdminNestedInput
   }
 
   export type ClientCreateManyCreatorInput = {
@@ -18611,6 +20555,15 @@ export namespace Prisma {
     closedAt?: Date | string | null
     notes?: string | null
     snapshotData?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type ProductionEntryCreateManyCreatorInput = {
+    id?: number
+    productId: number
+    quantity: number
+    notes?: string | null
+    date?: Date | string
+    createdAt?: Date | string
   }
 
   export type ClientUpdateWithoutCreatorInput = {
@@ -18864,6 +20817,32 @@ export namespace Prisma {
     snapshotData?: NullableJsonNullValueInput | InputJsonValue
   }
 
+  export type ProductionEntryUpdateWithoutCreatorInput = {
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    product?: ProductUpdateOneRequiredWithoutProductionEntriesNestedInput
+  }
+
+  export type ProductionEntryUncheckedUpdateWithoutCreatorInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductionEntryUncheckedUpdateManyWithoutCreatorInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    productId?: IntFieldUpdateOperationsInput | number
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ClientCreateManyRegionInput = {
     id?: number
     name: string
@@ -19055,6 +21034,15 @@ export namespace Prisma {
     isBonification?: boolean
   }
 
+  export type ProductionEntryCreateManyProductInput = {
+    id?: number
+    quantity: number
+    notes?: string | null
+    createdBy?: number | null
+    date?: Date | string
+    createdAt?: Date | string
+  }
+
   export type OrderItemUpdateWithoutProductInput = {
     quantity?: IntFieldUpdateOperationsInput | number
     unitPrice?: FloatFieldUpdateOperationsInput | number
@@ -19079,6 +21067,32 @@ export namespace Prisma {
     unitPrice?: FloatFieldUpdateOperationsInput | number
     deliveredQuantity?: NullableIntFieldUpdateOperationsInput | number | null
     isBonification?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ProductionEntryUpdateWithoutProductInput = {
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    creator?: UserUpdateOneWithoutProductionEntriesNestedInput
+  }
+
+  export type ProductionEntryUncheckedUpdateWithoutProductInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProductionEntryUncheckedUpdateManyWithoutProductInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    quantity?: IntFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderItemCreateManyOrderInput = {
