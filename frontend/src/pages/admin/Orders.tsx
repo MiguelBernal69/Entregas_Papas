@@ -14,6 +14,8 @@ const statusColor: Record<string, string> = {
   entregado: 'bg-green-100 text-green-700'
 }
 
+const PAGE_SIZE = 30
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [distributors, setDistributors] = useState<User[]>([])
@@ -22,22 +24,28 @@ export default function AdminOrders() {
   const [distributorId, setDistributorId] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterRegion, setFilterRegion] = useState('')
+  const [filterDate, setFilterDate] = useState('today')
   const [regions, setRegions] = useState<any[]>([])
   const [assigning, setAssigning] = useState(false)
   const [detail, setDetail] = useState<Order | null>(null)
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
   const [batchPrintOrders, setBatchPrintOrders] = useState<Order[] | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (p = 1) => {
+    setLoading(true)
     try {
-      const params: any = {}
+      const params: any = { page: p, limit: PAGE_SIZE }
       if (filterRegion) params.regionId = filterRegion
+      if (filterDate) params.date = filterDate
       const [ordersData, usersData, regionsData] = await Promise.all([
         getOrders(params),
         getUsers(),
         getRegions()
       ])
       setOrders(ordersData)
+      setHasMore(ordersData.length === PAGE_SIZE)
       setDistributors(usersData.filter((u: User) => u.role === 'distribuidor' && u.isActive))
       setRegions(regionsData)
     } catch (err) {
@@ -47,9 +55,12 @@ export default function AdminOrders() {
     }
   }
 
-  const fetchData = fetchOrders
+  const fetchData = () => fetchOrders(page)
 
-  useEffect(() => { fetchOrders() }, [filterRegion])
+  useEffect(() => {
+    setPage(1)
+    fetchOrders(1)
+  }, [filterRegion, filterDate])
 
   const filtered = orders.filter(o => {
     if (filterStatus && o.status !== filterStatus) return false
@@ -118,6 +129,20 @@ export default function AdminOrders() {
 
         {/* Barra de herramientas */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
+          {/* Filtro de fecha */}
+          <select
+            value={filterDate}
+            onChange={e => setFilterDate(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="today">Hoy</option>
+            <option value="yesterday">Ayer</option>
+            <option value="this_week">Esta semana</option>
+            <option value="this_month">Este mes</option>
+            <option value="last_month">Mes anterior</option>
+            <option value="all">Todos</option>
+          </select>
+
           <select
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
@@ -270,6 +295,32 @@ export default function AdminOrders() {
                 ))}
               </tbody>
             </table>
+          )}
+
+          {/* Controles de paginación */}
+          {!loading && (
+            <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+              <span className="text-sm text-gray-500">
+                Página {page} · {orders.length} pedido{orders.length !== 1 ? 's' : ''}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { const p = page - 1; setPage(p); fetchOrders(p) }}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-lg border text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                >
+                  ← Anterior
+                </button>
+                <span className="text-sm font-semibold text-gray-700 min-w-[2rem] text-center">{page}</span>
+                <button
+                  onClick={() => { const p = page + 1; setPage(p); fetchOrders(p) }}
+                  disabled={!hasMore}
+                  className="px-3 py-1.5 rounded-lg border text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

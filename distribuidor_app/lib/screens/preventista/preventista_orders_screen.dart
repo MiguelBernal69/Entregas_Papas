@@ -688,6 +688,10 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   bool _loading = true;
   bool _saving = false;
   String? _error;
+  final _productSearchCtrl = TextEditingController();
+  final _bonusProductSearchCtrl = TextEditingController();
+  String _productSearchQuery = '';
+  String _bonusProductSearchQuery = '';
   String _selectedCategory = 'Todas';
   String _selectedBonusCategory = 'Todas';
 
@@ -696,9 +700,23 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
     return ['Todas', ...cats];
   }
 
-  List<Product> get _filteredProducts => _selectedCategory == 'Todas'
-      ? _products
-      : _products.where((p) => p.category == _selectedCategory).toList();
+  List<Product> get _filteredProducts {
+    return _products.where((p) {
+      final matchesCat = _selectedCategory == 'Todas' || p.category == _selectedCategory;
+      final q = _productSearchQuery.trim().toLowerCase();
+      final matchesSearch = q.isEmpty || p.name.toLowerCase().contains(q);
+      return matchesCat && matchesSearch;
+    }).toList();
+  }
+
+  List<Product> get _filteredBonusProducts {
+    return _products.where((p) {
+      final matchesCat = _selectedBonusCategory == 'Todas' || p.category == _selectedBonusCategory;
+      final q = _bonusProductSearchQuery.trim().toLowerCase();
+      final matchesSearch = q.isEmpty || p.name.toLowerCase().contains(q);
+      return matchesCat && matchesSearch;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -720,6 +738,8 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
   void dispose() {
     _notesCtrl.dispose();
     _discountCtrl.dispose();
+    _productSearchCtrl.dispose();
+    _bonusProductSearchCtrl.dispose();
     for (final ctrl in _qtyControllers.values) {
       ctrl.dispose();
     }
@@ -1023,6 +1043,45 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                         ),
                         const SizedBox(height: 8),
 
+                        // Buscador instantáneo de productos
+                        TextField(
+                          controller: _productSearchCtrl,
+                          decoration: InputDecoration(
+                            hintText: 'Buscar producto...',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF3B82F6)),
+                            suffixIcon: _productSearchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 18, color: Colors.grey),
+                                    onPressed: () {
+                                      _productSearchCtrl.clear();
+                                      setState(() => _productSearchQuery = '');
+                                    },
+                                  )
+                                : null,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade200),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                            ),
+                          ),
+                          style: const TextStyle(fontSize: 13),
+                          onChanged: (val) {
+                            setState(() => _productSearchQuery = val);
+                          },
+                        ),
+                        const SizedBox(height: 8),
+
                         // Tabs de categoría
                         if (_categories.length > 2) ...[
                           SizedBox(
@@ -1071,26 +1130,37 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                         ],
 
                         // Lista de productos filtrados
-                        ..._filteredProducts.map(
-                          (p) => ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(
-                              p.name,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            subtitle: Text(
-                              'Bs. ${p.price.toStringAsFixed(2)} / ${p.unit}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.add_circle,
-                                color: Color(0xFF3B82F6),
+                        if (_filteredProducts.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: Text(
+                                'No se encontraron productos para "$_productSearchQuery"',
+                                style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
                               ),
-                              onPressed: () => _addProduct(p),
+                            ),
+                          )
+                        else
+                          ..._filteredProducts.map(
+                            (p) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                p.name,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              subtitle: Text(
+                                'Bs. ${p.price.toStringAsFixed(2)} / ${p.unit}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.add_circle,
+                                  color: Color(0xFF3B82F6),
+                                ),
+                                onPressed: () => _addProduct(p),
+                              ),
                             ),
                           ),
-                        ),
 
                         // Items seleccionados
                         if (_items.isNotEmpty) ...[
@@ -1406,23 +1476,69 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                                     const SizedBox(height: 6),
                                   ],
 
+                                  // Buscador de productos bonificados
+                                  TextField(
+                                    controller: _bonusProductSearchCtrl,
+                                    decoration: InputDecoration(
+                                      hintText: 'Buscar producto bonificado...',
+                                      hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+                                      prefixIcon: const Icon(Icons.search, size: 18, color: Colors.grey),
+                                      suffixIcon: _bonusProductSearchCtrl.text.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(Icons.clear, size: 18),
+                                              onPressed: () {
+                                                _bonusProductSearchCtrl.clear();
+                                                setState(() => _bonusProductSearchQuery = '');
+                                              },
+                                            )
+                                          : null,
+                                      isDense: true,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.grey.shade300),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.grey.shade300),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: const BorderSide(color: Color(0xFF10B981)),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey.shade50,
+                                    ),
+                                    style: const TextStyle(fontSize: 13),
+                                    onChanged: (val) => setState(() => _bonusProductSearchQuery = val),
+                                  ),
+                                  const SizedBox(height: 8),
+
                                   // Lista de productos para bonificar
-                                  ...(_selectedBonusCategory == 'Todas'
-                                      ? _products
-                                      : _products.where((p) => p.category == _selectedBonusCategory).toList()
-                                  ).map((p) => ListTile(
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                    title: Text(p.name, style: const TextStyle(fontSize: 13)),
-                                    subtitle: Text(
-                                      '${p.unit} • Ref: Bs. ${p.price.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                                    ),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.add_circle, color: Color(0xFF10B981)),
-                                      onPressed: () => _addBonusProduct(p),
-                                    ),
-                                  )),
+                                  if (_filteredBonusProducts.isEmpty)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 12),
+                                      child: Center(
+                                        child: Text(
+                                          'No se encontraron productos',
+                                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    ..._filteredBonusProducts.map((p) => ListTile(
+                                      dense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(p.name, style: const TextStyle(fontSize: 13)),
+                                      subtitle: Text(
+                                        '${p.unit} • Ref: Bs. ${p.price.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                      ),
+                                      trailing: IconButton(
+                                        icon: const Icon(Icons.add_circle, color: Color(0xFF10B981)),
+                                        onPressed: () => _addBonusProduct(p),
+                                      ),
+                                    )),
 
                                   // Items de bonificación seleccionados
                                   if (_bonusItems.isNotEmpty) ...[
@@ -1767,3 +1883,4 @@ class _StatusPill extends StatelessWidget {
     );
   }
 }
+
