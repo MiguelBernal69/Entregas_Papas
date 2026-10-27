@@ -1,6 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Order } from '../types'
 
+// Detección de Electron: si window.electronAPI existe estamos dentro del .exe
+declare global {
+  interface Window {
+    electronAPI?: {
+      printEscpos: (orders: Order[]) => Promise<{ ok: boolean; count?: number; error?: string }>
+      listPrinters: () => Promise<{ ok: boolean; devices?: unknown[]; error?: string }>
+      isElectron: boolean
+    }
+  }
+}
+const checkIsElectron = () => typeof window !== 'undefined' && !!window.electronAPI?.isElectron
+
 interface BatchThermalReceiptModalProps {
   orders: Order[]
   title?: string
@@ -234,7 +246,17 @@ export default function BatchThermalReceiptModal({
 
   // Imprimir la boleta actual y avanzar a la siguiente
   const handlePrintCurrentAndNext = async () => {
-    await printSingleOrder(currentOrder)
+    if (checkIsElectron() && window.electronAPI) {
+      // ✂️ Impresión ESC/POS real con corte automático
+      const result = await window.electronAPI.printEscpos([currentOrder])
+      if (!result.ok) {
+        alert(`Error de impresión:\n${result.error}`)
+        return
+      }
+    } else {
+      await printSingleOrder(currentOrder)
+    }
+    setPrintedOrderIds(prev => new Set([...prev, currentOrder.id]))
     if (currentIndex < orders.length - 1) {
       setCurrentIndex(prev => prev + 1)
     }
@@ -244,11 +266,23 @@ export default function BatchThermalReceiptModal({
   const handlePrintAllSequentially = async () => {
     if (isAutoPrinting) return
     setIsAutoPrinting(true)
-    for (let i = 0; i < orders.length; i++) {
-      setCurrentIndex(i)
-      await printSingleOrder(orders[i])
-      // Pequeña pausa entre boletas para que la impresora física corte y libere buffer
-      await new Promise(r => setTimeout(r, 1200))
+
+    if (checkIsElectron() && window.electronAPI) {
+      // ✂️ Enviar TODOS los pedidos de una vez a la impresora ESC/POS
+      const result = await window.electronAPI.printEscpos(orders)
+      if (!result.ok) {
+        alert(`Error de impresión:\n${result.error}`)
+      } else {
+        setPrintedOrderIds(new Set(orders.map(o => o.id)))
+        setCurrentIndex(orders.length - 1)
+      }
+    } else {
+      for (let i = 0; i < orders.length; i++) {
+        setCurrentIndex(i)
+        await printSingleOrder(orders[i])
+        // Pequeña pausa entre boletas para que la impresora física corte y libere buffer
+        await new Promise(r => setTimeout(r, 1200))
+      }
     }
     setIsAutoPrinting(false)
   }
