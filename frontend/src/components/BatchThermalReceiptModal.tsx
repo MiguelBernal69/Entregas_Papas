@@ -85,7 +85,8 @@ export default function BatchThermalReceiptModal({
     const finalTotal = Math.max(0, subtotal - discountVal)
     const dateToUse = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
     const dateFormatted = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-    const widthPx = widthMode === '80mm' ? '320px' : widthMode === '58mm' ? '240px' : '650px'
+    // En impresoras térmicas de 80mm, el ancho real de impresión del cabezal es de 72mm (~272px)
+    const widthPx = widthMode === '80mm' ? '272px' : widthMode === '58mm' ? '195px' : '650px'
 
     return `
       <!DOCTYPE html>
@@ -98,25 +99,27 @@ export default function BatchThermalReceiptModal({
               size: ${widthMode === '80mm' ? '80mm auto' : widthMode === '58mm' ? '58mm auto' : 'A4'};
               margin: 0;
             }
+            * { box-sizing: border-box; }
             body {
-              font-family: 'Courier New', Courier, monospace;
+              font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
               font-size: 13px;
-              font-weight: bold;
+              font-weight: 600;
               line-height: 1.25;
               margin: 0;
-              padding: 3mm 4mm 10mm 4mm;
+              padding: 2mm 5mm 10mm 2mm;
               color: #000;
               width: ${widthPx};
+              max-width: ${widthPx};
               box-sizing: border-box;
             }
             .text-center { text-align: center; }
             .text-right { text-align: right; }
-            .border-b { border-bottom: 1px solid #000; margin: 6px 0; }
-            .border-b-dashed { border-bottom: 1px dashed #000; margin: 6px 0; }
-            .flex { display: flex; justify-content: space-between; }
+            .border-b { border-bottom: 1px solid #000; margin: 5px 0; }
+            .border-b-dashed { border-bottom: 1px dashed #000; margin: 5px 0; }
+            .flex { display: flex; justify-content: space-between; align-items: baseline; }
             .bold { font-weight: 900; }
-            .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; }
-            .items-table th, .items-table td { padding: 2px 0; vertical-align: top; font-size: 12px; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
+            .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; }
             .items-table th { border-bottom: 1px solid #000; }
             /* Avance de papel para que la cuchilla de la impresora corte limpio sin tocar texto */
             .feed-space { height: 22mm; }
@@ -140,10 +143,10 @@ export default function BatchThermalReceiptModal({
           <table class="items-table">
             <thead>
               <tr>
-                <th align="left">Descripcion</th>
-                <th align="center" style="width: 40px;">CANT</th>
-                <th align="right" style="width: 45px;">P.U</th>
-                <th align="right" style="width: 50px;">total</th>
+                <th align="left" style="width: auto;">Descripcion</th>
+                <th align="center" style="width: 32px;">CANT</th>
+                <th align="right" style="width: 44px;">P.U</th>
+                <th align="right" style="width: 48px; padding-right: 2px;">total</th>
               </tr>
             </thead>
             <tbody>
@@ -151,10 +154,10 @@ export default function BatchThermalReceiptModal({
                 const qty = it.deliveredQuantity ?? it.quantity
                 return `
                   <tr>
-                    <td>${it.product.name}</td>
-                    <td align="center" class="bold">x${qty}</td>
-                    <td align="right">${it.unitPrice.toFixed(2)}</td>
-                    <td align="right" class="bold">${(it.unitPrice * qty).toFixed(2)}</td>
+                    <td style="word-break: break-word;">${it.product.name}</td>
+                    <td align="center" class="bold" style="width: 32px;">x${qty}</td>
+                    <td align="right" style="width: 44px;">${it.unitPrice.toFixed(2)}</td>
+                    <td align="right" class="bold" style="width: 48px; padding-right: 2px;">${(it.unitPrice * qty).toFixed(2)}</td>
                   </tr>
                 `
               }).join('')}
@@ -164,7 +167,7 @@ export default function BatchThermalReceiptModal({
             <div class="border-b-dashed"></div>
             <div style="font-size: 11px; font-weight: 900;">🎁 BONIFICACIONES (GRATIS)</div>
             ${bonifItems.map(it => `
-              <div class="flex" style="font-size: 12px;">
+              <div class="flex" style="font-size: 12px; padding-right: 2px;">
                 <span>[BONIF] ${it.product.name}</span>
                 <span class="bold">x${it.quantity} GRATIS</span>
               </div>
@@ -172,17 +175,17 @@ export default function BatchThermalReceiptModal({
           ` : ''}
           <div class="border-b"></div>
           ${discountVal > 0 ? `
-            <div class="flex" style="font-size: 12px;">
+            <div class="flex" style="font-size: 12px; padding-right: 2px;">
               <span>subtotal:</span>
               <span>Bs. ${subtotal.toFixed(2)}</span>
             </div>
-            <div class="flex bold" style="font-size: 12px;">
+            <div class="flex bold" style="font-size: 12px; padding-right: 2px;">
               <span>descuento:</span>
               <span>-Bs. ${discountVal.toFixed(2)}</span>
             </div>
             <div class="border-b-dashed"></div>
           ` : ''}
-          <div class="flex bold" style="font-size: 14px; margin-top: 3px;">
+          <div class="flex bold" style="font-size: 15px; margin-top: 3px; padding-right: 2px;">
             <span>total:</span>
             <span>Bs. ${finalTotal.toFixed(2)}</span>
           </div>
@@ -646,11 +649,12 @@ export default function BatchThermalReceiptModal({
                 </button>
               </div>
 
-              {/* Ticket Visual Monoespaciado de la Boleta Actual */}
+              {/* Ticket Visual de la Boleta Actual */}
               <div
-                className={`bg-white shadow-lg p-5 text-black border border-slate-300 transition-all ${
-                  printerMode === '80mm' ? 'w-[320px]' : 'w-[240px]'
-                } font-mono text-[13px] font-bold leading-snug select-text rounded-sm`}
+                style={{ fontFamily: "'Calibri', 'Segoe UI', Arial, sans-serif" }}
+                className={`bg-white shadow-lg p-4 text-black border border-slate-300 transition-all ${
+                  printerMode === '80mm' ? 'w-[280px]' : 'w-[200px]'
+                } text-[13px] font-semibold leading-snug select-text rounded-sm`}
               >
                 <div className="text-center pb-2">
                   <h4 className="font-black text-[15px] tracking-wide">DISTRIBUIDORA LUNOVA</h4>
@@ -765,13 +769,14 @@ export default function BatchThermalReceiptModal({
             <div
               id="batch-thermal-container"
               ref={printAreaRef}
+              style={{ fontFamily: "'Calibri', 'Segoe UI', Arial, sans-serif" }}
               className={`bg-white shadow-md p-4 transition-all duration-200 ${
                 printerMode === '80mm'
-                  ? 'w-[320px]'
+                  ? 'w-[280px]'
                   : printerMode === '58mm'
-                  ? 'w-[230px]'
+                  ? 'w-[200px]'
                   : 'w-[500px]'
-              } font-mono text-[13px] font-bold leading-snug select-text`}
+              } text-[13px] font-semibold leading-snug select-text`}
             >
               {includeSummary && (
                 <div className="batch-receipt-item pb-4 mb-6 border-b-2 border-dashed border-black">

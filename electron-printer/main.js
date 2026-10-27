@@ -53,10 +53,10 @@ function buildReceiptHtml(order) {
   const itemRows = regularItems.map(it => {
     const qty = it.deliveredQuantity ?? it.quantity
     return `<tr>
-      <td>${it.product.name}</td>
-      <td align="center" style="font-weight:900">x${qty}</td>
-      <td align="right">${it.unitPrice.toFixed(2)}</td>
-      <td align="right" style="font-weight:900">${(it.unitPrice * qty).toFixed(2)}</td>
+      <td style="word-break: break-word;">${it.product.name}</td>
+      <td align="center" style="font-weight:900;width:32px">x${qty}</td>
+      <td align="right" style="width:44px">${it.unitPrice.toFixed(2)}</td>
+      <td align="right" style="font-weight:900;width:48px;padding-right:2px">${(it.unitPrice * qty).toFixed(2)}</td>
     </tr>`
   }).join('')
 
@@ -64,7 +64,7 @@ function buildReceiptHtml(order) {
     <div style="border-bottom:1px dashed #000;margin:6px 0"></div>
     <div style="font-size:11px;font-weight:900">🎁 BONIFICACIONES (GRATIS)</div>
     ${bonifItems.map(it => `
-      <div style="display:flex;justify-content:space-between;font-size:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding-right:2px">
         <span>[BONIF] ${it.product.name}</span>
         <span style="font-weight:900">x${it.quantity} GRATIS</span>
       </div>
@@ -72,11 +72,11 @@ function buildReceiptHtml(order) {
   ` : ''
 
   const discountSection = discountVal > 0 ? `
-    <div style="display:flex;justify-content:space-between;font-size:12px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;padding-right:2px">
       <span>subtotal:</span>
       <span>Bs. ${subtotal.toFixed(2)}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px">
+    <div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px;padding-right:2px">
       <span>descuento:</span>
       <span>-Bs. ${discountVal.toFixed(2)}</span>
     </div>
@@ -93,24 +93,26 @@ function buildReceiptHtml(order) {
         size: 80mm auto;
         margin: 0;
       }
+      * { box-sizing: border-box; }
       body {
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
         font-size: 13px;
-        font-weight: bold;
+        font-weight: 600;
         line-height: 1.25;
         margin: 0;
-        padding: 3mm 4mm 10mm 4mm;
+        padding: 2mm 5mm 10mm 2mm;
         color: #000;
-        width: 320px;
+        width: 272px;
+        max-width: 272px;
         box-sizing: border-box;
       }
       .text-center { text-align: center; }
-      .border-b { border-bottom: 1px solid #000; margin: 6px 0; }
-      .border-b-dashed { border-bottom: 1px dashed #000; margin: 6px 0; }
-      .flex { display: flex; justify-content: space-between; }
+      .border-b { border-bottom: 1px solid #000; margin: 5px 0; }
+      .border-b-dashed { border-bottom: 1px dashed #000; margin: 5px 0; }
+      .flex { display: flex; justify-content: space-between; align-items: baseline; }
       .bold { font-weight: 900; }
-      .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; }
-      .items-table th, .items-table td { padding: 2px 0; vertical-align: top; font-size: 12px; }
+      .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
+      .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; }
       .items-table th { border-bottom: 1px solid #000; }
       .feed-space { height: 22mm; }
     </style>
@@ -133,10 +135,10 @@ function buildReceiptHtml(order) {
     <table class="items-table">
       <thead>
         <tr>
-          <th align="left">Descripcion</th>
-          <th align="center" style="width: 40px;">CANT</th>
-          <th align="right" style="width: 45px;">P.U</th>
-          <th align="right" style="width: 50px;">total</th>
+          <th align="left" style="width: auto;">Descripcion</th>
+          <th align="center" style="width: 32px;">CANT</th>
+          <th align="right" style="width: 44px;">P.U</th>
+          <th align="right" style="width: 48px; padding-right: 2px;">total</th>
         </tr>
       </thead>
       <tbody>
@@ -146,7 +148,7 @@ function buildReceiptHtml(order) {
     ${bonifSection}
     <div class="border-b"></div>
     ${discountSection}
-    <div class="flex bold" style="font-size: 14px; margin-top: 3px;">
+    <div class="flex bold" style="font-size: 15px; margin-top: 3px; padding-right: 2px;">
       <span>total:</span>
       <span>Bs. ${finalTotal.toFixed(2)}</span>
     </div>
