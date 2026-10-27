@@ -48,71 +48,117 @@ function buildReceiptHtml(order) {
   )
   const finalTotal = Math.max(0, subtotal - discountVal)
   const dateToUse = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
-  const dateStr = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  const dateFormatted = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
 
   const itemRows = regularItems.map(it => {
     const qty = it.deliveredQuantity ?? it.quantity
     return `<tr>
-      <td style="width:50%">${it.product.name}</td>
-      <td style="text-align:center;width:12%">x${qty}</td>
-      <td style="text-align:right;width:18%">${it.unitPrice.toFixed(2)}</td>
-      <td style="text-align:right;width:20%"><b>${(it.unitPrice * qty).toFixed(2)}</b></td>
+      <td>${it.product.name}</td>
+      <td align="center" style="font-weight:900">x${qty}</td>
+      <td align="right">${it.unitPrice.toFixed(2)}</td>
+      <td align="right" style="font-weight:900">${(it.unitPrice * qty).toFixed(2)}</td>
     </tr>`
   }).join('')
 
   const bonifSection = bonifItems.length > 0 ? `
-    <tr><td colspan="4" style="border-top:1px dashed #000;padding-top:4px;font-weight:900;font-size:11px">BONIFICACIONES (GRATIS):</td></tr>
-    ${bonifItems.map(it => `<tr><td colspan="3">[BONIF] ${it.product.name} x${it.quantity}</td><td style="text-align:right">GRATIS</td></tr>`).join('')}
+    <div style="border-bottom:1px dashed #000;margin:6px 0"></div>
+    <div style="font-size:11px;font-weight:900">🎁 BONIFICACIONES (GRATIS)</div>
+    ${bonifItems.map(it => `
+      <div style="display:flex;justify-content:space-between;font-size:12px">
+        <span>[BONIF] ${it.product.name}</span>
+        <span style="font-weight:900">x${it.quantity} GRATIS</span>
+      </div>
+    `).join('')}
   ` : ''
 
   const discountSection = discountVal > 0 ? `
-    <div style="display:flex;justify-content:space-between"><span>subtotal:</span><span>Bs. ${subtotal.toFixed(2)}</span></div>
-    <div style="display:flex;justify-content:space-between"><span>descuento:</span><span>-Bs. ${discountVal.toFixed(2)}</span></div>
-    <hr style="border:none;border-top:1px dashed #000;margin:4px 0">
+    <div style="display:flex;justify-content:space-between;font-size:12px">
+      <span>subtotal:</span>
+      <span>Bs. ${subtotal.toFixed(2)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px">
+      <span>descuento:</span>
+      <span>-Bs. ${discountVal.toFixed(2)}</span>
+    </div>
+    <div style="border-bottom:1px dashed #000;margin:6px 0"></div>
   ` : ''
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Boleta Pedido #${order.id}</title>
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      @page { size: 80mm auto; margin: 2mm 2mm 15mm 2mm; }
-      body { font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold;
-             width: 100%; color: #000; line-height: 1.35; }
-      hr { border: none; border-top: 1px solid #000; margin: 5px 0; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 1px 0; font-size: 11px; vertical-align: top; }
-      th { border-bottom: 1px solid #000; font-size: 11px; }
-      .center { text-align: center; }
-      .total-row { font-size: 15px; font-weight: 900; }
+      @page {
+        size: 80mm auto;
+        margin: 0;
+      }
+      body {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 13px;
+        font-weight: bold;
+        line-height: 1.25;
+        margin: 0;
+        padding: 3mm 4mm 10mm 4mm;
+        color: #000;
+        width: 320px;
+        box-sizing: border-box;
+      }
+      .text-center { text-align: center; }
+      .border-b { border-bottom: 1px solid #000; margin: 6px 0; }
+      .border-b-dashed { border-bottom: 1px dashed #000; margin: 6px 0; }
+      .flex { display: flex; justify-content: space-between; }
+      .bold { font-weight: 900; }
+      .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; }
+      .items-table th, .items-table td { padding: 2px 0; vertical-align: top; font-size: 12px; }
+      .items-table th { border-bottom: 1px solid #000; }
+      .feed-space { height: 22mm; }
     </style>
-  </head><body>
-    <div class="center"><b style="font-size:15px">DISTRIBUIDORA LUNOVA</b></div>
-    <div class="center">contacto: 74347987</div>
-    <hr>
-    <div><b>pedido #${order.id}</b></div>
-    <div>vendedor: ${(order.preventista?.name || order.distributor?.name || 'Distribucion').substring(0, 38)}</div>
-    <div>fecha: ${dateStr}</div>
-    <div>cliente: ${order.client.name}</div>
-    ${order.client.phone ? `<div>tel: ${order.client.phone}</div>` : ''}
-    ${order.client.address ? `<div>dir: ${order.client.address}</div>` : ''}
-    <hr>
-    <table>
-      <thead><tr>
-        <th style="text-align:left">Descripcion</th>
-        <th style="text-align:center">CANT</th>
-        <th style="text-align:right">P.U</th>
-        <th style="text-align:right">TOTAL</th>
-      </tr></thead>
-      <tbody>${itemRows}${bonifSection}</tbody>
-    </table>
-    <hr>
-    ${discountSection}
-    <div class="total-row" style="display:flex;justify-content:space-between">
-      <span>TOTAL:</span><span>Bs. ${finalTotal.toFixed(2)}</span>
+  </head>
+  <body>
+    <div class="text-center">
+      <div style="font-size: 16px; font-weight: 900;">DISTRIBUIDORA LUNOVA</div>
+      <div style="font-size: 12px;">contacto: 74347987</div>
+      <div class="border-b"></div>
     </div>
-    ${order.notes ? `<hr><div>obs: ${order.notes}</div>` : ''}
-    <hr>
-    <div class="center">gracias por su compra</div>
-  </body></html>`
+    <div style="font-size: 12px;">
+      <div class="bold">pedido #${order.id}</div>
+      <div><span class="bold">vendedor:</span> ${order.preventista?.name || order.distributor?.name || 'Distribución'}</div>
+      <div><span class="bold">fecha entrega:</span> ${dateFormatted}</div>
+      <div><span class="bold">cliente:</span> ${order.client.name}</div>
+      ${order.client.phone ? `<div><span class="bold">contacto:</span> ${order.client.phone}</div>` : ''}
+      ${order.client.address ? `<div><span class="bold">direccion:</span> ${order.client.address}</div>` : ''}
+    </div>
+    <div class="border-b"></div>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th align="left">Descripcion</th>
+          <th align="center" style="width: 40px;">CANT</th>
+          <th align="right" style="width: 45px;">P.U</th>
+          <th align="right" style="width: 50px;">total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemRows}
+      </tbody>
+    </table>
+    ${bonifSection}
+    <div class="border-b"></div>
+    ${discountSection}
+    <div class="flex bold" style="font-size: 14px; margin-top: 3px;">
+      <span>total:</span>
+      <span>Bs. ${finalTotal.toFixed(2)}</span>
+    </div>
+    ${order.notes ? `
+      <div class="border-b-dashed"></div>
+      <div style="font-size: 11px;"><span class="bold">obs:</span> ${order.notes}</div>
+    ` : ''}
+    <div class="border-b"></div>
+    <div class="text-center" style="font-size: 12px; margin-top: 6px;">gracias por su compra</div>
+    <div class="feed-space"></div>
+  </body>
+</html>`
 }
 
 // ─── Imprimir una boleta en ventana oculta (sin diálogo) ─────────────────────

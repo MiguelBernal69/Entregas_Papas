@@ -85,6 +85,8 @@ export default function BatchThermalReceiptModal({
     const finalTotal = Math.max(0, subtotal - discountVal)
     const dateToUse = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
     const dateFormatted = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    const widthPx = widthMode === '80mm' ? '320px' : widthMode === '58mm' ? '240px' : '650px'
+
     return `
       <!DOCTYPE html>
       <html>
@@ -96,34 +98,28 @@ export default function BatchThermalReceiptModal({
               size: ${widthMode === '80mm' ? '80mm auto' : widthMode === '58mm' ? '58mm auto' : 'A4'};
               margin: 0;
             }
-            * { box-sizing: border-box; }
             body {
               font-family: 'Courier New', Courier, monospace;
-              font-size: 12px;
+              font-size: 13px;
               font-weight: bold;
-              line-height: 1.3;
+              line-height: 1.25;
               margin: 0;
-              padding: 2mm 3mm 12mm 2mm;
+              padding: 3mm 4mm 10mm 4mm;
               color: #000;
-              width: 100%;
-              max-width: 100%;
-              overflow: hidden;
+              width: ${widthPx};
+              box-sizing: border-box;
             }
             .text-center { text-align: center; }
             .text-right { text-align: right; }
-            .border-b { border-bottom: 1px solid #000; margin: 5px 0; }
-            .border-b-dashed { border-bottom: 1px dashed #000; margin: 5px 0; }
-            .flex { display: flex; justify-content: space-between; align-items: baseline; }
+            .border-b { border-bottom: 1px solid #000; margin: 6px 0; }
+            .border-b-dashed { border-bottom: 1px dashed #000; margin: 6px 0; }
+            .flex { display: flex; justify-content: space-between; }
             .bold { font-weight: 900; }
-            .items-table { width: 100%; border-collapse: collapse; margin: 3px 0; table-layout: fixed; }
-            .items-table th, .items-table td { padding: 1px 0; vertical-align: top; font-size: 11px; word-break: break-word; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; }
+            .items-table th, .items-table td { padding: 2px 0; vertical-align: top; font-size: 12px; }
             .items-table th { border-bottom: 1px solid #000; }
-            .col-desc { width: auto; }
-            .col-cant { width: 28px; text-align: center; }
-            .col-pu { width: 38px; text-align: right; }
-            .col-total { width: 42px; text-align: right; padding-right: 1px; }
-            /* Avance de papel para que la cuchilla corte limpio */
-            .feed-space { height: 20mm; }
+            /* Avance de papel para que la cuchilla de la impresora corte limpio sin tocar texto */
+            .feed-space { height: 22mm; }
           </style>
         </head>
         <body>
@@ -144,10 +140,10 @@ export default function BatchThermalReceiptModal({
           <table class="items-table">
             <thead>
               <tr>
-                <th class="col-desc" align="left">Descripcion</th>
-                <th class="col-cant">CANT</th>
-                <th class="col-pu">P.U</th>
-                <th class="col-total">total</th>
+                <th align="left">Descripcion</th>
+                <th align="center" style="width: 40px;">CANT</th>
+                <th align="right" style="width: 45px;">P.U</th>
+                <th align="right" style="width: 50px;">total</th>
               </tr>
             </thead>
             <tbody>
@@ -155,10 +151,10 @@ export default function BatchThermalReceiptModal({
                 const qty = it.deliveredQuantity ?? it.quantity
                 return `
                   <tr>
-                    <td class="col-desc">${it.product.name}</td>
-                    <td class="col-cant bold">x${qty}</td>
-                    <td class="col-pu">${it.unitPrice.toFixed(2)}</td>
-                    <td class="col-total bold">${(it.unitPrice * qty).toFixed(2)}</td>
+                    <td>${it.product.name}</td>
+                    <td align="center" class="bold">x${qty}</td>
+                    <td align="right">${it.unitPrice.toFixed(2)}</td>
+                    <td align="right" class="bold">${(it.unitPrice * qty).toFixed(2)}</td>
                   </tr>
                 `
               }).join('')}
