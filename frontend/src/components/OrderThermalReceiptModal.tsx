@@ -108,13 +108,20 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
     }
   }
 
-  const handlePrint = () => {
-    window.print()
+  const checkIsElectron = () => typeof window !== 'undefined' && !!window.electronAPI?.isElectron
+
+  const handlePrint = async () => {
+    if (checkIsElectron() && window.electronAPI) {
+      const res = await window.electronAPI.printEscpos([order])
+      if (!res.ok) alert(`Error de impresión:\n${res.error}`)
+    } else {
+      window.print()
+    }
   }
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      {/* Estilos para impresión térmica en negrita y tamaño de fuente más grande que antes */}
+      {/* Estilos para impresión térmica con fuente Calibri y ancho seguro contra cortes */}
       <style>{`
         @media print {
           @page {
@@ -134,18 +141,17 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
             position: absolute;
             left: 0;
             top: 0;
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 2mm 3mm 12mm 2mm !important;
+            width: ${printerMode === '80mm' ? '272px' : '195px'} !important;
+            max-width: ${printerMode === '80mm' ? '272px' : '195px'} !important;
+            padding: 2mm 5mm 10mm 2mm !important;
             margin: 0 !important;
             box-sizing: border-box !important;
-            overflow: hidden !important;
             background: white !important;
             color: black !important;
-            font-family: 'Courier New', Courier, monospace !important;
-            font-size: 12px !important;
-            font-weight: bold !important;
-            line-height: 1.3 !important;
+            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            line-height: 1.25 !important;
           }
           .no-print {
             display: none !important;
@@ -203,14 +209,15 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
           </div>
         </div>
 
-        {/* Vista Previa del Ticket Térmico (Como antes, en negrita y fuente más grande) */}
+        {/* Vista Previa del Ticket Térmico */}
         <div className="p-4 overflow-y-auto flex-1 bg-slate-200/60 flex justify-center">
           <div
             id="thermal-print-container"
             ref={printAreaRef}
-            className={`bg-white shadow-md p-5 text-black border border-slate-300 transition-all ${
-              printerMode === '80mm' ? 'w-[360px]' : 'w-[280px]'
-            } font-mono text-[13px] font-bold leading-snug select-text`}
+            style={{ fontFamily: "'Calibri', 'Segoe UI', Arial, sans-serif" }}
+            className={`bg-white shadow-md p-4 text-black border border-slate-300 transition-all ${
+              printerMode === '80mm' ? 'w-[280px]' : 'w-[200px]'
+            } text-[13px] font-semibold leading-snug select-text`}
           >
             {/* Cabecera */}
             <div className="text-center pb-2">
@@ -240,9 +247,9 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
             {/* Encabezado de Productos */}
             <div className="flex justify-between font-black text-[12px] pb-1 border-b border-black">
               <span className="flex-1 min-w-0 pr-1">Descripcion</span>
-              <span className="w-10 text-center">CANT</span>
-              <span className="w-12 text-right">P.U</span>
-              <span className="w-14 text-right">total</span>
+              <span className="w-8 text-center">CANT</span>
+              <span className="w-11 text-right">P.U</span>
+              <span className="w-12 text-right pr-0.5">total</span>
             </div>
 
             {/* Items Regulares */}
@@ -250,9 +257,9 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
               {regularItems.map(item => (
                 <div key={item.id} className="flex items-start gap-1 text-[12px] font-bold">
                   <span className="flex-1 min-w-0 pr-1 break-all leading-tight">{item.product.name}</span>
-                  <span className="w-10 shrink-0 text-center font-black">x{item.quantity}</span>
-                  <span className="w-12 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
-                  <span className="w-14 shrink-0 text-right font-black">
+                  <span className="w-8 shrink-0 text-center font-black">x{item.quantity}</span>
+                  <span className="w-11 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
+                  <span className="w-12 shrink-0 text-right font-black pr-0.5">
                     {(item.unitPrice * item.quantity).toFixed(2)}
                   </span>
                 </div>
@@ -267,11 +274,11 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
                 </div>
                 <div className="space-y-1 mt-0.5 font-bold">
                   {bonifItems.map(item => (
-                    <div key={`bon-${item.id}`} className="flex items-start gap-1 text-[12px] text-black">
+                    <div key={`bon-${item.id}`} className="flex items-start gap-1 text-[12px] text-black pr-0.5">
                       <span className="flex-1 min-w-0 pr-1 break-all leading-tight">[BONIF] {item.product.name}</span>
-                      <span className="w-10 shrink-0 text-center font-black">x{item.quantity}</span>
-                      <span className="w-12 shrink-0 text-right text-[10px]">0.00</span>
-                      <span className="w-14 shrink-0 text-right font-black text-[10px]">GRATIS</span>
+                      <span className="w-8 shrink-0 text-center font-black">x{item.quantity}</span>
+                      <span className="w-11 shrink-0 text-right text-[10px]">0.00</span>
+                      <span className="w-12 shrink-0 text-right font-black text-[10px]">GRATIS</span>
                     </div>
                   ))}
                 </div>
@@ -284,18 +291,18 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
             <div className="space-y-0.5 text-[12px] font-bold">
               {discountVal > 0 && (
                 <>
-                  <div className="flex justify-between text-black">
+                  <div className="flex justify-between text-black pr-0.5">
                     <span>subtotal:</span>
                     <span>Bs. {subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-black text-black">
+                  <div className="flex justify-between font-black text-black pr-0.5">
                     <span>descuento:</span>
                     <span>-Bs. {discountVal.toFixed(2)}</span>
                   </div>
                   <div className="border-b border-dashed border-black my-1" />
                 </>
               )}
-              <div className="flex justify-between font-black text-[14px] pt-0.5">
+              <div className="flex justify-between font-black text-[15px] pt-0.5 pr-0.5">
                 <span>total:</span>
                 <span>Bs. {finalTotal.toFixed(2)}</span>
               </div>
@@ -312,6 +319,8 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
             <div className="text-center pb-1 text-[12px] font-bold lowercase">
               gracias por su compra
             </div>
+            {/* Espacio para corte */}
+            <div style={{ height: '22mm' }} />
           </div>
         </div>
 
