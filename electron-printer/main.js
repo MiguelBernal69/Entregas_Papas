@@ -184,9 +184,11 @@ function printOrderSilently(order, deviceName) {
         silent: true,         // sin diálogo de impresión
         printBackground: true,
         color: false,
-        // Tamaño de página explícito para evitar que Electron use un alto por defecto muy grande
-        // 80mm ancho × 300mm alto máximo (suficiente para cualquier boleta, ~30cm)
-        pageSize: { width: 80000, height: 300000 }, // en micrómetros (1mm = 1000 µm)
+        // Tamaño de página explícito: ancho 80mm, alto 2000mm (2 metros de canvas).
+        // Las impresoras térmicas con auto-corte NO avanzan el papel en blanco —
+        // cortan justo después del contenido + feed-space, sin importar el alto máximo.
+        // El valor grande garantiza que jamás se corten boletas con muchos productos.
+        pageSize: { width: 80000, height: 2000000 }, // en micrómetros (1mm = 1000 µm)
       }
       if (deviceName) options.deviceName = deviceName
 
