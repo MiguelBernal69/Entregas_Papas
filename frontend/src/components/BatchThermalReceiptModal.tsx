@@ -202,15 +202,33 @@ export default function BatchThermalReceiptModal({
   }
 
   // Imprime una sola boleta a través de un iframe invisible (garantiza corte de papel al terminar cada trabajo)
+  // IMPORTANTE: llamamos print() dentro del evento onload del iframe para mantener la cadena de gesto
+  // de usuario de Chrome — setTimeout rompe esa cadena y Chrome bloquea el diálogo silenciosamente.
   const printSingleOrder = (order: Order): Promise<void> => {
     return new Promise((resolve) => {
       const iframe = document.createElement('iframe')
       iframe.style.position = 'fixed'
       iframe.style.right = '0'
       iframe.style.bottom = '0'
-      iframe.style.width = '0'
-      iframe.style.height = '0'
+      iframe.style.width = '1px'
+      iframe.style.height = '1px'
       iframe.style.border = '0'
+      iframe.style.opacity = '0'
+
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow?.focus()
+          iframe.contentWindow?.print()
+        } catch (_) {}
+        // Marcar como impreso
+        setPrintedOrderIds(prev => new Set([...prev, order.id]))
+        // Dar tiempo a que Chrome termine de enviar a la impresora antes de quitar el iframe
+        setTimeout(() => {
+          try { document.body.removeChild(iframe) } catch (_) {}
+          resolve()
+        }, 1500)
+      }
+
       document.body.appendChild(iframe)
 
       const doc = iframe.contentWindow?.document
@@ -223,23 +241,6 @@ export default function BatchThermalReceiptModal({
       doc.open()
       doc.write(getSingleOrderHtml(order, printerMode))
       doc.close()
-
-      // Marcar como impreso
-      setPrintedOrderIds(prev => new Set([...prev, order.id]))
-
-      setTimeout(() => {
-        try {
-          iframe.contentWindow?.focus()
-          iframe.contentWindow?.print()
-        } catch (_) {}
-
-        setTimeout(() => {
-          try {
-            document.body.removeChild(iframe)
-          } catch (_) {}
-          resolve()
-        }, 1000)
-      }, 300)
     })
   }
 
@@ -451,7 +452,7 @@ export default function BatchThermalReceiptModal({
             margin: 0 auto !important;
             background: white !important;
             color: black !important;
-            font-family: 'Courier New', Courier, monospace !important;
+            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
             font-size: 13px !important;
             font-weight: bold !important;
             line-height: 1.25 !important;
