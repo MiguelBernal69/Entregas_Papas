@@ -168,11 +168,16 @@ function printOrderSilently(order, deviceName) {
   return new Promise((resolve) => {
     const win = new BrowserWindow({
       show: false,
-      webPreferences: { nodeIntegration: false },
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
     })
 
     const html = buildReceiptHtml(order)
-    win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    // Usamos base64 para evitar problemas de CSP con encodeURIComponent en Electron moderno
+    const base64Html = Buffer.from(html, 'utf-8').toString('base64')
+    win.loadURL(`data:text/html;base64,${base64Html}`)
 
     win.webContents.once('did-finish-load', () => {
       const options = {
@@ -183,9 +188,16 @@ function printOrderSilently(order, deviceName) {
       if (deviceName) options.deviceName = deviceName
 
       win.webContents.print(options, (success, errorType) => {
+        console.log(`[print] pedido #${order.id} → ok=${success} error=${errorType}`)
         win.close()
         resolve({ ok: success, error: success ? null : errorType })
       })
+    })
+
+    win.webContents.once('did-fail-load', (event, code, desc) => {
+      console.error(`[print] did-fail-load pedido #${order.id}: ${code} ${desc}`)
+      win.close()
+      resolve({ ok: false, error: `did-fail-load: ${desc}` })
     })
   })
 }
