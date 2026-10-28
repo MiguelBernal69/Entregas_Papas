@@ -114,7 +114,7 @@ function buildReceiptHtml(order) {
       .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
       .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; }
       .items-table th { border-bottom: 1px solid #000; }
-      .feed-space { height: 22mm; }
+      .feed-space { height: 40mm; }
     </style>
   </head>
   <body>

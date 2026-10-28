@@ -320,7 +320,7 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
               gracias por su compra
             </div>
             {/* Espacio para corte */}
-            <div style={{ height: '22mm' }} />
+            <div style={{ height: '40mm' }} />
           </div>
         </div>
 
