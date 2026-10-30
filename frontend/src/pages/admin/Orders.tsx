@@ -76,11 +76,29 @@ export default function AdminOrders() {
     setSelected(aceptados)
   }
 
+  const selectAllFiltered = () => {
+    if (filtered.length > 0 && selected.length === filtered.length) {
+      setSelected([])
+    } else {
+      setSelected(filtered.map(o => o.id))
+    }
+  }
+
   const handleAssign = async () => {
     if (!distributorId || selected.length === 0) return
+    const acceptedSelected = orders.filter(o => selected.includes(o.id) && o.status === 'aceptado').map(o => o.id)
+    if (acceptedSelected.length === 0) {
+      alert('Solo se pueden asignar a distribuidores pedidos en estado "aceptado".')
+      return
+    }
+    if (acceptedSelected.length < selected.length) {
+      if (!confirm(`Se asignarán únicamente los ${acceptedSelected.length} pedidos en estado "aceptado" seleccionados. ¿Deseas continuar?`)) {
+        return
+      }
+    }
     setAssigning(true)
     try {
-      await assignOrders({ orderIds: selected, distributorId: Number(distributorId) })
+      await assignOrders({ orderIds: acceptedSelected, distributorId: Number(distributorId) })
       setSelected([])
       setDistributorId('')
       fetchData()
@@ -96,7 +114,7 @@ export default function AdminOrders() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Pedidos</h1>
-          <p className="text-gray-500 text-sm mt-1">Gestiona y asigna pedidos a distribuidores</p>
+          <p className="text-gray-500 text-sm mt-1">Gestiona, imprime boletas y asigna pedidos a distribuidores</p>
         </div>
 
         {/* Resumen Global de Bodega (Pedidos Aceptados) */}
@@ -126,83 +144,122 @@ export default function AdminOrders() {
           </div>
         )}
 
-
         {/* Barra de herramientas */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
-          {/* Filtro de fecha */}
-          <select
-            value={filterDate}
-            onChange={e => setFilterDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">Todas las fechas</option>
-            <option value="today">Hoy</option>
-            <option value="yesterday">Ayer</option>
-            <option value="this_week">Esta semana</option>
-            <option value="this_month">Este mes</option>
-            <option value="last_month">Mes anterior</option>
-          </select>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Filtro de fecha */}
+            <select
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Todas las fechas</option>
+              <option value="today">Hoy</option>
+              <option value="yesterday">Ayer</option>
+              <option value="this_week">Esta semana</option>
+              <option value="this_month">Este mes</option>
+              <option value="last_month">Mes anterior</option>
+            </select>
 
-          <select
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todos los estados</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="aceptado">Aceptado</option>
-            <option value="asignado">Asignado</option>
-          </select>
+            <select
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aceptado">Aceptado</option>
+              <option value="asignado">Asignado</option>
+            </select>
 
-          <select
-            value={filterRegion}
-            onChange={e => setFilterRegion(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todas las zonas</option>
-            {regions.map(r => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
+            <select
+              value={filterRegion}
+              onChange={e => setFilterRegion(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todas las zonas</option>
+              {regions.map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
 
-          <button
-            onClick={selectAllAceptados}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Seleccionar aceptados
-          </button>
+            <button
+              onClick={selectAllAceptados}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Seleccionar aceptados
+            </button>
 
-          {selected.length > 0 && (
-            <>
-              <span className="text-sm text-gray-600">{selected.length} seleccionados</span>
-              <select
-                value={distributorId}
-                onChange={e => setDistributorId(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Seleccionar distribuidor</option>
-                {distributors.map(d => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
-              <button
-                onClick={handleAssign}
-                disabled={!distributorId || assigning}
-                className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-              >
-                {assigning ? 'Asignando...' : 'Asignar'}
-              </button>
+            <button
+              onClick={selectAllFiltered}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              {filtered.length > 0 && selected.length === filtered.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+            </button>
+          </div>
 
-              <button
-                onClick={() => setBatchPrintOrders(orders.filter(o => selected.includes(o.id)))}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
-                title="Imprime todas las boletas térmicas de los pedidos seleccionados"
-              >
-                <span>🖨️</span>
-                <span>Imprimir Boletas ({selected.length})</span>
-              </button>
-            </>
-          )}
+          {/* Acciones principales: Imprimir masivo y asignar */}
+          <div className="flex flex-wrap gap-3 items-center">
+            {selected.length > 0 && (
+              <>
+                <span className="text-sm text-gray-600 font-medium">{selected.length} seleccionados</span>
+                <select
+                  value={distributorId}
+                  onChange={e => setDistributorId(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Seleccionar distribuidor</option>
+                  {distributors.map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleAssign}
+                  disabled={!distributorId || assigning}
+                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                >
+                  {assigning ? 'Asignando...' : 'Asignar'}
+                </button>
+
+                {(() => {
+                  const printableSelected = orders.filter(
+                    o => selected.includes(o.id) && (o.status === 'aceptado' || o.status === 'asignado')
+                  )
+                  return (
+                    <button
+                      onClick={() => {
+                        if (printableSelected.length === 0) {
+                          alert('Ninguno de los pedidos seleccionados está en estado Aceptado o Asignado.')
+                          return
+                        }
+                        setBatchPrintOrders(printableSelected)
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                      title="Imprime todas las boletas térmicas de los pedidos seleccionados (solo Aceptados y Asignados)"
+                    >
+                      <span>🖨️</span>
+                      <span>Imprimir Seleccionados ({printableSelected.length})</span>
+                    </button>
+                  )
+                })()}
+              </>
+            )}
+
+            {/* Botón Imprimir Todo en Uno para Administrador (solo Aceptados y Asignados) */}
+            {(() => {
+              const printable = filtered.filter(o => o.status === 'aceptado' || o.status === 'asignado')
+              return printable.length > 0 ? (
+                <button
+                  onClick={() => setBatchPrintOrders(printable)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                  title="Imprime boletas de pedidos Aceptados y Asignados con los filtros actuales"
+                >
+                  <span>🖨️</span>
+                  <span>Imprimir Todo en Uno ({printable.length} boletas)</span>
+                </button>
+              ) : null
+            })()}
+          </div>
         </div>
 
         {/* Resumen de carga al camión */}
@@ -240,7 +297,15 @@ export default function AdminOrders() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-4 py-3"></th>
+                  <th className="px-4 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && selected.length === filtered.length}
+                      onChange={selectAllFiltered}
+                      className="rounded cursor-pointer"
+                      title="Seleccionar / deseleccionar todos"
+                    />
+                  </th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">#</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Cliente</th>
                   <th className="text-left px-4 py-3 text-gray-600 font-medium">Preventista</th>
@@ -254,14 +319,12 @@ export default function AdminOrders() {
                 {filtered.map(order => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4">
-                      {order.status === 'aceptado' && (
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(order.id)}
-                          onChange={() => toggleSelect(order.id)}
-                          className="rounded"
-                        />
-                      )}
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(order.id)}
+                        onChange={() => toggleSelect(order.id)}
+                        className="rounded cursor-pointer"
+                      />
                     </td>
                     <td className="px-4 py-4 font-medium text-gray-800">#{order.id}</td>
                     <td className="px-4 py-4 text-gray-800">{order.client.name}</td>

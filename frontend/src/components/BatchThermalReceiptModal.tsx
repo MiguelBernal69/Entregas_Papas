@@ -20,10 +20,16 @@ interface BatchThermalReceiptModalProps {
 }
 
 export default function BatchThermalReceiptModal({
-  orders,
+  orders: initialOrders,
   title = 'Imprimir Boletas de Carga',
   onClose,
 }: BatchThermalReceiptModalProps) {
+  const [orders, setOrders] = useState<Order[]>(initialOrders)
+
+  useEffect(() => {
+    setOrders(initialOrders)
+  }, [initialOrders])
+
   const [printerMode, setPrinterMode] = useState<'80mm' | '58mm' | 'a4'>('80mm')
   const [viewMode, setViewMode] = useState<'individual' | 'all'>('individual')
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -32,6 +38,21 @@ export default function BatchThermalReceiptModal({
   const [copied, setCopied] = useState(false)
   const [isAutoPrinting, setIsAutoPrinting] = useState(false)
   const printAreaRef = useRef<HTMLDivElement>(null)
+
+  const handleRemoveOrder = (orderId: number) => {
+    const updated = orders.filter(o => o.id !== orderId)
+    if (updated.length === 0) {
+      onClose()
+      return
+    }
+    setOrders(updated)
+    setPrintedOrderIds(prev => {
+      const next = new Set(prev)
+      next.delete(orderId)
+      return next
+    })
+    setCurrentIndex(prev => Math.max(0, Math.min(prev, updated.length - 1)))
+  }
 
   if (!orders || orders.length === 0) return null
 
@@ -564,10 +585,9 @@ export default function BatchThermalReceiptModal({
               const isCurrent = idx === currentIndex
               const isPrinted = printedOrderIds.has(o.id)
               return (
-                <button
+                <div
                   key={o.id}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1 shrink-0 ${
+                  className={`px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1 shrink-0 ${
                     isCurrent
                       ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300'
                       : isPrinted
@@ -575,9 +595,30 @@ export default function BatchThermalReceiptModal({
                       : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
                   }`}
                 >
-                  <span>{isPrinted ? '✅' : `#${idx + 1}`}</span>
-                  <span>#{o.id}</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentIndex(idx)}
+                    className="flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{isPrinted ? '✅' : `#${idx + 1}`}</span>
+                    <span>#{o.id}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRemoveOrder(o.id)
+                    }}
+                    className={`ml-0.5 rounded px-1 transition-colors text-xs font-bold ${
+                      isCurrent
+                        ? 'text-blue-200 hover:text-white hover:bg-blue-700'
+                        : 'text-slate-400 hover:text-red-600 hover:bg-red-50'
+                    }`}
+                    title="Quitar este pedido de la tirada"
+                  >
+                    ✕
+                  </button>
+                </div>
               )
             })}
           </div>
@@ -607,13 +648,25 @@ export default function BatchThermalReceiptModal({
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setCurrentIndex(prev => Math.min(orders.length - 1, prev + 1))}
-                  disabled={currentIndex === orders.length - 1}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors"
-                >
-                  Siguiente ▶
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveOrder(currentOrder.id)}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors flex items-center gap-1"
+                    title="Quitar esta boleta de la lista a imprimir"
+                  >
+                    <span>🗑️</span>
+                    <span>Quitar</span>
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentIndex(prev => Math.min(orders.length - 1, prev + 1))}
+                    disabled={currentIndex === orders.length - 1}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 transition-colors"
+                  >
+                    Siguiente ▶
+                  </button>
+                </div>
               </div>
 
               {/* Botón Principal de Impresión con Corte */}
@@ -839,7 +892,19 @@ export default function BatchThermalReceiptModal({
                 const finalTotal = Math.max(0, subtotal - discountVal)
 
                 return (
-                  <div key={order.id} className="batch-receipt-item pb-4 mb-6">
+                  <div key={order.id} className="batch-receipt-item pb-4 mb-6 relative">
+                    <div className="flex justify-between items-center bg-slate-100 px-3 py-1.5 mb-2 rounded border border-slate-200 no-print">
+                      <span className="text-[11px] font-bold text-slate-700">Pedido #{order.id} — {order.client.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOrder(order.id)}
+                        className="text-[11px] font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Quitar este pedido de la tirada"
+                      >
+                        <span>🗑️</span>
+                        <span>Quitar boleta</span>
+                      </button>
+                    </div>
                     <div className="text-center pb-2">
                       <h4 className="font-black text-[15px] tracking-wide">DISTRIBUIDORA LUNOVA</h4>
                       <p className="text-[12px] font-bold text-black mt-0.5">contacto: 74347987</p>

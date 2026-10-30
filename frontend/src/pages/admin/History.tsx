@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
 import OrderThermalReceiptModal from '../../components/OrderThermalReceiptModal'
+import BatchThermalReceiptModal from '../../components/BatchThermalReceiptModal'
 import { getOrders } from '../../api/orders'
 import { getRegions } from '../../api/regions'
 import type { Order } from '../../types'
@@ -11,6 +12,7 @@ export default function AdminHistory() {
   const [loading, setLoading] = useState(true)
   const [detail, setDetail] = useState<Order | null>(null)
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null)
+  const [batchPrintOrders, setBatchPrintOrders] = useState<Order[] | null>(null)
 
   // Filtros
   const [filterRegion, setFilterRegion] = useState('')
@@ -84,34 +86,46 @@ export default function AdminHistory() {
           </div>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
-          <input
-            type="text"
-            placeholder="Buscar cliente, preventista..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
-          />
+        {/* Filtros y Acción Masiva */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3 items-center">
+            <input
+              type="text"
+              placeholder="Buscar cliente, preventista..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+            />
 
-          <select
-            value={filterRegion}
-            onChange={e => setFilterRegion(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todas las zonas</option>
-            {regions.map(r => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
-
-
-          {(search || filterRegion || dateFrom || dateTo) && (
-            <button
-              onClick={() => { setSearch(''); setFilterRegion(''); setDateFrom(''); setDateTo('') }}
-              className="text-sm text-gray-400 hover:text-gray-600"
+            <select
+              value={filterRegion}
+              onChange={e => setFilterRegion(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <span>✕</span> Limpiar
+              <option value="">Todas las zonas</option>
+              {regions.map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+
+            {(search || filterRegion || dateFrom || dateTo) && (
+              <button
+                onClick={() => { setSearch(''); setFilterRegion(''); setDateFrom(''); setDateTo('') }}
+                className="text-sm text-gray-400 hover:text-gray-600"
+              >
+                <span>✕</span> Limpiar
+              </button>
+            )}
+          </div>
+
+          {filtered.length > 0 && (
+            <button
+              onClick={() => setBatchPrintOrders(filtered)}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:scale-105 ml-auto"
+              title="Imprime todas las boletas de las entregas mostradas de forma continua"
+            >
+              <span>🖨️</span>
+              <span>Imprimir Todo en Uno ({filtered.length} boletas)</span>
             </button>
           )}
         </div>
@@ -284,11 +298,20 @@ export default function AdminHistory() {
         </div>
       )}
 
-      {/* Modal Térmico Nítido */}
+      {/* Modal Térmico Individual */}
       <OrderThermalReceiptModal
         order={receiptOrder}
         onClose={() => setReceiptOrder(null)}
       />
+
+      {/* Modal Térmico en Lote (Masivo) */}
+      {batchPrintOrders && (
+        <BatchThermalReceiptModal
+          orders={batchPrintOrders}
+          title={`Imprimir Boletas de Historial (${batchPrintOrders.length} pedidos)`}
+          onClose={() => setBatchPrintOrders(null)}
+        />
+      )}
     </Layout>
   )
 }
