@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { login } from '../../api/auth'
+import { APP_VERSION } from '../../config/version'
 
 export default function LoginPage() {
   const { login: setAuth, user } = useAuth()
@@ -92,6 +93,10 @@ export default function LoginPage() {
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+
+        <div className="text-center text-xs text-gray-400 mt-4 font-medium">
+          Distribuidora Lunova Admin {APP_VERSION}
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../config/version.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -134,6 +135,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'Ingresar',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Distribuidora Lunova ${AppVersion.version}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade400,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

@@ -7,6 +7,7 @@ import '../../services/region_service.dart';
 import 'clients_screen.dart';
 import 'preventista_orders_screen.dart';
 import 'preventista_report_screen.dart';
+import '../../config/version.dart';
 
 class PreventistaHomeScreen extends StatefulWidget {
   const PreventistaHomeScreen({super.key});
@@ -120,9 +121,30 @@ class _PreventistaDashboardState extends State<_PreventistaDashboard> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Panel Preventista',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Row(
+              children: [
+                const Text(
+                  'Panel Preventista',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: const Text(
+                    AppVersion.version,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Text(
               'Hola, ${user?.name ?? ""}',

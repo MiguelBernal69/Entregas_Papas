@@ -180,104 +180,307 @@ class _ClientDetailsSheetWidgetState extends State<_ClientDetailsSheetWidget> {
           _buildHeader(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildImageSection(),
-                  const SizedBox(height: 24),
-                  _buildFormFields(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  if (_isEditing)
+                    _buildFormFields()
+                  else
+                    _buildClientInfoCard(),
+                  const SizedBox(height: 20),
                   if (_isEditing || _selectedImage != null)
                     _buildSaveButton()
-                  else ...[
-                    if (widget.onCreateOrder != null)
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            widget.onCreateOrder!();
-                          },
-                          icon: const Icon(Icons.shopping_cart_checkout),
-                          label: Text(
-                            widget.visitedWithOrder
-                                ? 'Hacer otro pedido'
-                                : 'Hacer Preventa / Pedido',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 1,
-                          ),
-                        ),
-                      ),
-                    if (!widget.isVisited && widget.onMarkNoOrder != null) ...[
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            widget.onMarkNoOrder!();
-                          },
-                          icon: const Icon(
-                            Icons.storefront_outlined,
-                            color: Color(0xFFD97706),
-                            size: 18,
-                          ),
-                          label: const Text(
-                            'No compró / Marcar como visitado',
-                            style: TextStyle(
-                              color: Color(0xFFD97706),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFF59E0B)),
-                            backgroundColor: const Color(0xFFFFFBEB),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ] else if (widget.isVisited &&
-                        !widget.visitedWithOrder &&
-                        widget.onUnmarkNoOrder != null) ...[
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            widget.onUnmarkNoOrder!();
-                          },
-                          icon: const Icon(Icons.undo, color: Colors.grey, size: 18),
-                          label: const Text(
-                            'Desmarcar visita (Volver a pendiente)',
-                            style: TextStyle(color: Colors.grey, fontSize: 13),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                  else
+                    _buildActionButtons(),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    // Si ya visitado CON pedido hoy
+    if (widget.visitedWithOrder) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onCreateOrder?.call();
+          },
+          icon: const Icon(Icons.add_shopping_cart, size: 20),
+          label: const Text(
+            'Hacer otro pedido',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 1,
+          ),
+        ),
+      );
+    }
+
+    // Si ya fue marcado como "No compró" (visitado sin pedido)
+    if (widget.isVisited && !widget.visitedWithOrder) {
+      return Row(
+        children: [
+          if (widget.onUnmarkNoOrder != null)
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onUnmarkNoOrder?.call();
+                },
+                icon: const Icon(Icons.undo_rounded, size: 18, color: Color(0xFF64748B)),
+                label: const Text(
+                  'Desmarcar',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          if (widget.onUnmarkNoOrder != null && widget.onCreateOrder != null)
+            const SizedBox(width: 10),
+          if (widget.onCreateOrder != null)
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onCreateOrder?.call();
+                },
+                icon: const Icon(Icons.shopping_cart_checkout, size: 19),
+                label: const Text(
+                  'Hacer Preventa',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 1,
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    // Cliente pendiente (aún no visitado) -> BOTONES LADO A LADO
+    return Row(
+      children: [
+        if (widget.onMarkNoOrder != null)
+          Expanded(
+            flex: 5,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onMarkNoOrder?.call();
+              },
+              icon: const Icon(
+                Icons.storefront_outlined,
+                color: Color(0xFFD97706),
+                size: 18,
+              ),
+              label: const Text(
+                'No compró',
+                style: TextStyle(
+                  color: Color(0xFFD97706),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFF59E0B), width: 1.5),
+                backgroundColor: const Color(0xFFFFFBEB),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        if (widget.onMarkNoOrder != null && widget.onCreateOrder != null)
+          const SizedBox(width: 10),
+        if (widget.onCreateOrder != null)
+          Expanded(
+            flex: 6,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onCreateOrder?.call();
+              },
+              icon: const Icon(Icons.shopping_cart_checkout, size: 19),
+              label: const Text(
+                'Hacer Preventa',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 2,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildClientInfoCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Nombre del Negocio
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.storefront_rounded, color: Color(0xFF2563EB), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Nombre del Negocio',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _nameCtrl.text.isNotEmpty ? _nameCtrl.text : 'Sin nombre',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+          ),
+          // Encargado
+          _buildInfoRow(
+            icon: Icons.person_outline_rounded,
+            iconColor: const Color(0xFF0284C7),
+            iconBg: const Color(0xFFF0F9FF),
+            label: 'Encargado',
+            value: _ownerCtrl.text.isNotEmpty ? _ownerCtrl.text : 'No especificado',
+          ),
+          const SizedBox(height: 12),
+          // Teléfono
+          _buildInfoRow(
+            icon: Icons.phone_outlined,
+            iconColor: const Color(0xFF16A34A),
+            iconBg: const Color(0xFFF0FDF4),
+            label: 'Teléfono',
+            value: _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : 'Sin teléfono',
+            isPhone: _phoneCtrl.text.isNotEmpty,
+          ),
+          const SizedBox(height: 12),
+          // Dirección
+          _buildInfoRow(
+            icon: Icons.location_on_outlined,
+            iconColor: const Color(0xFFEA580C),
+            iconBg: const Color(0xFFFFF7ED),
+            label: 'Dirección',
+            value: _addressCtrl.text.isNotEmpty ? _addressCtrl.text : 'Sin dirección',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String label,
+    required String value,
+    bool isPhone = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: iconColor, size: 16),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isPhone ? const Color(0xFF16A34A) : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -363,12 +566,12 @@ class _ClientDetailsSheetWidgetState extends State<_ClientDetailsSheetWidget> {
       child: Stack(
         children: [
           Container(
-            height: 220,
+            height: 150,
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { APP_VERSION } from '../config/version'
 
 interface NavItem {
   to: string
@@ -58,7 +59,12 @@ export default function Layout({ children }: Props) {
       {/* Sidebar */}
       <aside className="w-56 bg-white shadow-md flex flex-col">
         <div className="p-5 border-b">
-          <div className="text-xl font-bold text-gray-800">🥔 Pedidos</div>
+          <div className="flex items-center justify-between">
+            <div className="text-xl font-bold text-gray-800">🥔 Pedidos</div>
+            <span className="text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded-md">
+              {APP_VERSION}
+            </span>
+          </div>
           <div className="text-xs text-gray-500 mt-1">{user?.name}</div>
           <span className="inline-block mt-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full capitalize">
             {user?.role}
@@ -92,6 +98,9 @@ export default function Layout({ children }: Props) {
             <span>🚪</span>
             <span>Cerrar sesión</span>
           </button>
+          <div className="text-center text-[10px] text-gray-400 mt-2 font-medium">
+            Lunova Admin {APP_VERSION}
+          </div>
         </div>
       </aside>
 

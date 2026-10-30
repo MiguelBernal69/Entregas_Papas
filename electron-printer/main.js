@@ -3,6 +3,8 @@ const path = require('path')
 
 const SERVER_URL = 'http://178.105.45.6'
 
+// const SERVER_URL = 'http://localhost:5173'
+
 let mainWindow
 
 function createWindow() {
@@ -11,7 +13,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'Distribuidora Lunova — Sistema de Entregas',
+    title: 'Distribuidora Lunova v1.2.0 — Sistema de Entregas',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -94,16 +96,17 @@ function buildReceiptHtml(order) {
         margin: 0;
       }
       * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; width: 100%; }
       body {
         font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
         font-size: 13px;
-        font-weight: 600;
+        font-weight: 700;
         line-height: 1.25;
-        margin: 0;
-        padding: 2mm 5mm 10mm 2mm;
+        margin: 0 auto;
+        padding: 1mm 5mm 0 5mm;
         color: #000;
-        width: 272px;
-        max-width: 272px;
+        width: 80mm;
+        max-width: 80mm;
         box-sizing: border-box;
       }
       .text-center { text-align: center; }
@@ -112,9 +115,9 @@ function buildReceiptHtml(order) {
       .flex { display: flex; justify-content: space-between; align-items: baseline; }
       .bold { font-weight: 900; }
       .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
-      .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; }
-      .items-table th { border-bottom: 1px solid #000; }
-      .feed-space { height: 40mm; }
+      .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; font-weight: 700; }
+      .items-table th { border-bottom: 1px solid #000; font-weight: 900; }
+      .feed-space { height: 8mm; min-height: 8mm; line-height: 8mm; font-size: 1px; }
     </style>
   </head>
   <body>
@@ -158,7 +161,8 @@ function buildReceiptHtml(order) {
     ` : ''}
     <div class="border-b"></div>
     <div class="text-center" style="font-size: 12px; margin-top: 6px;">gracias por su compra</div>
-    <div class="feed-space"></div>
+    <div style="text-align: center; font-size: 9px; margin-top: 4px; letter-spacing: 3px; color: #333;">- - - - - - - - - - - - - - -</div>
+    <div class="feed-space">&nbsp;</div>
   </body>
 </html>`
 }

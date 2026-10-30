@@ -50,9 +50,9 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
     lines.push(divider)
 
     if (width === '58mm') {
-      lines.push('Descripcion         CANT  P.U  total')
+      lines.push('Descripcion         CANT  P.U  total.')
     } else {
-      lines.push('Descripcion                    CANT   P.U    total')
+      lines.push('Descripcion                    CANT   P.U    total.')
     }
     lines.push(divider)
 
@@ -72,19 +72,19 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
       lines.push(divider)
       lines.push('*** BONIFICACIONES (GRATIS) ***')
       for (const it of bonifItems) {
-        lines.push(`[BONIF] ${it.product.name} x${it.quantity} (GRATIS)`)
+        lines.push(`[BONIF] ${it.product.name} x${it.quantity} (GRATIS) `)
       }
     }
 
     lines.push(divider)
     // Solo si el pedido tiene descuento
     if (discountVal > 0) {
-      lines.push(row('subtotal:', `Bs. ${subtotal.toFixed(2)}`))
-      lines.push(row('descuento:', `-Bs. ${discountVal.toFixed(2)}`))
+      lines.push(row('subtotal:', `Bs. ${subtotal.toFixed(2)}.`))
+      lines.push(row('descuento:', `-Bs. ${discountVal.toFixed(2)}.`))
       lines.push(divider)
     }
 
-    lines.push(row('total:', `Bs. ${finalTotal.toFixed(2)}`))
+    lines.push(row('total:', `Bs. ${finalTotal.toFixed(2)}.`))
     lines.push(divider)
 
     if (order.notes) {
@@ -110,14 +110,125 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
 
   const checkIsElectron = () => typeof window !== 'undefined' && !!window.electronAPI?.isElectron
 
-  const handlePrint = async () => {
-    if (checkIsElectron() && window.electronAPI) {
-      const res = await window.electronAPI.printEscpos([order])
-      if (!res.ok) alert(`Error de impresión:\n${res.error}`)
-    } else {
-      window.print()
-    }
+  // Genera HTML completo y auto-contenido para imprimir en iframe
+  const generatePrintHtml = (): string => {
+    const dateToUse = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
+    const dateFormatted = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+
+    const itemRows = regularItems.map(it => `
+      <tr>
+        <td style="word-break:break-word">${it.product.name}</td>
+        <td align="center" style="font-weight:900;width:34px">x${it.quantity}</td>
+        <td align="right" style="width:46px">${it.unitPrice.toFixed(2)}</td>
+        <td align="right" style="font-weight:900;width:52px;padding-right:2px">${(it.unitPrice * it.quantity).toFixed(2)}</td>
+      </tr>`).join('')
+
+    const bonifSection = bonifItems.length > 0 ? `
+      <div style="border-bottom:1px dashed #000;margin:6px 0"></div>
+      <div style="font-size:11px;font-weight:900">🎁 BONIFICACIONES (GRATIS)</div>
+      ${bonifItems.map(it => `
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding-right:2px">
+          <span>[BONIF] ${it.product.name}</span>
+          <span style="font-weight:900">x${it.quantity} GRATIS</span>
+        </div>`).join('')}` : ''
+
+    const discountSection = discountVal > 0 ? `
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding-right:2px">
+        <span>subtotal:</span><span>Bs. ${subtotal.toFixed(2)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-weight:900;font-size:12px;padding-right:2px">
+        <span>descuento:</span><span>-Bs. ${discountVal.toFixed(2)}</span>
+      </div>
+      <div style="border-bottom:1px dashed #000;margin:6px 0"></div>` : ''
+
+    return `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <style>
+        @page { size: ${printerMode === '80mm' ? '80mm' : '58mm'} auto; margin: 0; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; width: 100%; }
+        body { font-family: 'Calibri','Segoe UI',Arial,sans-serif; font-size:13px; font-weight:700;
+               line-height:1.25; margin: 0 auto; padding: 1mm 5mm 0 5mm;
+               color:#000; width: ${printerMode === '80mm' ? '80mm' : '58mm'}; max-width: ${printerMode === '80mm' ? '80mm' : '58mm'}; }
+        .text-center { text-align:center; }
+        .border-b { border-bottom:1px solid #000; margin:5px 0; }
+        .bold { font-weight:900; }
+        .flex { display:flex; justify-content:space-between; align-items:baseline; }
+        .items-table { width:100%; border-collapse:collapse; margin:4px 0; table-layout:fixed; }
+        .items-table th,.items-table td { padding:1.5px 0; vertical-align:top; font-size:12px; font-weight:700; }
+        .items-table th { border-bottom:1px solid #000; font-weight:900; }
+        .feed-space { height: 8mm; min-height: 8mm; line-height: 8mm; font-size: 1px; }
+      </style></head><body>
+      <div class="text-center">
+        <div style="font-size:16px;font-weight:900">DISTRIBUIDORA LUNOVA</div>
+        <div style="font-size:12px">contacto: 74347987</div>
+        <div class="border-b"></div>
+      </div>
+      <div style="font-size:12px">
+        <div class="bold">pedido #${order.id}</div>
+        <div><span class="bold">vendedor:</span> ${order.preventista?.name || order.distributor?.name || 'Distribución'}</div>
+        <div><span class="bold">fecha entrega:</span> ${dateFormatted}</div>
+        <div><span class="bold">cliente:</span> ${order.client.name}</div>
+        ${order.client.phone ? `<div><span class="bold">contacto:</span> ${order.client.phone}</div>` : ''}
+        ${order.client.address ? `<div><span class="bold">direccion:</span> ${order.client.address}</div>` : ''}
+      </div>
+      <div class="border-b"></div>
+      <table class="items-table">
+        <thead><tr>
+          <th align="left" style="width:auto">Descripcion</th>
+          <th align="center" style="width:32px">CANT</th>
+          <th align="right" style="width:44px">P.U</th>
+          <th align="right" style="width:48px;padding-right:2px">total </th>
+        </tr></thead>
+        <tbody>${itemRows} .</tbody>
+      </table>
+      ${bonifSection}
+      <div class="border-b"></div>
+      ${discountSection}
+      <div class="flex bold" style="font-size:15px;margin-top:3px;padding-right:2px">
+        <span>total:</span><span>Bs. ${finalTotal.toFixed(2)}</span>
+      </div>
+      ${order.notes ? `<div class="border-b" style="border-style:dashed;margin-top:4px"></div>
+        <div style="font-size:11px"><span class="bold">obs:</span> ${order.notes}</div>` : ''}
+      <div class="border-b"></div>
+      <div class="text-center" style="font-size:12px;margin-top:6px">gracias por su compra</div>
+      <div style="text-align:center;font-size:9px;margin-top:4px;letter-spacing:3px;color:#333">- - - - - - - - - - - - - - -</div>
+      <div class="feed-space">&nbsp;</div>
+    </body></html>`
   }
+
+  const handlePrint = () => {
+    if (checkIsElectron() && window.electronAPI) {
+      window.electronAPI.printEscpos([order]).then(res => {
+        if (!res.ok) alert(`Error de impresión:\n${res.error}`)
+      })
+      return
+    }
+    // Chrome: usar iframe con srcdoc para evitar impresión en blanco.
+    // window.print() con @media print en JSX puede fallar si Chrome no procesa
+    // los estilos inyectados dentro del componente (fuera de <head>).
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.right = '0'
+    iframe.style.bottom = '0'
+    iframe.style.width = '1px'
+    iframe.style.height = '1px'
+    iframe.style.border = '0'
+    iframe.style.opacity = '0'
+
+    iframe.onload = () => {
+      try {
+        iframe.contentWindow?.focus()
+        iframe.contentWindow?.print()
+      } catch (_) {}
+      setTimeout(() => {
+        try { document.body.removeChild(iframe) } catch (_) {}
+      }, 2000)
+    }
+
+    iframe.srcdoc = generatePrintHtml()
+    document.body.appendChild(iframe)
+  }
+
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -141,10 +252,10 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
             position: absolute;
             left: 0;
             top: 0;
-            width: ${printerMode === '80mm' ? '272px' : '195px'} !important;
-            max-width: ${printerMode === '80mm' ? '272px' : '195px'} !important;
-            padding: 2mm 5mm 10mm 2mm !important;
-            margin: 0 !important;
+            width: ${printerMode === '80mm' ? '80mm' : '58mm'} !important;
+            max-width: ${printerMode === '80mm' ? '80mm' : '58mm'} !important;
+            padding: 7mm 5mm 0 5mm !important;
+            margin: 0 auto !important;
             box-sizing: border-box !important;
             background: white !important;
             color: black !important;
@@ -249,18 +360,18 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
               <span className="flex-1 min-w-0 pr-1">Descripcion</span>
               <span className="w-8 text-center">CANT</span>
               <span className="w-11 text-right">P.U</span>
-              <span className="w-12 text-right pr-0.5">total</span>
+              <span className="w-12 text-right pr-0.5">total&nbsp;</span>
             </div>
 
             {/* Items Regulares */}
             <div className="py-1 space-y-1">
               {regularItems.map(item => (
                 <div key={item.id} className="flex items-start gap-1 text-[12px] font-bold">
-                  <span className="flex-1 min-w-0 pr-1 break-all leading-tight">{item.product.name}</span>
+                  <span className="flex-1 min-w-0 pr-1 break-all leading-tight">{item.product.name} </span>
                   <span className="w-8 shrink-0 text-center font-black">x{item.quantity}</span>
                   <span className="w-11 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
                   <span className="w-12 shrink-0 text-right font-black pr-0.5">
-                    {(item.unitPrice * item.quantity).toFixed(2)}
+                    {(item.unitPrice * item.quantity).toFixed(2)}&nbsp;&nbsp;
                   </span>
                 </div>
               ))}
@@ -293,18 +404,18 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
                 <>
                   <div className="flex justify-between text-black pr-0.5">
                     <span>subtotal:</span>
-                    <span>Bs. {subtotal.toFixed(2)}</span>
+                    <span>Bs. {subtotal.toFixed(2)}&nbsp;</span>
                   </div>
                   <div className="flex justify-between font-black text-black pr-0.5">
                     <span>descuento:</span>
-                    <span>-Bs. {discountVal.toFixed(2)}</span>
+                    <span>-Bs. {discountVal.toFixed(2)}&nbsp;</span>
                   </div>
                   <div className="border-b border-dashed border-black my-1" />
                 </>
               )}
               <div className="flex justify-between font-black text-[15px] pt-0.5 pr-0.5">
                 <span>total:</span>
-                <span>Bs. {finalTotal.toFixed(2)}</span>
+                <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;</span>
               </div>
             </div>
 

@@ -85,8 +85,7 @@ export default function BatchThermalReceiptModal({
     const finalTotal = Math.max(0, subtotal - discountVal)
     const dateToUse = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt)
     const dateFormatted = `${dateToUse.toLocaleDateString()} ${dateToUse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-    // En impresoras térmicas de 80mm, el ancho real de impresión del cabezal es de 72mm (~272px)
-    const widthPx = widthMode === '80mm' ? '272px' : widthMode === '58mm' ? '195px' : '650px'
+    const widthStr = widthMode === '80mm' ? '80mm' : widthMode === '58mm' ? '58mm' : '100%'
 
     return `
       <!DOCTYPE html>
@@ -100,16 +99,17 @@ export default function BatchThermalReceiptModal({
               margin: 0;
             }
             * { box-sizing: border-box; }
+            html, body { margin: 0; padding: 0; width: 100%; }
             body {
               font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
               font-size: 13px;
-              font-weight: 600;
+              font-weight: 700;
               line-height: 1.25;
-              margin: 0;
-              padding: 2mm 5mm 10mm 2mm;
+              margin: 0 auto;
+              padding: 1mm 5mm 0 5mm;
               color: #000;
-              width: ${widthPx};
-              max-width: ${widthPx};
+              width: ${widthStr};
+              max-width: ${widthStr};
               box-sizing: border-box;
             }
             .text-center { text-align: center; }
@@ -119,10 +119,10 @@ export default function BatchThermalReceiptModal({
             .flex { display: flex; justify-content: space-between; align-items: baseline; }
             .bold { font-weight: 900; }
             .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
-            .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; }
-            .items-table th { border-bottom: 1px solid #000; }
-            /* Avance de papel para que la cuchilla de la impresora corte limpio sin tocar texto */
-            .feed-space { height: 40mm; }
+            .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; font-weight: 700; }
+            .items-table th { border-bottom: 1px solid #000; font-weight: 900; }
+            /* Avance de papel para que la cuchilla de la impresora corte limpio a ~1.2cm del texto */
+            .feed-space { height: 8mm; min-height: 8mm; line-height: 8mm; font-size: 1px; }
           </style>
         </head>
         <body>
@@ -195,7 +195,8 @@ export default function BatchThermalReceiptModal({
           ` : ''}
           <div class="border-b"></div>
           <div class="text-center" style="font-size: 12px; margin-top: 6px;">gracias por su compra</div>
-          <div class="feed-space"></div>
+          <div style="text-align: center; font-size: 9px; margin-top: 4px; letter-spacing: 3px; color: #333;">- - - - - - - - - - - - - - -</div>
+          <div class="feed-space">&nbsp;</div>
         </body>
       </html>
     `
@@ -677,7 +678,7 @@ export default function BatchThermalReceiptModal({
                   <span className="flex-1 min-w-0 pr-1">Descripcion</span>
                   <span className="w-10 text-center">CANT</span>
                   <span className="w-12 text-right">P.U</span>
-                  <span className="w-14 text-right">total</span>
+                  <span className="w-14 text-right">total&nbsp;&nbsp;</span>
                 </div>
 
                 <div className="py-1 space-y-1">
@@ -688,7 +689,7 @@ export default function BatchThermalReceiptModal({
                         <span className="flex-1 min-w-0 pr-1 break-all leading-tight">{item.product.name}</span>
                         <span className="w-10 shrink-0 text-center font-black">x{qty}</span>
                         <span className="w-12 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
-                        <span className="w-14 shrink-0 text-right font-black">{(item.unitPrice * qty).toFixed(2)}</span>
+                        <span className="w-14 shrink-0 text-right font-black">{(item.unitPrice * qty).toFixed(2)}&nbsp;&nbsp;</span>
                       </div>
                     )
                   })}
@@ -725,18 +726,18 @@ export default function BatchThermalReceiptModal({
                         <>
                           <div className="flex justify-between text-black">
                             <span>subtotal:</span>
-                            <span>Bs. {subtotal.toFixed(2)}</span>
+                            <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;</span>
                           </div>
                           <div className="flex justify-between font-black text-black">
                             <span>descuento:</span>
-                            <span>-Bs. {discountVal.toFixed(2)}</span>
+                            <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;</span>
                           </div>
                           <div className="border-b border-dashed border-black my-1" />
                         </>
                       )}
                       <div className="flex justify-between font-black text-[14px] pt-0.5">
                         <span>total:</span>
-                        <span>Bs. {finalTotal.toFixed(2)}</span>
+                        <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;</span>
                       </div>
                     </div>
                   )
@@ -866,7 +867,7 @@ export default function BatchThermalReceiptModal({
                       <span className="flex-1 min-w-0 pr-1">Descripcion</span>
                       <span className="w-10 text-center">CANT</span>
                       <span className="w-12 text-right">P.U</span>
-                      <span className="w-14 text-right">total</span>
+                      <span className="w-14 text-right">total&nbsp;&nbsp;</span>
                     </div>
 
                     <div className="py-1 space-y-1">
@@ -878,7 +879,7 @@ export default function BatchThermalReceiptModal({
                             <span className="w-10 shrink-0 text-center font-black">x{qty}</span>
                             <span className="w-12 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
                             <span className="w-14 shrink-0 text-right font-black">
-                              {(item.unitPrice * qty).toFixed(2)}
+                              {(item.unitPrice * qty).toFixed(2)}&nbsp;&nbsp;
                             </span>
                           </div>
                         )
@@ -910,18 +911,18 @@ export default function BatchThermalReceiptModal({
                         <>
                           <div className="flex justify-between text-black">
                             <span>subtotal:</span>
-                            <span>Bs. {subtotal.toFixed(2)}</span>
+                            <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;</span>
                           </div>
                           <div className="flex justify-between font-black text-black">
                             <span>descuento:</span>
-                            <span>-Bs. {discountVal.toFixed(2)}</span>
+                            <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;</span>
                           </div>
                           <div className="border-b border-dashed border-black my-1" />
                         </>
                       )}
                       <div className="flex justify-between font-black text-[14px] pt-0.5">
                         <span>total:</span>
-                        <span>Bs. {finalTotal.toFixed(2)}</span>
+                        <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;</span>
                       </div>
                     </div>
 

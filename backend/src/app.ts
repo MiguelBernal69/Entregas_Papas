@@ -29,6 +29,14 @@ app.use('/api/regions', regionsRouter)
 app.use('/api/distributor', distributorRouter)
 app.use('/api/sessions', sessionsRouter)
 
+app.get('/api/version', (req, res) => {
+  res.json({
+    name: 'Distribuidora Lunova API',
+    version: '1.2.0',
+    status: 'online',
+  })
+})
+
 const PORT = process.env.PORT || 3000
 const server = app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`))
 

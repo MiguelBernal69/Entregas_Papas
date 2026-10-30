@@ -8,6 +8,7 @@ import '../widgets/client_details_sheet.dart';
 import '../widgets/delivery_form.dart';
 import '../widgets/order_receipt_modal.dart';
 import '../config/api.dart';
+import '../config/version.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -244,9 +245,30 @@ class _OrdersScreenState extends State<OrdersScreen>
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Mi Ruta',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Row(
+              children: [
+                const Text(
+                  'Mi Ruta',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: const Text(
+                    AppVersion.version,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Text(
               'Hola, ${user?.name ?? ''}',
