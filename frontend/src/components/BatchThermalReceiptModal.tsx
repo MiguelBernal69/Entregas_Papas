@@ -202,8 +202,10 @@ export default function BatchThermalReceiptModal({
   }
 
   // Imprime una sola boleta a través de un iframe invisible (garantiza corte de papel al terminar cada trabajo)
-  // IMPORTANTE: llamamos print() dentro del evento onload del iframe para mantener la cadena de gesto
-  // de usuario de Chrome — setTimeout rompe esa cadena y Chrome bloquea el diálogo silenciosamente.
+  // IMPORTANTE: usamos iframe.srcdoc en lugar de doc.write() porque con doc.write()
+  // el evento onload se dispara cuando el iframe se agrega al DOM (vacío), antes de escribir
+  // el contenido → imprime en blanco. Con srcdoc, el browser carga el HTML completo
+  // y LUEGO dispara onload con el contenido ya renderizado.
   const printSingleOrder = (order: Order): Promise<void> => {
     return new Promise((resolve) => {
       const iframe = document.createElement('iframe')
@@ -229,18 +231,9 @@ export default function BatchThermalReceiptModal({
         }, 1500)
       }
 
+      // srcdoc carga el HTML antes de disparar onload (a diferencia de doc.write)
+      iframe.srcdoc = getSingleOrderHtml(order, printerMode)
       document.body.appendChild(iframe)
-
-      const doc = iframe.contentWindow?.document
-      if (!doc) {
-        document.body.removeChild(iframe)
-        resolve()
-        return
-      }
-
-      doc.open()
-      doc.write(getSingleOrderHtml(order, printerMode))
-      doc.close()
     })
   }
 
