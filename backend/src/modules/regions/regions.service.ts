@@ -55,13 +55,13 @@ export const createRegion = async (
     [wkt, region.id]
   )
 
-  // Asignar automáticamente la región a todos los clientes que caen dentro del polígono
+  // Asignar automáticamente la región a todos los clientes que caen dentro o sobre el borde del polígono
   await pool.query(`
     UPDATE "Client"
     SET "regionId" = $1
-    WHERE ST_Within(
-      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
-      (SELECT polygon FROM "Region" WHERE id = $1)
+    WHERE ST_Intersects(
+      (SELECT polygon FROM "Region" WHERE id = $1),
+      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
     )
   `, [region.id])
 
@@ -101,6 +101,8 @@ export const updateRegion = async (
       `UPDATE "Region" SET polygon = ST_GeomFromText($1, 4326) WHERE id = $2`,
       [wkt, id]
     )
+    // Sincronizar clientes y pedidos al modificar el polígono de una zona
+    await recalculateAllRegions()
   }
 
   return getRegionById(id)
@@ -137,12 +139,8 @@ export const getOrdersByRegion = async (id: number) => {
     FROM "Order" o
     JOIN "Client" c ON c.id = o."clientId"
     JOIN "User" u ON u.id = o."preventistaId"
-    JOIN "Region" r ON r.id = $1
-    WHERE ST_Within(
-      ST_SetSRID(ST_MakePoint(c.longitude, c.latitude), 4326),
-      r.polygon
-    )
-    AND o.status = 'aceptado'
+    WHERE o."regionId" = $1
+      AND o.status = 'aceptado'
     ORDER BY o."createdAt" DESC
   `, [id])
 
@@ -153,10 +151,12 @@ export const getRegionByPoint = async (latitude: number, longitude: number) => {
   const result = await pool.query(`
     SELECT id, name, color
     FROM "Region"
-    WHERE ST_Within(
-      ST_SetSRID(ST_MakePoint($1, $2), 4326),
-      polygon
-    )
+    WHERE polygon IS NOT NULL
+      AND ST_Intersects(
+        polygon,
+        ST_SetSRID(ST_MakePoint($1, $2), 4326)
+      )
+    ORDER BY id DESC
     LIMIT 1
   `, [longitude, latitude])
 
@@ -168,15 +168,21 @@ export const recalculateAllRegions = async () => {
   await pool.query(`UPDATE "Client" SET "regionId" = NULL`)
 
   // 2. Asignar la región correcta a cada cliente según su ubicación (PostGIS)
+  // Usamos ST_Intersects para incluir bordes y subconsulta con DISTINCT ON para unicidad determinante
   await pool.query(`
     UPDATE "Client" c
-    SET "regionId" = r.id
-    FROM "Region" r
-    WHERE r.polygon IS NOT NULL
-      AND ST_Within(
-        ST_SetSRID(ST_MakePoint(c.longitude, c.latitude), 4326),
-        r.polygon
-      )
+    SET "regionId" = sub."regionId"
+    FROM (
+      SELECT DISTINCT ON (c2.id) c2.id as client_id, r.id as "regionId"
+      FROM "Client" c2
+      JOIN "Region" r ON r.polygon IS NOT NULL
+        AND ST_Intersects(
+          r.polygon,
+          ST_SetSRID(ST_MakePoint(c2.longitude, c2.latitude), 4326)
+        )
+      ORDER BY c2.id, r.id DESC
+    ) sub
+    WHERE c.id = sub.client_id
   `)
 
   // 3. Contar clientes actualizados
@@ -184,7 +190,7 @@ export const recalculateAllRegions = async () => {
     `SELECT COUNT(*) as total FROM "Client" WHERE "regionId" IS NOT NULL`
   )
 
-  // 4. Propaggar regionId a pedidos activos de cada cliente
+  // 4. Propagar regionId a pedidos activos de cada cliente (incluyendo poner a NULL los que quedaron sin zona)
   await pool.query(`
     UPDATE "Order" o
     SET "regionId" = c."regionId"
@@ -202,6 +208,7 @@ export const recalculateAllRegions = async () => {
     pedidosActualizados: Number(ordersResult.rows[0].total)
   }
 }
+
 export const assignRegionToUser = async (userId: number, regionId: number) => {
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user || user.role !== 'preventista') throw new Error('Usuario no válido')

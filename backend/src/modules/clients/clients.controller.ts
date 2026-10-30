@@ -25,8 +25,15 @@ export const create = async (req: AuthRequest, res: Response) => {
   try {
     const { name, ownerName, phone, address, latitude, longitude, regionId } = req.body
 
-    if (!name || !ownerName || !phone || !address || !latitude || !longitude) {
+    if (!name || !ownerName || !phone || !address || latitude === undefined || longitude === undefined) {
       res.status(400).json({ message: 'Faltan campos requeridos' })
+      return
+    }
+
+    const lat = Number(latitude)
+    const lng = Number(longitude)
+    if (isNaN(lat) || isNaN(lng)) {
+      res.status(400).json({ message: 'Coordenadas inválidas' })
       return
     }
 
@@ -35,15 +42,21 @@ export const create = async (req: AuthRequest, res: Response) => {
       ? `uploads/clients/${req.file.filename}`
       : undefined
 
+    let parsedRegionId: number | undefined = undefined
+    if (regionId !== undefined && regionId !== '' && regionId !== 'null' && regionId !== null) {
+      const num = Number(regionId)
+      if (!isNaN(num)) parsedRegionId = num
+    }
+
     const client = await service.createClient(
       {
         name,
         ownerName,
         phone,
         address,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        regionId: regionId ? Number(regionId) : undefined,
+        latitude: lat,
+        longitude: lng,
+        regionId: parsedRegionId,
         photoUrl
       },
       req.user!.id
@@ -75,9 +88,17 @@ export const update = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    if (updateData.latitude) updateData.latitude = Number(updateData.latitude)
-    if (updateData.longitude) updateData.longitude = Number(updateData.longitude)
-    if (updateData.regionId) updateData.regionId = Number(updateData.regionId)
+    if (updateData.latitude !== undefined) updateData.latitude = Number(updateData.latitude)
+    if (updateData.longitude !== undefined) updateData.longitude = Number(updateData.longitude)
+
+    if (updateData.regionId !== undefined) {
+      if (updateData.regionId === '' || updateData.regionId === 'null' || updateData.regionId === null) {
+        updateData.regionId = null
+      } else {
+        const num = Number(updateData.regionId)
+        updateData.regionId = isNaN(num) ? undefined : num
+      }
+    }
 
     const client = await service.updateClient(Number(req.params.id), updateData)
     res.json(client)

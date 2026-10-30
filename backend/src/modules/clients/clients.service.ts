@@ -70,7 +70,7 @@ export const createClient = async (
   createdBy: number
 ) => {
   // Autodetección de región si no se provee
-  if (!data.regionId) {
+  if (data.regionId === undefined) {
     const detected = await getRegionByPoint(data.latitude, data.longitude)
     if (detected) data.regionId = detected.id
   }
@@ -93,19 +93,19 @@ export const updateClient = async (
     address?: string
     latitude?: number
     longitude?: number
-    regionId?: number
+    regionId?: number | null
     photoUrl?: string
   }
 ) => {
   const client = await prisma.client.findUnique({ where: { id } })
   if (!client) throw new Error('Cliente no encontrado')
 
-  // Si cambian las coordenadas y no se provee nueva región, intentar redetectar
-  if ((data.latitude || data.longitude) && !data.regionId) {
+  // Si cambian las coordenadas y no se provee nueva región explícita, redetectar automáticamente
+  if ((data.latitude !== undefined || data.longitude !== undefined) && data.regionId === undefined) {
     const lat = data.latitude ?? client.latitude
     const lng = data.longitude ?? client.longitude
     const detected = await getRegionByPoint(lat, lng)
-    if (detected) data.regionId = detected.id
+    data.regionId = detected ? detected.id : null
   }
 
   // Si cambió la región, actualizar también los pedidos activos del cliente

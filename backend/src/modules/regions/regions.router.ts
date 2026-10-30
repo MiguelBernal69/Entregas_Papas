@@ -3,7 +3,7 @@ import {
   getAll, getOne, create, update, remove,
   getOrdersInRegion, detectRegion,
   assignRegion, assignBulk, removeRegion, getPreventistasInRegion,
-  getMyRegions
+  getMyRegions, recalculate
 } from './regions.controller'
 import { authenticate } from '../../middlewares/auth.middleware'
 import { authorize } from '../../middlewares/role.middleware'
@@ -21,6 +21,7 @@ router.get('/:id/preventistas', authorize('admin'), getPreventistasInRegion)
 
 router.get('/', authorize('admin', 'preventista'), getAll)
 router.get('/:id', authorize('admin', 'preventista'), getOne)
+router.post('/recalculate', authorize('admin'), recalculate)
 router.post('/', authorize('admin'), create)
 router.put('/:id', authorize('admin'), update)
 router.delete('/:id', authorize('admin'), remove)
