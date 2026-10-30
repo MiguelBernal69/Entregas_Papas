@@ -731,7 +731,7 @@ export default function BatchThermalReceiptModal({
                   <span className="flex-1 min-w-0 pr-1">Descripcion</span>
                   <span className="w-10 text-center">CANT</span>
                   <span className="w-12 text-right">P.U</span>
-                  <span className="w-14 text-right">total&nbsp;&nbsp;</span>
+                  <span className="w-14 text-right">total&nbsp;&nbsp;&nbsp;&nbsp;</span>
                 </div>
 
                 <div className="py-1 space-y-1">
@@ -742,7 +742,7 @@ export default function BatchThermalReceiptModal({
                         <span className="flex-1 min-w-0 pr-1 break-all leading-tight">{item.product.name}</span>
                         <span className="w-10 shrink-0 text-center font-black">x{qty}</span>
                         <span className="w-12 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
-                        <span className="w-14 shrink-0 text-right font-black">{(item.unitPrice * qty).toFixed(2)}&nbsp;&nbsp;</span>
+                        <span className="w-14 shrink-0 text-right font-black">{(item.unitPrice * qty).toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                       </div>
                     )
                   })}
@@ -779,18 +779,18 @@ export default function BatchThermalReceiptModal({
                         <>
                           <div className="flex justify-between text-black">
                             <span>subtotal:</span>
-                            <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;</span>
+                            <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                           </div>
                           <div className="flex justify-between font-black text-black">
                             <span>descuento:</span>
-                            <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;</span>
+                            <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                           </div>
                           <div className="border-b border-dashed border-black my-1" />
                         </>
                       )}
                       <div className="flex justify-between font-black text-[14px] pt-0.5">
                         <span>total:</span>
-                        <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;</span>
+                        <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                       </div>
                     </div>
                   )
@@ -932,7 +932,7 @@ export default function BatchThermalReceiptModal({
                       <span className="flex-1 min-w-0 pr-1">Descripcion</span>
                       <span className="w-10 text-center">CANT</span>
                       <span className="w-12 text-right">P.U</span>
-                      <span className="w-14 text-right">total&nbsp;&nbsp;</span>
+                      <span className="w-14 text-right">total&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     </div>
 
                     <div className="py-1 space-y-1">
@@ -944,7 +944,7 @@ export default function BatchThermalReceiptModal({
                             <span className="w-10 shrink-0 text-center font-black">x{qty}</span>
                             <span className="w-12 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
                             <span className="w-14 shrink-0 text-right font-black">
-                              {(item.unitPrice * qty).toFixed(2)}&nbsp;&nbsp;
+                              {(item.unitPrice * qty).toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;
                             </span>
                           </div>
                         )
@@ -976,18 +976,18 @@ export default function BatchThermalReceiptModal({
                         <>
                           <div className="flex justify-between text-black">
                             <span>subtotal:</span>
-                            <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;</span>
+                            <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                           </div>
                           <div className="flex justify-between font-black text-black">
                             <span>descuento:</span>
-                            <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;</span>
+                            <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                           </div>
                           <div className="border-b border-dashed border-black my-1" />
                         </>
                       )}
                       <div className="flex justify-between font-black text-[14px] pt-0.5">
                         <span>total:</span>
-                        <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;</span>
+                        <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
                       </div>
                     </div>
 

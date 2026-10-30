@@ -360,7 +360,7 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
               <span className="flex-1 min-w-0 pr-1">Descripcion</span>
               <span className="w-8 text-center">CANT</span>
               <span className="w-11 text-right">P.U</span>
-              <span className="w-12 text-right pr-0.5">total&nbsp;</span>
+              <span className="w-12 text-right pr-0.5">total&nbsp;&nbsp;&nbsp;</span>
             </div>
 
             {/* Items Regulares */}
@@ -371,7 +371,7 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
                   <span className="w-8 shrink-0 text-center font-black">x{item.quantity}</span>
                   <span className="w-11 shrink-0 text-right">{item.unitPrice.toFixed(2)}</span>
                   <span className="w-12 shrink-0 text-right font-black pr-0.5">
-                    {(item.unitPrice * item.quantity).toFixed(2)}&nbsp;&nbsp;
+                    {(item.unitPrice * item.quantity).toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;
                   </span>
                 </div>
               ))}
@@ -404,18 +404,18 @@ export default function OrderThermalReceiptModal({ order, onClose }: OrderTherma
                 <>
                   <div className="flex justify-between text-black pr-0.5">
                     <span>subtotal:</span>
-                    <span>Bs. {subtotal.toFixed(2)}&nbsp;</span>
+                    <span>Bs. {subtotal.toFixed(2)}&nbsp;&nbsp;&nbsp;</span>
                   </div>
                   <div className="flex justify-between font-black text-black pr-0.5">
                     <span>descuento:</span>
-                    <span>-Bs. {discountVal.toFixed(2)}&nbsp;</span>
+                    <span>-Bs. {discountVal.toFixed(2)}&nbsp;&nbsp;&nbsp;</span>
                   </div>
                   <div className="border-b border-dashed border-black my-1" />
                 </>
               )}
               <div className="flex justify-between font-black text-[15px] pt-0.5 pr-0.5">
                 <span>total:</span>
-                <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;</span>
+                <span>Bs. {finalTotal.toFixed(2)}&nbsp;&nbsp;&nbsp;&nbsp;</span>
               </div>
             </div>
 
