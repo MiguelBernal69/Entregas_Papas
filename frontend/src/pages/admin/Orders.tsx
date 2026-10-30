@@ -67,13 +67,33 @@ export default function AdminOrders() {
     return true
   })
 
+  const countAceptados = filtered.filter(o => o.status === 'aceptado').length
+  const countAsignados = filtered.filter(o => o.status === 'asignado').length
+  const countAceptadosYAsignados = countAceptados + countAsignados
+
   const toggleSelect = (id: number) => {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
   }
 
   const selectAllAceptados = () => {
-    const aceptados = filtered.filter(o => o.status === 'aceptado').map(o => o.id)
-    setSelected(aceptados)
+    const ids = filtered.filter(o => o.status === 'aceptado').map(o => o.id)
+    if (ids.length === 0) return
+    const allSelected = ids.length === selected.length && ids.every(id => selected.includes(id))
+    setSelected(allSelected ? [] : ids)
+  }
+
+  const selectAllAsignados = () => {
+    const ids = filtered.filter(o => o.status === 'asignado').map(o => o.id)
+    if (ids.length === 0) return
+    const allSelected = ids.length === selected.length && ids.every(id => selected.includes(id))
+    setSelected(allSelected ? [] : ids)
+  }
+
+  const selectAllAceptadosYAsignados = () => {
+    const ids = filtered.filter(o => o.status === 'aceptado' || o.status === 'asignado').map(o => o.id)
+    if (ids.length === 0) return
+    const allSelected = ids.length === selected.length && ids.every(id => selected.includes(id))
+    setSelected(allSelected ? [] : ids)
   }
 
   const selectAllFiltered = () => {
@@ -183,19 +203,55 @@ export default function AdminOrders() {
               ))}
             </select>
 
-            <button
-              onClick={selectAllAceptados}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Seleccionar aceptados
-            </button>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-gray-500 font-medium">Seleccionar:</span>
+              <button
+                type="button"
+                onClick={selectAllAceptados}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  countAceptados > 0 && selected.length === countAceptados && filtered.filter(o => o.status === 'aceptado').every(o => selected.includes(o.id))
+                    ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-300'
+                    : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
+                }`}
+                title="Seleccionar todos los pedidos aceptados"
+              >
+                Aceptados ({countAceptados})
+              </button>
 
-            <button
-              onClick={selectAllFiltered}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              {filtered.length > 0 && selected.length === filtered.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
-            </button>
+              <button
+                type="button"
+                onClick={selectAllAsignados}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  countAsignados > 0 && selected.length === countAsignados && filtered.filter(o => o.status === 'asignado').every(o => selected.includes(o.id))
+                    ? 'bg-purple-600 text-white shadow-sm ring-2 ring-purple-300'
+                    : 'bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200'
+                }`}
+                title="Seleccionar todos los pedidos asignados"
+              >
+                Asignados ({countAsignados})
+              </button>
+
+              <button
+                type="button"
+                onClick={selectAllAceptadosYAsignados}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  countAceptadosYAsignados > 0 && selected.length === countAceptadosYAsignados && filtered.filter(o => o.status === 'aceptado' || o.status === 'asignado').every(o => selected.includes(o.id))
+                    ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300'
+                    : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200'
+                }`}
+                title="Seleccionar pedidos aceptados y asignados"
+              >
+                Aceptados + Asignados ({countAceptadosYAsignados})
+              </button>
+
+              <button
+                type="button"
+                onClick={selectAllFiltered}
+                className="text-xs text-blue-600 hover:underline ml-1 cursor-pointer"
+              >
+                {filtered.length > 0 && selected.length === filtered.length ? 'Deseleccionar todos' : 'Todos'}
+              </button>
+            </div>
           </div>
 
           {/* Acciones principales: Imprimir masivo y asignar */}
