@@ -795,33 +795,90 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
     }
   }
 
+  int _getItemQuantity(int productId) {
+    final idx = _items.indexWhere((i) => i['productId'] == productId);
+    return idx >= 0 ? (_items[idx]['quantity'] as int) : 0;
+  }
+
+  int _getBonusQuantity(int productId) {
+    final idx = _bonusItems.indexWhere((i) => i['productId'] == productId);
+    return idx >= 0 ? (_bonusItems[idx]['quantity'] as int) : 0;
+  }
+
   void _addProduct(Product product) {
-    final exists = _items.indexWhere((i) => i['productId'] == product.id);
-    if (exists >= 0) {
-      setState(() => _items[exists]['quantity']++);
+    final idx = _items.indexWhere((i) => i['productId'] == product.id);
+    if (idx >= 0) {
+      final current = _items[idx]['quantity'] as int;
+      _updateQty(product.id, current + 1);
     } else {
-      setState(
-        () => _items.add({
+      setState(() {
+        _items.add({
           'productId': product.id,
           'quantity': 1,
           'name': product.name,
           'price': product.price,
-        }),
-      );
+        });
+      });
+      final ctrl = _qtyControllers[product.id];
+      if (ctrl != null) {
+        ctrl.text = '1';
+      }
+    }
+  }
+
+  void _decrementProduct(Product product) {
+    final idx = _items.indexWhere((i) => i['productId'] == product.id);
+    if (idx < 0) return;
+    final current = _items[idx]['quantity'] as int;
+    if (current > 1) {
+      _updateQty(product.id, current - 1);
+    } else {
+      _removeProduct(product.id);
     }
   }
 
   void _addBonusProduct(Product product) {
-    final exists = _bonusItems.indexWhere((i) => i['productId'] == product.id);
-    if (exists >= 0) {
-      setState(() => _bonusItems[exists]['quantity']++);
+    final idx = _bonusItems.indexWhere((i) => i['productId'] == product.id);
+    if (idx >= 0) {
+      final current = _bonusItems[idx]['quantity'] as int;
+      _updateBonusQty(product.id, current + 1);
     } else {
-      setState(
-        () => _bonusItems.add({
+      setState(() {
+        _bonusItems.add({
           'productId': product.id,
           'quantity': 1,
           'name': product.name,
-        }),
+        });
+      });
+      final ctrl = _bonusQtyControllers[product.id];
+      if (ctrl != null) {
+        ctrl.text = '1';
+      }
+    }
+  }
+
+  void _decrementBonusProduct(Product product) {
+    final idx = _bonusItems.indexWhere((i) => i['productId'] == product.id);
+    if (idx < 0) return;
+    final current = _bonusItems[idx]['quantity'] as int;
+    if (current > 1) {
+      _updateBonusQty(product.id, current - 1);
+    } else {
+      _removeBonusProduct(product.id);
+    }
+  }
+
+  void _updateBonusQty(int productId, int qty) {
+    if (qty < 1) return;
+    setState(() {
+      final idx = _bonusItems.indexWhere((i) => i['productId'] == productId);
+      if (idx >= 0) _bonusItems[idx]['quantity'] = qty;
+    });
+    final ctrl = _bonusQtyControllers[productId];
+    if (ctrl != null && ctrl.text != '$qty') {
+      ctrl.text = '$qty';
+      ctrl.selection = TextSelection.fromPosition(
+        TextPosition(offset: ctrl.text.length),
       );
     }
   }
@@ -889,8 +946,12 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
       setState(() => _error = 'Selecciona un cliente');
       return;
     }
+    // Asegurar que solo viajen cantidades válidas mayores a 0
+    _items.removeWhere((i) => (i['quantity'] as int) <= 0);
+    _bonusItems.removeWhere((i) => (i['quantity'] as int) <= 0);
+
     if (_items.isEmpty) {
-      setState(() => _error = 'Agrega al menos un producto');
+      setState(() => _error = 'Agrega al menos un producto regular con cantidad mayor a 0');
       return;
     }
 
@@ -1142,24 +1203,85 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                           )
                         else
                           ..._filteredProducts.map(
-                            (p) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                p.name,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              subtitle: Text(
-                                'Bs. ${p.price.toStringAsFixed(2)} / ${p.unit}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.add_circle,
-                                  color: Color(0xFF3B82F6),
+                            (p) {
+                              final currentQty = _getItemQuantity(p.id);
+                              final isSelected = currentQty > 0;
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSelected ? const Color(0xFF3B82F6) : Colors.grey.shade200,
+                                    width: isSelected ? 1.5 : 1,
+                                  ),
                                 ),
-                                onPressed: () => _addProduct(p),
-                              ),
-                            ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                  dense: true,
+                                  title: Text(
+                                    p.name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                      color: isSelected ? const Color(0xFF1E40AF) : Colors.black87,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    'Bs. ${p.price.toStringAsFixed(2)} / ${p.unit}',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  trailing: isSelected
+                                      ? Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: const Color(0xFF3B82F6)),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.remove, size: 18, color: Color(0xFF3B82F6)),
+                                                onPressed: () => _decrementProduct(p),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                child: Text(
+                                                  '$currentQty',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: Color(0xFF1E40AF),
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.add, size: 18, color: Color(0xFF3B82F6)),
+                                                onPressed: () => _addProduct(p),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : ElevatedButton.icon(
+                                          onPressed: () => _addProduct(p),
+                                          icon: const Icon(Icons.add, size: 16),
+                                          label: const Text('Agregar', style: TextStyle(fontSize: 12)),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF3B82F6),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                            elevation: 0,
+                                          ),
+                                        ),
+                                ),
+                              );
+                            },
                           ),
 
                         // Items seleccionados
@@ -1526,19 +1648,87 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                                       ),
                                     )
                                   else
-                                    ..._filteredBonusProducts.map((p) => ListTile(
-                                      dense: true,
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text(p.name, style: const TextStyle(fontSize: 13)),
-                                      subtitle: Text(
-                                        '${p.unit} • Ref: Bs. ${p.price.toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
-                                      ),
-                                      trailing: IconButton(
-                                        icon: const Icon(Icons.add_circle, color: Color(0xFF10B981)),
-                                        onPressed: () => _addBonusProduct(p),
-                                      ),
-                                    )),
+                                    ..._filteredBonusProducts.map((p) {
+                                      final bonusQty = _getBonusQuantity(p.id);
+                                      final isSelected = bonusQty > 0;
+                                      return Container(
+                                        margin: const EdgeInsets.symmetric(vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? const Color(0xFFECFDF5) : Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: isSelected ? const Color(0xFF10B981) : Colors.grey.shade200,
+                                            width: isSelected ? 1.5 : 1,
+                                          ),
+                                        ),
+                                        child: ListTile(
+                                          dense: true,
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                          title: Text(
+                                            p.name,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                              color: isSelected ? const Color(0xFF065F46) : Colors.black87,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            '${p.unit} • Ref: Bs. ${p.price.toStringAsFixed(2)}',
+                                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                          ),
+                                          trailing: isSelected
+                                              ? Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(color: const Color(0xFF10B981)),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      IconButton(
+                                                        icon: const Icon(Icons.remove, size: 18, color: Color(0xFF10B981)),
+                                                        onPressed: () => _decrementBonusProduct(p),
+                                                        padding: EdgeInsets.zero,
+                                                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                                      ),
+                                                      Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                                                        child: Text(
+                                                          '$bonusQty',
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 13,
+                                                            color: Color(0xFF065F46),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(Icons.add, size: 18, color: Color(0xFF10B981)),
+                                                        onPressed: () => _addBonusProduct(p),
+                                                        padding: EdgeInsets.zero,
+                                                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              : ElevatedButton.icon(
+                                                  onPressed: () => _addBonusProduct(p),
+                                                  icon: const Icon(Icons.add, size: 16),
+                                                  label: const Text('Bonificar', style: TextStyle(fontSize: 12)),
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: const Color(0xFF10B981),
+                                                    foregroundColor: Colors.white,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    elevation: 0,
+                                                  ),
+                                                ),
+                                        ),
+                                      );
+                                    }),
 
                                   // Items de bonificación seleccionados
                                   if (_bonusItems.isNotEmpty) ...[
@@ -1571,15 +1761,7 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                                               icon: const Icon(Icons.remove_circle_outline, size: 20, color: Color(0xFF10B981)),
                                               padding: EdgeInsets.zero,
                                               constraints: const BoxConstraints(),
-                                              onPressed: () {
-                                                if (qty > 1) {
-                                                  setState(() {
-                                                    final idx = _bonusItems.indexWhere((i) => i['productId'] == productId);
-                                                    if (idx >= 0) _bonusItems[idx]['quantity'] = qty - 1;
-                                                  });
-                                                  ctrl.text = '${qty - 1}';
-                                                }
-                                              },
+                                              onPressed: () => _updateBonusQty(productId, qty - 1),
                                             ),
                                             const SizedBox(width: 4),
                                             SizedBox(
@@ -1618,13 +1800,7 @@ class _CreateOrderSheetState extends State<CreateOrderSheet> {
                                               icon: const Icon(Icons.add_circle_outline, size: 20, color: Color(0xFF10B981)),
                                               padding: EdgeInsets.zero,
                                               constraints: const BoxConstraints(),
-                                              onPressed: () {
-                                                setState(() {
-                                                  final idx = _bonusItems.indexWhere((i) => i['productId'] == productId);
-                                                  if (idx >= 0) _bonusItems[idx]['quantity'] = qty + 1;
-                                                });
-                                                ctrl.text = '${qty + 1}';
-                                              },
+                                              onPressed: () => _updateBonusQty(productId, qty + 1),
                                             ),
                                             // Eliminar
                                             IconButton(
