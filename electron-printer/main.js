@@ -56,9 +56,9 @@ function buildReceiptHtml(order) {
     const qty = it.deliveredQuantity ?? it.quantity
     return `<tr>
       <td style="word-break: break-word;">${it.product.name}</td>
-      <td align="center" style="font-weight:900;width:32px">x${qty}</td>
-      <td align="right" style="width:44px">${it.unitPrice.toFixed(2)}</td>
-      <td align="right" style="font-weight:900;width:48px;padding-right:2px">${(it.unitPrice * qty).toFixed(2)}</td>
+      <td align="center" style="font-weight:900;white-space:nowrap">x${qty}</td>
+      <td align="right" style="white-space:nowrap">${it.unitPrice.toFixed(2)}</td>
+      <td align="right" style="font-weight:900;padding-right:1px;white-space:nowrap">${(it.unitPrice * qty).toFixed(2)}</td>
     </tr>`
   }).join('')
 
@@ -103,7 +103,7 @@ function buildReceiptHtml(order) {
         font-weight: 700;
         line-height: 1.25;
         margin: 0 auto;
-        padding: 1mm 5mm 0 5mm;
+        padding: 1mm 2.5mm 0 2.5mm;
         color: #000;
         width: 80mm;
         max-width: 80mm;
@@ -115,7 +115,7 @@ function buildReceiptHtml(order) {
       .flex { display: flex; justify-content: space-between; align-items: baseline; }
       .bold { font-weight: 900; }
       .items-table { width: 100%; border-collapse: collapse; margin: 4px 0; table-layout: fixed; }
-      .items-table th, .items-table td { padding: 1.5px 0; vertical-align: top; font-size: 12px; font-weight: 700; }
+      .items-table th, .items-table td { padding: 1.5px 2px; vertical-align: top; font-size: 12px; font-weight: 700; }
       .items-table th { border-bottom: 1px solid #000; font-weight: 900; }
       .feed-space { height: 8mm; min-height: 8mm; line-height: 8mm; font-size: 1px; }
     </style>
@@ -138,10 +138,10 @@ function buildReceiptHtml(order) {
     <table class="items-table">
       <thead>
         <tr>
-          <th align="left" style="width: auto;">Descripcion</th>
-          <th align="center" style="width: 32px;">CANT</th>
-          <th align="right" style="width: 44px;">P.U</th>
-          <th align="right" style="width: 48px; padding-right: 2px;">total</th>
+          <th align="left" style="width: 46%;">Descripcion</th>
+          <th align="center" style="width: 16%;">CANT</th>
+          <th align="right" style="width: 18%;">P.U</th>
+          <th align="right" style="width: 20%; padding-right: 1px;">total</th>
         </tr>
       </thead>
       <tbody>
