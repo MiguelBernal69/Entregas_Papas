@@ -37,6 +37,16 @@ class _DeliveryFormState extends State<DeliveryForm> {
     _calculateTotal();
   }
 
+  /// Verifica si algún ítem (incluyendo bonificaciones) tiene menos cantidad que la pedida
+  bool get _isPartialDelivery {
+    for (var item in widget.order.items) {
+      final text = _controllers[item.id]?.text ?? '0';
+      final qty = int.tryParse(text) ?? 0;
+      if (qty < item.quantity) return true;
+    }
+    return false;
+  }
+
   void _calculateTotal() {
     double subtotal = 0;
     for (var item in widget.order.items) {
@@ -258,7 +268,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
             ),
 
             // Aviso si es parcial y campo de notas
-            if (_calculatedTotal < widget.order.total) ...[
+            if (_isPartialDelivery) ...[
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(10),
@@ -357,7 +367,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       // Validar notas en parciales
-                      bool isPartial = _calculatedTotal < widget.order.total;
+                      bool isPartial = _isPartialDelivery;
                       if (isPartial && _notesCtrl.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
