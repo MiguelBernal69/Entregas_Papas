@@ -81,19 +81,28 @@ class OrderService {
     final Map<String, dynamic> payload = {};
     if (notes != null && notes.isNotEmpty) payload['notes'] = notes;
 
-    final res = await http.patch(
-      Uri.parse('${Api.baseUrl}/distributor/orders/$orderId/reject'),
-      headers: await _headers(),
-      body: jsonEncode(payload),
-    );
+    final uri = Uri.parse('${Api.baseUrl}/distributor/orders/$orderId/reject');
+    final headers = await _headers();
+    final body = jsonEncode(payload);
+
+    http.Response res;
+    try {
+      res = await http.patch(uri, headers: headers, body: body);
+    } catch (e) {
+      throw Exception('No se pudo conectar al servidor: $e');
+    }
+
     if (res.statusCode == 200) return true;
 
+    // Mostrar el mensaje exacto del backend para facilitar el diagnóstico
+    String errorMsg = 'Error HTTP ${res.statusCode}';
     try {
       final data = jsonDecode(res.body);
-      throw Exception(data['message'] ?? 'Error al rechazar el pedido');
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Error HTTP ${res.statusCode}');
+      errorMsg = data['message'] ?? errorMsg;
+    } catch (_) {
+      final preview = res.body.length > 200 ? res.body.substring(0, 200) : res.body;
+      errorMsg = 'Error ${res.statusCode}: $preview';
     }
+    throw Exception(errorMsg);
   }
 }

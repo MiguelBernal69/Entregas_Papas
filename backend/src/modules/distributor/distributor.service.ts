@@ -33,8 +33,8 @@ export const getMyOrders = async (
                 { status: 'asignado' }, // Todo lo que tenga en la camioneta pendiente
                 { 
                     AND: [
-                        { status: { in: ['entregado', 'entrega_parcial'] } },
-                        { deliveredAt: { gte: start, lte: end } } // Entregado hoy UTC
+                        { status: { in: ['entregado', 'entrega_parcial', 'rechazado'] } },
+                        { deliveredAt: { gte: start, lte: end } } // Procesado hoy
                     ]
                 }
             ]
@@ -47,9 +47,9 @@ export const getMyOrders = async (
     }
 
     if (statusFilter) {
-        // Permitir filtrar por entregado + entrega_parcial juntos
+        // 'entregado' agrupa: entregado + entrega_parcial + rechazado (historial del día)
         if (statusFilter === 'entregado') {
-            where.status = { in: ['entregado', 'entrega_parcial'] }
+            where.status = { in: ['entregado', 'entrega_parcial', 'rechazado'] }
         } else {
             where.status = statusFilter
         }
