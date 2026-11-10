@@ -5859,6 +5859,7 @@ export namespace Prisma {
     unit: string | null
     category: string | null
     isActive: boolean | null
+    trackInventory: boolean | null
     createdAt: Date | null
   }
 
@@ -5870,6 +5871,7 @@ export namespace Prisma {
     unit: string | null
     category: string | null
     isActive: boolean | null
+    trackInventory: boolean | null
     createdAt: Date | null
   }
 
@@ -5881,6 +5883,7 @@ export namespace Prisma {
     unit: number
     category: number
     isActive: number
+    trackInventory: number
     createdAt: number
     _all: number
   }
@@ -5904,6 +5907,7 @@ export namespace Prisma {
     unit?: true
     category?: true
     isActive?: true
+    trackInventory?: true
     createdAt?: true
   }
 
@@ -5915,6 +5919,7 @@ export namespace Prisma {
     unit?: true
     category?: true
     isActive?: true
+    trackInventory?: true
     createdAt?: true
   }
 
@@ -5926,6 +5931,7 @@ export namespace Prisma {
     unit?: true
     category?: true
     isActive?: true
+    trackInventory?: true
     createdAt?: true
     _all?: true
   }
@@ -6024,6 +6030,7 @@ export namespace Prisma {
     unit: string
     category: string
     isActive: boolean
+    trackInventory: boolean
     createdAt: Date
     _count: ProductCountAggregateOutputType | null
     _avg: ProductAvgAggregateOutputType | null
@@ -6054,6 +6061,7 @@ export namespace Prisma {
     unit?: boolean
     category?: boolean
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: boolean
     orderItems?: boolean | Product$orderItemsArgs<ExtArgs>
     productionEntries?: boolean | Product$productionEntriesArgs<ExtArgs>
@@ -6068,6 +6076,7 @@ export namespace Prisma {
     unit?: boolean
     category?: boolean
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["product"]>
 
@@ -6079,6 +6088,7 @@ export namespace Prisma {
     unit?: boolean
     category?: boolean
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["product"]>
 
@@ -6090,10 +6100,11 @@ export namespace Prisma {
     unit?: boolean
     category?: boolean
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: boolean
   }
 
-  export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "price" | "unit" | "category" | "isActive" | "createdAt", ExtArgs["result"]["product"]>
+  export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "price" | "unit" | "category" | "isActive" | "trackInventory" | "createdAt", ExtArgs["result"]["product"]>
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     orderItems?: boolean | Product$orderItemsArgs<ExtArgs>
     productionEntries?: boolean | Product$productionEntriesArgs<ExtArgs>
@@ -6116,6 +6127,7 @@ export namespace Prisma {
       unit: string
       category: string
       isActive: boolean
+      trackInventory: boolean
       createdAt: Date
     }, ExtArgs["result"]["product"]>
     composites: {}
@@ -6549,6 +6561,7 @@ export namespace Prisma {
     readonly unit: FieldRef<"Product", 'String'>
     readonly category: FieldRef<"Product", 'String'>
     readonly isActive: FieldRef<"Product", 'Boolean'>
+    readonly trackInventory: FieldRef<"Product", 'Boolean'>
     readonly createdAt: FieldRef<"Product", 'DateTime'>
   }
     
@@ -14104,6 +14117,7 @@ export namespace Prisma {
     unit: 'unit',
     category: 'category',
     isActive: 'isActive',
+    trackInventory: 'trackInventory',
     createdAt: 'createdAt'
   };
 
@@ -14650,6 +14664,7 @@ export namespace Prisma {
     unit?: StringFilter<"Product"> | string
     category?: StringFilter<"Product"> | string
     isActive?: BoolFilter<"Product"> | boolean
+    trackInventory?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     orderItems?: OrderItemListRelationFilter
     productionEntries?: ProductionEntryListRelationFilter
@@ -14663,6 +14678,7 @@ export namespace Prisma {
     unit?: SortOrder
     category?: SortOrder
     isActive?: SortOrder
+    trackInventory?: SortOrder
     createdAt?: SortOrder
     orderItems?: OrderItemOrderByRelationAggregateInput
     productionEntries?: ProductionEntryOrderByRelationAggregateInput
@@ -14679,6 +14695,7 @@ export namespace Prisma {
     unit?: StringFilter<"Product"> | string
     category?: StringFilter<"Product"> | string
     isActive?: BoolFilter<"Product"> | boolean
+    trackInventory?: BoolFilter<"Product"> | boolean
     createdAt?: DateTimeFilter<"Product"> | Date | string
     orderItems?: OrderItemListRelationFilter
     productionEntries?: ProductionEntryListRelationFilter
@@ -14692,6 +14709,7 @@ export namespace Prisma {
     unit?: SortOrder
     category?: SortOrder
     isActive?: SortOrder
+    trackInventory?: SortOrder
     createdAt?: SortOrder
     _count?: ProductCountOrderByAggregateInput
     _avg?: ProductAvgOrderByAggregateInput
@@ -14711,6 +14729,7 @@ export namespace Prisma {
     unit?: StringWithAggregatesFilter<"Product"> | string
     category?: StringWithAggregatesFilter<"Product"> | string
     isActive?: BoolWithAggregatesFilter<"Product"> | boolean
+    trackInventory?: BoolWithAggregatesFilter<"Product"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
   }
 
@@ -15442,6 +15461,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
     productionEntries?: ProductionEntryCreateNestedManyWithoutProductInput
@@ -15455,6 +15475,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
     productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutProductInput
@@ -15467,6 +15488,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
     productionEntries?: ProductionEntryUpdateManyWithoutProductNestedInput
@@ -15480,6 +15502,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
     productionEntries?: ProductionEntryUncheckedUpdateManyWithoutProductNestedInput
@@ -15493,6 +15516,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
   }
 
@@ -15503,6 +15527,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -15514,6 +15539,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16368,6 +16394,7 @@ export namespace Prisma {
     unit?: SortOrder
     category?: SortOrder
     isActive?: SortOrder
+    trackInventory?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -16384,6 +16411,7 @@ export namespace Prisma {
     unit?: SortOrder
     category?: SortOrder
     isActive?: SortOrder
+    trackInventory?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -16395,6 +16423,7 @@ export namespace Prisma {
     unit?: SortOrder
     category?: SortOrder
     isActive?: SortOrder
+    trackInventory?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -19749,6 +19778,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
     productionEntries?: ProductionEntryCreateNestedManyWithoutProductInput
   }
@@ -19761,6 +19791,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
     productionEntries?: ProductionEntryUncheckedCreateNestedManyWithoutProductInput
   }
@@ -19826,6 +19857,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     productionEntries?: ProductionEntryUpdateManyWithoutProductNestedInput
   }
@@ -19838,6 +19870,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     productionEntries?: ProductionEntryUncheckedUpdateManyWithoutProductNestedInput
   }
@@ -20333,6 +20366,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
     orderItems?: OrderItemCreateNestedManyWithoutProductInput
   }
@@ -20345,6 +20379,7 @@ export namespace Prisma {
     unit: string
     category?: string
     isActive?: boolean
+    trackInventory?: boolean
     createdAt?: Date | string
     orderItems?: OrderItemUncheckedCreateNestedManyWithoutProductInput
   }
@@ -20414,6 +20449,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUpdateManyWithoutProductNestedInput
   }
@@ -20426,6 +20462,7 @@ export namespace Prisma {
     unit?: StringFieldUpdateOperationsInput | string
     category?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    trackInventory?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     orderItems?: OrderItemUncheckedUpdateManyWithoutProductNestedInput
   }

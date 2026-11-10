@@ -10,7 +10,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Product | null>(null)
-  const [form, setForm] = useState({ name: '', description: '', price: '', unit: '', category: 'Categoría A' })
+  const [form, setForm] = useState({ name: '', description: '', price: '', unit: '', category: 'Categoría A', trackInventory: true })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>('Todas')
@@ -37,7 +37,7 @@ export default function AdminProducts() {
 
   const openCreate = () => {
     setEditing(null)
-    setForm({ name: '', description: '', price: '', unit: '', category: 'Categoría A' })
+    setForm({ name: '', description: '', price: '', unit: '', category: 'Categoría A', trackInventory: true })
     setError('')
     setShowModal(true)
   }
@@ -50,6 +50,7 @@ export default function AdminProducts() {
       price: product.price.toString(),
       unit: product.unit,
       category: product.category ?? 'Categoría A',
+      trackInventory: product.trackInventory !== false,
     })
     setError('')
     setShowModal(true)
@@ -72,6 +73,16 @@ export default function AdminProducts() {
       setError(err.response?.data?.message ?? 'Error al guardar')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleToggleInventory = async (product: Product) => {
+    try {
+      const nextVal = product.trackInventory === false ? true : false
+      await updateProduct(product.id, { trackInventory: nextVal })
+      fetchProducts()
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al cambiar control de inventario')
     }
   }
 
@@ -154,6 +165,7 @@ export default function AdminProducts() {
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Precio</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Unidad</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Categoría</th>
+                  <th className="text-center px-4 py-3 text-gray-600 font-medium">Inventario</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Estado</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Acciones</th>
                 </tr>
@@ -169,6 +181,20 @@ export default function AdminProducts() {
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryColor[product.category] ?? 'bg-gray-100 text-gray-600'}`}>
                         {product.category}
                       </span>
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleInventory(product)}
+                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
+                          product.trackInventory !== false
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                            : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100'
+                        }`}
+                        title="Haz clic para activar o desactivar este producto del reporte de inventario"
+                      >
+                        <span>{product.trackInventory !== false ? '📦 Rastrear' : '🚫 No rastrear'}</span>
+                      </button>
                     </td>
                     <td className="px-5 py-4">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -231,6 +257,23 @@ export default function AdminProducts() {
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Control de inventario checkbox */}
+              <div className="flex items-start gap-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl">
+                <input
+                  type="checkbox"
+                  id="trackInventory"
+                  checked={form.trackInventory}
+                  onChange={e => setForm({ ...form, trackInventory: e.target.checked })}
+                  className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                />
+                <label htmlFor="trackInventory" className="text-sm font-medium text-gray-800 cursor-pointer">
+                  Controlar en Inventario
+                  <span className="block text-xs font-normal text-gray-500 mt-0.5">
+                    Solo los productos con esta casilla activada aparecerán en el Reporte de Inventario y Kardex de producción.
+                  </span>
+                </label>
               </div>
 
               {error && (

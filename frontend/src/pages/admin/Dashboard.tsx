@@ -12,10 +12,11 @@ interface Stats {
   asignado: number
   entregado: number
   entrega_parcial: number
+  rechazado: number
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({ total: 0, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0, entrega_parcial: 0 })
+  const [stats, setStats] = useState<Stats>({ total: 0, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0, entrega_parcial: 0, rechazado: 0 })
   const [totalClients, setTotalClients] = useState(0)
   const [totalUsers, setTotalUsers] = useState(0)
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
@@ -30,8 +31,12 @@ export default function AdminDashboard() {
           getUsers()
         ])
 
-        const s: Stats = { total: orders.length, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0, entrega_parcial: 0 }
-        orders.forEach((o: Order) => { s[o.status]++ })
+        const s: Stats = { total: orders.length, pendiente: 0, aceptado: 0, asignado: 0, entregado: 0, entrega_parcial: 0, rechazado: 0 }
+        orders.forEach((o: Order) => {
+          if (s[o.status] !== undefined) {
+            s[o.status]++
+          }
+        })
 
         setStats(s)
         setTotalClients(clients.length)
@@ -51,7 +56,8 @@ export default function AdminDashboard() {
     aceptado:  'bg-blue-100 text-blue-700',
     asignado:  'bg-purple-100 text-purple-700',
     entregado: 'bg-green-100 text-green-700',
-    entrega_parcial: 'bg-orange-100 text-orange-700'
+    entrega_parcial: 'bg-orange-100 text-orange-700',
+    rechazado: 'bg-red-100 text-red-700'
   }
 
   if (loading) return (

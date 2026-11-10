@@ -18,6 +18,7 @@ export interface Product {
     unit: string
     category: string
     isActive: boolean
+    trackInventory?: boolean
 }
 
 export interface Region {
@@ -53,7 +54,7 @@ export interface OrderItem {
     product: Product
 }
 
-export type OrderStatus = 'pendiente' | 'aceptado' | 'asignado' | 'entregado' | 'entrega_parcial'
+export type OrderStatus = 'pendiente' | 'aceptado' | 'asignado' | 'entregado' | 'entrega_parcial' | 'rechazado'
 
 export interface Order {
     id: number

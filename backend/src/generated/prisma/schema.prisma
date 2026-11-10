@@ -89,14 +89,15 @@ model Client {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  price       Float
-  unit        String
-  category    String   @default("Categoría A")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String?
+  price          Float
+  unit           String
+  category       String   @default("Categoría A")
+  isActive       Boolean  @default(true)
+  trackInventory Boolean  @default(true)
+  createdAt      DateTime @default(now())
 
   orderItems        OrderItem[]
   productionEntries ProductionEntry[]

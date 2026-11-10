@@ -162,6 +162,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   unit: 'unit',
   category: 'category',
   isActive: 'isActive',
+  trackInventory: 'trackInventory',
   createdAt: 'createdAt'
 };
 

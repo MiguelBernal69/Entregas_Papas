@@ -106,7 +106,10 @@ export const getWarehouseStockBalance = async (filters: {
   }
 
   const products = await prisma.product.findMany({
-    where: productWhere,
+    where: {
+      ...productWhere,
+      trackInventory: true
+    },
     orderBy: { name: 'asc' }
   })
 

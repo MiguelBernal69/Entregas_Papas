@@ -97,7 +97,7 @@ export const getOne = async (req: AuthRequest, res: Response) => {
 
 export const create = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, description, price, unit, category } = req.body
+    const { name, description, price, unit, category, trackInventory } = req.body
 
     if (!name || !price || !unit) {
       res.status(400).json({ message: 'name, price y unit son requeridos' })
@@ -109,7 +109,8 @@ export const create = async (req: AuthRequest, res: Response) => {
       description,
       price: Number(price),
       unit,
-      category
+      category,
+      trackInventory: trackInventory !== undefined ? Boolean(trackInventory) : true
     })
     res.status(201).json(product)
   } catch (error: any) {
@@ -120,7 +121,8 @@ export const create = async (req: AuthRequest, res: Response) => {
 export const update = async (req: AuthRequest, res: Response) => {
   try {
     const data: any = { ...req.body }
-    if (data.price) data.price = Number(data.price)
+    if (data.price !== undefined) data.price = Number(data.price)
+    if (data.trackInventory !== undefined) data.trackInventory = Boolean(data.trackInventory)
 
     const product = await service.updateProduct(Number(req.params.id), data)
     res.json(product)

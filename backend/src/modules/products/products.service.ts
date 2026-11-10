@@ -34,6 +34,7 @@ export const createProduct = async (data: {
   price: number
   unit: string
   category?: string
+  trackInventory?: boolean
 }) => {
   const exists = await prisma.product.findFirst({ where: { name: data.name } })
   if (exists) throw new Error('Ya existe un producto con ese nombre')
@@ -41,7 +42,8 @@ export const createProduct = async (data: {
   return prisma.product.create({
     data: {
       ...data,
-      category: data.category?.trim() || 'Categoría A'
+      category: data.category?.trim() || 'Categoría A',
+      trackInventory: data.trackInventory !== undefined ? data.trackInventory : true
     }
   })
 }
@@ -52,6 +54,7 @@ export const updateProduct = async (id: number, data: {
   price?: number
   unit?: string
   category?: string
+  trackInventory?: boolean
 }) => {
   const product = await prisma.product.findUnique({ where: { id } })
   if (!product) throw new Error('Producto no encontrado')
@@ -89,7 +92,10 @@ export const getInventoryStats = async (filters: {
   }
 
   const products = await prisma.product.findMany({
-    where: productWhere,
+    where: {
+      ...productWhere,
+      trackInventory: true
+    },
     orderBy: { name: 'asc' }
   })
 
