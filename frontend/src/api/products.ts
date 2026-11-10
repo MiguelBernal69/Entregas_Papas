@@ -5,6 +5,8 @@ export const createProduct = async (data: any) => (await api.post('/products', d
 export const updateProduct = async (id: number, data: any) => (await api.put(`/products/${id}`, data)).data
 export const toggleProduct = async (id: number) => (await api.patch(`/products/${id}/toggle`)).data
 export const deleteProduct = async (id: number) => (await api.delete(`/products/${id}`)).data
+export const purgeProduct = async (id: number, adminPassword?: string) =>
+  (await api.delete(`/products/${id}/purge`, { data: { adminPassword } })).data
 export const getInventoryStats = async (params?: {
   startDate?: string
   endDate?: string

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
-import { getProducts, createProduct, updateProduct, toggleProduct, deleteProduct } from '../../api/products'
+import { getProducts, createProduct, updateProduct, toggleProduct, deleteProduct, purgeProduct } from '../../api/products'
 import type { Product } from '../../types'
 
 const CATEGORIES = ['Categoría A', 'Categoría B', 'Categoría C', 'Categoría D']
@@ -95,13 +95,27 @@ export default function AdminProducts() {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Está seguro de que desea eliminar este producto permanentemente?')) return
+  const handleDelete = async (product: Product) => {
+    if (!window.confirm(`¿Está seguro de que desea eliminar el producto "${product.name}"?`)) return
     try {
-      await deleteProduct(id)
+      await deleteProduct(product.id)
       fetchProducts()
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al eliminar el producto')
+      const msg = err.response?.data?.message || 'Error al eliminar el producto'
+      const wantsPurge = window.confirm(
+        `${msg}\n\n⚠️ ¿Deseas PURGAR COMPLETAMENTE este producto y borrar TODO su rastro (pedidos, historial y movimientos asociados)? Esta acción es definitiva e irreversible.`
+      )
+      if (wantsPurge) {
+        const password = window.prompt('Ingresa tu contraseña de administrador para confirmar la purga total:')
+        if (!password) return
+        try {
+          const res = await purgeProduct(product.id, password)
+          alert(res.message || 'Producto y todo su rastro eliminados correctamente')
+          fetchProducts()
+        } catch (purgeErr: any) {
+          alert(purgeErr.response?.data?.message || 'Error al purgar el producto')
+        }
+      }
     }
   }
 
@@ -205,7 +219,7 @@ export default function AdminProducts() {
                         {product.isActive ? 'Desactivar' : 'Activar'}
                       </button>
                       <button
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDelete(product)}
                         className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                       >
                         Eliminar

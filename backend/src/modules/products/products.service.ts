@@ -1,4 +1,5 @@
 import prisma from '../../prisma/client'
+import { verifyAdminPassword } from './production.service'
 
 export const getAllProducts = async (onlyActive = false) => {
   return prisma.product.findMany({
@@ -16,10 +17,83 @@ export const deleteProduct = async (id: number) => {
   if (!product) throw new Error('Producto no encontrado')
 
   if (product._count.orderItems > 0) {
-    throw new Error('No se puede eliminar un producto que ya tiene pedidos asociados. Considere desactivarlo en su lugar.')
+    throw new Error('No se puede eliminar un producto que ya tiene pedidos asociados. Considere desactivarlo en su lugar o usar la ruta de purga total.')
   }
 
   return prisma.product.delete({ where: { id } })
+}
+
+export const purgeProduct = async (id: number, userId?: number, adminPassword?: string) => {
+  if (userId) {
+    await verifyAdminPassword(userId, adminPassword)
+  }
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      orderItems: {
+        select: {
+          id: true,
+          orderId: true
+        }
+      },
+      productionEntries: {
+        select: {
+          id: true
+        }
+      }
+    }
+  })
+
+  if (!product) throw new Error('Producto no encontrado')
+
+  return prisma.$transaction(async (tx) => {
+    // 1. Identificar órdenes afectadas
+    const affectedOrderIds = Array.from(new Set(product.orderItems.map(item => item.orderId)))
+
+    // 2. Eliminar OrderItems asociados a este producto
+    const deletedOrderItems = await tx.orderItem.deleteMany({
+      where: { productId: id }
+    })
+
+    // 3. Revisar cada orden afectada: si quedó sin ítems, eliminar historial y orden
+    let deletedOrdersCount = 0
+    for (const orderId of affectedOrderIds) {
+      const remainingItems = await tx.orderItem.count({
+        where: { orderId }
+      })
+      if (remainingItems === 0) {
+        await tx.orderHistory.deleteMany({
+          where: { orderId }
+        })
+        await tx.order.delete({
+          where: { id: orderId }
+        })
+        deletedOrdersCount++
+      }
+    }
+
+    // 4. Eliminar entradas de producción de este producto
+    const deletedProductionEntries = await tx.productionEntry.deleteMany({
+      where: { productId: id }
+    })
+
+    // 5. Eliminar el producto
+    await tx.product.delete({
+      where: { id }
+    })
+
+    return {
+      message: `Producto "${product.name}" y todo su rastro han sido eliminados permanentemente`,
+      purged: {
+        productId: id,
+        productName: product.name,
+        orderItemsDeleted: deletedOrderItems.count,
+        ordersDeleted: deletedOrdersCount,
+        productionEntriesDeleted: deletedProductionEntries.count
+      }
+    }
+  })
 }
 
 export const getProductById = async (id: number) => {

@@ -11,7 +11,8 @@ import {
   create,
   update,
   toggle,
-  remove
+  remove,
+  purge
 } from './products.controller'
 import { authenticate } from '../../middlewares/auth.middleware'
 import { authorize } from '../../middlewares/role.middleware'
@@ -32,5 +33,6 @@ router.post('/', authorize('admin'), create)
 router.put('/:id', authorize('admin'), update)
 router.patch('/:id/toggle', authorize('admin'), toggle)
 router.delete('/:id', authorize('admin'), remove)
+router.delete('/:id/purge', authorize('admin'), purge)
 
 export default router

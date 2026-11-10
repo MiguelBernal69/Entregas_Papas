@@ -169,3 +169,13 @@ export const remove = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ message: error.message })
   }
 }
+
+export const purge = async (req: AuthRequest, res: Response) => {
+  try {
+    const adminPassword = req.body?.adminPassword || req.body?.password
+    const result = await service.purgeProduct(Number(req.params.id), req.user?.id, adminPassword)
+    res.json(result)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
