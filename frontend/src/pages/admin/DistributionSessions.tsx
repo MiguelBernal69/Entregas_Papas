@@ -279,7 +279,7 @@ function ReportContent({ report }: { report: any }) {
   return (
     <div className="space-y-6">
       {/* Resumen */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-green-700">
             Bs. {(resumen.totalRecaudado ?? 0).toFixed(2)}
@@ -293,6 +293,10 @@ function ReportContent({ report }: { report: any }) {
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-orange-700">{resumen.pedidosPendientes ?? 0}</div>
           <div className="text-xs text-orange-600 mt-1">Pendientes</div>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-red-700">{resumen.pedidosRechazados ?? 0}</div>
+          <div className="text-xs text-red-600 mt-1">Rechazados</div>
         </div>
         <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-purple-700">{resumen.totalPedidos ?? 0}</div>
@@ -328,6 +332,35 @@ function ReportContent({ report }: { report: any }) {
                     )}
                   </td>
                   <td className="px-3 py-2 text-right font-medium">Bs. {p.monto.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Tabla de Bonificaciones Entregadas */}
+      {report.bonificacionesEntregadas && report.bonificacionesEntregadas.length > 0 && (
+        <div>
+          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <span>🎁 Bonificaciones Entregadas (Gratis / Promoción)</span>
+          </h3>
+          <table className="w-full text-sm">
+            <thead className="bg-emerald-50">
+              <tr>
+                <th className="text-left px-3 py-2 text-emerald-800 font-medium">Producto</th>
+                <th className="text-center px-3 py-2 text-emerald-800 font-medium">Pedida</th>
+                <th className="text-center px-3 py-2 text-emerald-800 font-medium">Entregada</th>
+                <th className="text-right px-3 py-2 text-emerald-800 font-medium">Costo</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {report.bonificacionesEntregadas.map((b: any, i: number) => (
+                <tr key={i}>
+                  <td className="px-3 py-2 font-medium text-gray-800">{b.name}</td>
+                  <td className="px-3 py-2 text-center">{b.cantidadPedida}</td>
+                  <td className="px-3 py-2 text-center text-emerald-600 font-bold">{b.cantidadEntregada}</td>
+                  <td className="px-3 py-2 text-right text-emerald-600 font-bold">GRATIS</td>
                 </tr>
               ))}
             </tbody>

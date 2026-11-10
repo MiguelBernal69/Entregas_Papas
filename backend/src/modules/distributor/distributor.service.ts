@@ -210,6 +210,61 @@ export const deliverOrder = async (
     return updated
 }
 
+/**
+ * El distribuidor rechaza un pedido (cliente no quiso aceptar).
+ * - Pone deliveredQuantity = 0 en todos los items
+ * - Cambia el status a 'rechazado'
+ * - Los productos vuelven al stockEnCamioneta en el reporte de sesión
+ */
+export const rejectOrder = async (
+    orderId: number,
+    distributorId: number,
+    notes?: string
+) => {
+    // Verificar que el pedido pertenece a este distribuidor y está asignado
+    const order = await prisma.order.findFirst({
+        where: { id: orderId, distributorId, status: 'asignado' },
+        include: { items: true }
+    })
+
+    if (!order) throw new Error('Pedido no encontrado, no te pertenece o no está en estado asignado')
+
+    // Transacción: marcar deliveredQuantity=0 en cada item + cambiar status
+    const updated = await prisma.$transaction(async (tx) => {
+        // Poner deliveredQuantity=0 en todos los items
+        for (const item of order.items) {
+            await tx.orderItem.update({
+                where: { id: item.id },
+                data: { deliveredQuantity: 0 }
+            })
+        }
+
+        return tx.order.update({
+            where: { id: orderId },
+            data: {
+                status: 'rechazado',
+                deliveredAt: new Date(),
+                ...(notes && { notes })
+            }
+        })
+    })
+
+    // Guardar historial con snapshot
+    const snapshot = await buildSnapshot(orderId)
+    await prisma.orderHistory.create({
+        data: {
+            orderId,
+            changedBy: distributorId,
+            action: 'rejected',
+            previousStatus: 'asignado',
+            newStatus: 'rechazado',
+            snapshotData: snapshot
+        }
+    })
+
+    return updated
+}
+
 // Helper para construir snapshot del pedido
 const buildSnapshot = async (orderId: number) => {
     const order = await prisma.order.findUnique({

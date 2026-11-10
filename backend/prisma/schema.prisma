@@ -21,6 +21,7 @@ enum OrderStatus {
   asignado
   entregado
   entrega_parcial
+  rechazado
 }
 
 enum OrderAction {
@@ -29,6 +30,7 @@ enum OrderAction {
   status_changed
   assigned
   delivered
+  rejected
 }
 
 model User {

@@ -227,7 +227,8 @@ export const getDailyReport = async (options: {
     aceptado: 0,
     asignado: 0,
     entregado: 0,
-    entrega_parcial: 0
+    entrega_parcial: 0,
+    rechazado: 0
   }
 
   const productsMap = new Map<number, {

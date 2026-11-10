@@ -11,7 +11,9 @@ const statusColor: Record<string, string> = {
   pendiente: 'bg-yellow-100 text-yellow-700',
   aceptado:  'bg-blue-100 text-blue-700',
   asignado:  'bg-purple-100 text-purple-700',
-  entregado: 'bg-green-100 text-green-700'
+  entregado: 'bg-green-100 text-green-700',
+  entrega_parcial: 'bg-orange-100 text-orange-700',
+  rechazado: 'bg-red-100 text-red-700'
 }
 
 const PAGE_SIZE = 30
@@ -158,6 +160,9 @@ export default function AdminOrders() {
               <option value="pendiente">Pendiente</option>
               <option value="aceptado">Aceptado</option>
               <option value="asignado">Asignado</option>
+              <option value="entregado">Entregado</option>
+              <option value="entrega_parcial">Entrega Parcial</option>
+              <option value="rechazado">Rechazado</option>
             </select>
 
             <select

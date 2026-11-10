@@ -232,6 +232,106 @@ class _OrdersScreenState extends State<OrdersScreen>
     }
   }
 
+  /// Rechaza un pedido — el cliente no quiso aceptarlo.
+  /// Todos los productos vuelven al stock del camión (deliveredQuantity=0).
+  Future<void> _reject(Order order) async {
+    // Pedir motivo de rechazo
+    final TextEditingController reasonCtrl = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.cancel, color: Colors.red, size: 22),
+            SizedBox(width: 8),
+            Text('Rechazar Pedido', style: TextStyle(fontSize: 17)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'El pedido de ${order.client.name} será marcado como rechazado.\n'
+              'Los productos volverán al stock del camión.',
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonCtrl,
+              decoration: InputDecoration(
+                labelText: 'Motivo de rechazo (obligatorio)',
+                hintText: 'Ej. Cliente no estaba, no quiso aceptar...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.block, size: 16),
+            label: const Text('Confirmar Rechazo'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              if (reasonCtrl.text.trim().isEmpty) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(content: Text('Debes ingresar un motivo de rechazo')),
+                );
+                return;
+              }
+              Navigator.pop(ctx, true);
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      reasonCtrl.dispose();
+      return;
+    }
+
+    final reason = reasonCtrl.text.trim();
+    reasonCtrl.dispose();
+
+    try {
+      final ok = await OrderService.rejectOrder(order.id, notes: reason);
+      if (ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('🚫 Pedido rechazado — productos de vuelta al camión'),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+        _pendingListKey.currentState?.removeOrder(order.id);
+        _historyListKey.currentState?.refresh();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.read<AuthProvider>().user;
@@ -317,6 +417,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             status: 'asignado',
             emptyMessage: 'No tienes pedidos pendientes',
             onDeliver: _deliver,
+            onReject: _reject,
             onOrdersUpdated: _onPendingOrdersUpdated,
           ),
           _PaginatedOrderList(
@@ -361,6 +462,7 @@ class _PaginatedOrderList extends StatefulWidget {
   final String emptyMessage;
   final bool isHistory;
   final Function(Order)? onDeliver;
+  final Function(Order)? onReject;
   final Function(List<Order>)? onOrdersUpdated;
   final Widget? headerWidget;
 
@@ -371,6 +473,7 @@ class _PaginatedOrderList extends StatefulWidget {
     required this.emptyMessage,
     this.isHistory = false,
     this.onDeliver,
+    this.onReject,
     this.onOrdersUpdated,
     this.headerWidget,
   });
@@ -548,6 +651,9 @@ class _PaginatedOrderListState extends State<_PaginatedOrderList>
               onDeliver: widget.onDeliver != null
                   ? () => widget.onDeliver!(order)
                   : null,
+              onReject: widget.onReject != null
+                  ? () => widget.onReject!(order)
+                  : null,
               isHistory: widget.isHistory,
               onUpdate: _fetchInitial,
             );
@@ -605,12 +711,14 @@ class _PaginatedOrderListState extends State<_PaginatedOrderList>
 class _OrderCard extends StatelessWidget {
   final Order order;
   final VoidCallback? onDeliver;
+  final VoidCallback? onReject;
   final bool isHistory;
   final VoidCallback? onUpdate;
 
   const _OrderCard({
     required this.order,
     this.onDeliver,
+    this.onReject,
     this.isHistory = false,
     this.onUpdate,
   });
@@ -929,7 +1037,7 @@ class _OrderCard extends StatelessWidget {
 
             if (!isHistory) ...[
               const SizedBox(height: 12),
-              // Botones en pendientes
+              // Botones en pendientes — fila 1: Mapa y Boleta
               Row(
                 children: [
                   OutlinedButton.icon(
@@ -969,27 +1077,53 @@ class _OrderCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (onDeliver != null) ...[
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: onDeliver,
-                        icon: const Icon(Icons.check_circle_outline, size: 16),
-                        label: const Text('Entregar'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                ],
+              ),
+              // Botones en pendientes — fila 2: Rechazar y Entregar
+              if (onDeliver != null || onReject != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    if (onReject != null) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onReject,
+                          icon: const Icon(Icons.block, size: 16, color: Colors.red),
+                          label: const Text(
+                            'Rechazar',
+                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            side: const BorderSide(color: Colors.red),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (onDeliver != null)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: onDeliver,
+                          icon: const Icon(Icons.check_circle_outline, size: 16),
+                          label: const Text('Entregar'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
-                ],
-              ),
+                ),
+              ],
             ],
 
             if (isHistory) ...[
@@ -1058,12 +1192,17 @@ class _OrderCard extends StatelessWidget {
   }
 
   Color _getStatusColor(bool history, bool partial) {
-    if (!history) return const Color(0xFF8B5CF6);
+    if (!history) {
+      if (order.status == 'rechazado') return Colors.red;
+      return const Color(0xFF8B5CF6);
+    }
     if (partial) return Colors.orange;
+    if (order.status == 'rechazado') return Colors.red;
     return Colors.green;
   }
 
   String _getStatusLabel(bool history, bool partial, int orderId) {
+    if (order.status == 'rechazado') return 'RECHAZADO';
     if (!history) return 'Pedido #$orderId';
     if (partial) return 'PARCIAL';
     return 'ENTREGADO';

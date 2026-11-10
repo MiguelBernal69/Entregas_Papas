@@ -56,6 +56,7 @@ export const getSessionReport = async (distributorId: number) => {
             distributorId,
             OR: [
                 { status: 'asignado' },
+                { status: 'rechazado' },  // rechazado: vuelven al stock del camión
                 {
                     status: { in: ['entregado', 'entrega_parcial'] },
                     deliveredAt: { gte: session.openedAt }
@@ -76,8 +77,13 @@ export const getSessionReport = async (distributorId: number) => {
     let totalRecaudado = 0
     let puntosEntregados = 0
     let pedidosPendientes = 0
-    const productosVendidos: Record<string, { name: string; unit: string; cantidadPedida: number; cantidadEntregada: number; cantidadDevuelta: number; monto: number }> = {}
-    const stockEnCamioneta: Record<string, { name: string; unit: string; cantidad: number }> = {}
+    let pedidosRechazados = 0
+
+    // Key = productId para evitar colisión de nombres
+    // Separado en regulares y bonificaciones
+    const regularVendidos: Record<string, { productId: number; name: string; unit: string; cantidadPedida: number; cantidadEntregada: number; cantidadDevuelta: number; monto: number }> = {}
+    const bonificacionesVendidas: Record<string, { productId: number; name: string; unit: string; cantidadPedida: number; cantidadEntregada: number }> = {}
+    const stockEnCamioneta: Record<string, { productId: number; name: string; unit: string; cantidad: number }> = {}
 
     for (const order of orders) {
         const status = order.status
@@ -86,34 +92,69 @@ export const getSessionReport = async (distributorId: number) => {
             puntosEntregados++
 
             for (const item of order.items) {
+                const isBoni = item.isBonification
                 const delivered = item.deliveredQuantity ?? item.quantity
                 const devuelto = item.quantity - delivered
-                const monto = delivered * item.unitPrice
+                // Bonificaciones no suman dinero (unitPrice=0, pero lo hacemos explícito)
+                const monto = isBoni ? 0 : delivered * item.unitPrice
                 totalRecaudado += monto
 
-                const key = item.product.name
-                if (!productosVendidos[key]) {
-                    productosVendidos[key] = {
-                        name: item.product.name,
-                        unit: item.product.unit,
-                        cantidadPedida: 0,
-                        cantidadEntregada: 0,
-                        cantidadDevuelta: 0,
-                        monto: 0
+                const key = String(item.productId)
+
+                if (isBoni) {
+                    // Acumular bonificaciones por separado
+                    if (!bonificacionesVendidas[key]) {
+                        bonificacionesVendidas[key] = {
+                            productId: item.productId,
+                            name: item.product.name,
+                            unit: item.product.unit,
+                            cantidadPedida: 0,
+                            cantidadEntregada: 0
+                        }
+                    }
+                    bonificacionesVendidas[key].cantidadPedida += item.quantity
+                    bonificacionesVendidas[key].cantidadEntregada += delivered
+                } else {
+                    // Acumular productos regulares vendidos
+                    if (!regularVendidos[key]) {
+                        regularVendidos[key] = {
+                            productId: item.productId,
+                            name: item.product.name,
+                            unit: item.product.unit,
+                            cantidadPedida: 0,
+                            cantidadEntregada: 0,
+                            cantidadDevuelta: 0,
+                            monto: 0
+                        }
+                    }
+                    regularVendidos[key].cantidadPedida += item.quantity
+                    regularVendidos[key].cantidadEntregada += delivered
+                    regularVendidos[key].cantidadDevuelta += devuelto
+                    regularVendidos[key].monto += monto
+
+                    // Devueltos de regulares vuelven al stock físico
+                    if (devuelto > 0) {
+                        if (!stockEnCamioneta[key]) {
+                            stockEnCamioneta[key] = {
+                                productId: item.productId,
+                                name: item.product.name,
+                                unit: item.product.unit,
+                                cantidad: 0
+                            }
+                        }
+                        stockEnCamioneta[key].cantidad += devuelto
                     }
                 }
-                productosVendidos[key].cantidadPedida += item.quantity
-                productosVendidos[key].cantidadEntregada += delivered
-                productosVendidos[key].cantidadDevuelta += devuelto
-                productosVendidos[key].monto += monto
             }
         } else if (status === 'asignado') {
             pedidosPendientes++
 
             for (const item of order.items) {
-                const key = item.product.name
+                if (item.isBonification) continue // bonificaciones no cuentan en stock físico del camión
+                const key = String(item.productId)
                 if (!stockEnCamioneta[key]) {
                     stockEnCamioneta[key] = {
+                        productId: item.productId,
                         name: item.product.name,
                         unit: item.product.unit,
                         cantidad: 0
@@ -121,21 +162,23 @@ export const getSessionReport = async (distributorId: number) => {
                 }
                 stockEnCamioneta[key].cantidad += item.quantity
             }
-        }
-    }
+        } else if (status === 'rechazado') {
+            pedidosRechazados++
 
-    // Agregar producto devuelto al stock en camioneta
-    for (const key of Object.keys(productosVendidos)) {
-        const p = productosVendidos[key]
-        if (p.cantidadDevuelta > 0) {
-            if (!stockEnCamioneta[key]) {
-                stockEnCamioneta[key] = {
-                    name: p.name,
-                    unit: p.unit,
-                    cantidad: 0
+            // Pedido rechazado: todos los ítems regulares vuelven al stock del camión
+            for (const item of order.items) {
+                if (item.isBonification) continue
+                const key = String(item.productId)
+                if (!stockEnCamioneta[key]) {
+                    stockEnCamioneta[key] = {
+                        productId: item.productId,
+                        name: item.product.name,
+                        unit: item.product.unit,
+                        cantidad: 0
+                    }
                 }
+                stockEnCamioneta[key].cantidad += item.quantity
             }
-            stockEnCamioneta[key].cantidad += p.cantidadDevuelta
         }
     }
 
@@ -149,9 +192,11 @@ export const getSessionReport = async (distributorId: number) => {
             totalRecaudado,
             puntosEntregados,
             pedidosPendientes,
+            pedidosRechazados,
             totalPedidos: orders.length
         },
-        productosVendidos: Object.values(productosVendidos),
+        productosVendidos: Object.values(regularVendidos),
+        bonificacionesEntregadas: Object.values(bonificacionesVendidas),
         stockEnCamioneta: Object.values(stockEnCamioneta),
         pedidos: orders.map(o => ({
             id: o.id,
@@ -162,7 +207,8 @@ export const getSessionReport = async (distributorId: number) => {
                 unit: i.product.unit,
                 quantity: i.quantity,
                 deliveredQuantity: i.deliveredQuantity,
-                unitPrice: i.unitPrice
+                unitPrice: i.unitPrice,
+                isBonification: i.isBonification
             }))
         }))
     }

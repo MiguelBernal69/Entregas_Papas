@@ -82,7 +82,8 @@ export const OrderStatus: {
   aceptado: 'aceptado',
   asignado: 'asignado',
   entregado: 'entregado',
-  entrega_parcial: 'entrega_parcial'
+  entrega_parcial: 'entrega_parcial',
+  rechazado: 'rechazado'
 };
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
@@ -93,7 +94,8 @@ export const OrderAction: {
   updated: 'updated',
   status_changed: 'status_changed',
   assigned: 'assigned',
-  delivered: 'delivered'
+  delivered: 'delivered',
+  rejected: 'rejected'
 };
 
 export type OrderAction = (typeof OrderAction)[keyof typeof OrderAction]

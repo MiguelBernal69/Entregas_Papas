@@ -54,6 +54,21 @@ export const deliverOrder = async (req: AuthRequest, res: Response) => {
     }
 }
 
+export const rejectOrder = async (req: AuthRequest, res: Response) => {
+    try {
+        const notes = req.body.notes as string | undefined
+
+        const order = await service.rejectOrder(
+            Number(req.params.id),
+            req.user!.id,
+            notes
+        )
+        res.json({ message: 'Pedido rechazado. Los productos volvieron al stock del camión.', order })
+    } catch (error: any) {
+        res.status(400).json({ message: error.message })
+    }
+}
+
 // ─── Sesiones de Distribución ──────────────────────────────
 
 export const getActiveSession = async (req: AuthRequest, res: Response) => {

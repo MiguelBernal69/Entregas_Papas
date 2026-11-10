@@ -74,4 +74,26 @@ class OrderService {
       throw Exception('Error HTTP ${res.statusCode}');
     }
   }
+
+  /// Rechaza un pedido (cliente no quiso aceptar).
+  /// Pone deliveredQuantity=0 en todos los items y cambia status a 'rechazado'.
+  static Future<bool> rejectOrder(int orderId, {String? notes}) async {
+    final Map<String, dynamic> payload = {};
+    if (notes != null && notes.isNotEmpty) payload['notes'] = notes;
+
+    final res = await http.patch(
+      Uri.parse('${Api.baseUrl}/distributor/orders/$orderId/reject'),
+      headers: await _headers(),
+      body: jsonEncode(payload),
+    );
+    if (res.statusCode == 200) return true;
+
+    try {
+      final data = jsonDecode(res.body);
+      throw Exception(data['message'] ?? 'Error al rechazar el pedido');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Error HTTP ${res.statusCode}');
+    }
+  }
 }

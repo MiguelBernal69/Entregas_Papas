@@ -267,7 +267,8 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   aceptado: 'aceptado',
   asignado: 'asignado',
   entregado: 'entregado',
-  entrega_parcial: 'entrega_parcial'
+  entrega_parcial: 'entrega_parcial',
+  rechazado: 'rechazado'
 };
 
 exports.OrderAction = exports.$Enums.OrderAction = {
@@ -275,7 +276,8 @@ exports.OrderAction = exports.$Enums.OrderAction = {
   updated: 'updated',
   status_changed: 'status_changed',
   assigned: 'assigned',
-  delivered: 'delivered'
+  delivered: 'delivered',
+  rejected: 'rejected'
 };
 
 exports.SessionStatus = exports.$Enums.SessionStatus = {
