@@ -57,9 +57,15 @@ echo "   ✅ Commit: $(git log -1 --oneline)"
 # ── PASO 3: Migración de base de datos (safe) ─────────────────────
 echo ""
 echo "🗄️  [3/7] Aplicando migración de base de datos..."
-echo "   Columnas nuevas con DEFAULT → datos existentes NO se tocan"
+echo "   Ejecutando npx prisma migrate deploy..."
 
-PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" << 'MIGRATION_SQL'
+cd "$APP_DIR/backend"
+# Intentar aplicar las migraciones con Prisma formalmente
+if npx prisma migrate deploy; then
+  echo "   ✅ prisma migrate deploy aplicado exitosamente"
+else
+  echo "   ⚠️ Advertencia en prisma migrate deploy. Verificando/aplicando con SQL seguro idempotente..."
+  PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" << 'MIGRATION_SQL'
 -- 1. Estados de Pedidos y Acciones en ENUMs
 ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'rechazado';
 ALTER TYPE "OrderAction" ADD VALUE IF NOT EXISTS 'rejected';
@@ -118,10 +124,11 @@ CREATE TABLE IF NOT EXISTS "ProductionEntry" (
   CONSTRAINT "ProductionEntry_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-SELECT 'Migración OK' AS resultado;
+SELECT 'Migración SQL de respaldo OK' AS resultado;
 MIGRATION_SQL
+fi
 
-echo "   ✅ Migración aplicada exitosamente sin afectar datos existentes"
+echo "   ✅ Migración completada sin afectar datos existentes"
 
 # ── PASO 4: Backend → npm install ─────────────────────────────────
 echo ""
