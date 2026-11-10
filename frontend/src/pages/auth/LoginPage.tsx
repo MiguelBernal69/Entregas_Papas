@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   // Si ya está logueado redirige
   if (user) {
-    if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />
+    if (user.role === 'admin') return <Navigate to="/admin/orders" replace />
     if (user.role === 'preventista') return <Navigate to="/preventista/clients" replace />
     return <Navigate to="/" replace />
   }
@@ -29,7 +29,7 @@ export default function LoginPage() {
       const res = await login(email, password)
       setAuth(res.token, res.user)
 
-      if (res.user.role === 'admin') navigate('/admin/dashboard')
+      if (res.user.role === 'admin') navigate('/admin/orders')
       else if (res.user.role === 'preventista') navigate('/preventista/clients')
       else setError('Este panel es solo para admin y preventistas')
     } catch (err: any) {

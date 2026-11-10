@@ -17,7 +17,6 @@ export default function Layout({ children }: Props) {
   const navigate = useNavigate()
 
   const adminNav: NavItem[] = [
-    { to: '/admin/dashboard', label: 'Dashboard',  icon: '📊' },
     { to: '/admin/orders',    label: 'Pedidos',     icon: '📦' },
     // { to: '/admin/history',   label: 'Historial',   icon: '📋' },
     { to: '/admin/map',       label: 'Mapa',        icon: '🗺️'  },

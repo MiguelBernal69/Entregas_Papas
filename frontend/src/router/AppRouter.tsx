@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext'
 import LoginPage from '../pages/auth/LoginPage'
 
 // Admin
-import AdminDashboard from '../pages/admin/Dashboard'
 import AdminUsers from '../pages/admin/Users'
 import AdminProducts from '../pages/admin/Products'
 import AdminOrders from '../pages/admin/Orders'
@@ -28,7 +27,7 @@ import DistributorOrders from '../pages/distribuidor/Orders'
 
 const RedirectByRole = () => {
   const { user } = useAuth()
-  if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin/orders" replace />
   if (user?.role === 'preventista') return <Navigate to="/preventista/clients" replace />
   if (user?.role === 'distribuidor') return <Navigate to="/distribuidor/orders" replace />
   return <Navigate to="/login" replace />
@@ -42,7 +41,7 @@ export const AppRouter = () => {
         <Route path="/" element={<ProtectedRoute><RedirectByRole /></ProtectedRoute>} />
 
         {/* Admin */}
-        <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/dashboard" element={<Navigate to="/admin/orders" replace />} />
         <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers /></ProtectedRoute>} />
         <Route path="/admin/products" element={<ProtectedRoute roles={['admin']}><AdminProducts /></ProtectedRoute>} />
         <Route path="/admin/inventory" element={<ProtectedRoute roles={['admin']}><AdminInventory /></ProtectedRoute>} />
