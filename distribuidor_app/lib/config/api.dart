@@ -16,7 +16,7 @@ class Api {
   //static const String baseUrl = 'http://10.0.2.2:3000/api'; // Local dev (emulador Android)
   //static const String baseUrl = 'http://192.168.1.148:3000/api'; // Local dev (dispositivo físico WiFi)
   //static const String baseUrl = 'http://192.168.100.4:3000/api';
-  //static const String baseUrl = 'http://192.168.3.162:3000/api';
+  //static const String baseUrl = 'http://192.168.3.167:3000/api';
 
   /// Convierte la photoUrl guardada en la DB a una URL completa accesible.
   /// Maneja tanto rutas relativas ('uploads/clients/foto.jpg')
