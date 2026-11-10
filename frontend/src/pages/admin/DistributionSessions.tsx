@@ -239,7 +239,7 @@ export default function DistributionSessions() {
       {/* Modal detalle del reporte */}
       {detail && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">
@@ -380,6 +380,311 @@ function ReportContent({ report }: { report: any }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Detalle desplegable de todos los pedidos */}
+      <PedidosExpandable pedidos={report.pedidos || []} />
+    </div>
+  )
+}
+
+function PedidosExpandable({ pedidos }: { pedidos: any[] }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<string>('todos')
+  const [openOrderIds, setOpenOrderIds] = useState<Set<number>>(new Set())
+
+  const entregados = pedidos.filter(p => p.status === 'entregado').length
+  const parciales  = pedidos.filter(p => p.status === 'entrega_parcial').length
+  const rechazados = pedidos.filter(p => p.status === 'rechazado').length
+  const pendientes = pedidos.filter(p => p.status === 'asignado' || p.status === 'pendiente').length
+
+  const filteredPedidos = pedidos.filter(p => {
+    if (filterStatus === 'todos') return true
+    if (filterStatus === 'pendientes') return p.status === 'asignado' || p.status === 'pendiente'
+    return p.status === filterStatus
+  })
+
+  const toggleOrder = (orderId: number) => {
+    setOpenOrderIds(prev => {
+      const next = new Set(prev)
+      if (next.has(orderId)) {
+        next.delete(orderId)
+      } else {
+        next.add(orderId)
+      }
+      return next
+    })
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'entregado':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">✅ Entregado</span>
+      case 'entrega_parcial':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">⚠️ Parcial</span>
+      case 'rechazado':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">🚫 Rechazado</span>
+      case 'asignado':
+      case 'pendiente':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">🕐 Pendiente</span>
+      default:
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">{status}</span>
+    }
+  }
+
+  return (
+    <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm bg-white">
+      {/* Cabecera del desplegable */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(prev => !prev)}
+        className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors text-left"
+      >
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📋</span>
+            <span className="font-bold text-gray-800 text-base">Detalle de Pedidos de la Jornada</span>
+            <span className="text-xs bg-gray-200 text-gray-700 font-semibold px-2 py-0.5 rounded-full">
+              {pedidos.length} {pedidos.length === 1 ? 'pedido' : 'pedidos'}
+            </span>
+          </div>
+
+          {/* Badges de resumen rápido */}
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {entregados > 0 && (
+              <span className="text-xs font-medium px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">
+                {entregados} entregados
+              </span>
+            )}
+            {parciales > 0 && (
+              <span className="text-xs font-medium px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md">
+                {parciales} parciales
+              </span>
+            )}
+            {rechazados > 0 && (
+              <span className="text-xs font-medium px-2 py-0.5 bg-red-100 text-red-800 rounded-md">
+                {rechazados} rechazados
+              </span>
+            )}
+            {pendientes > 0 && (
+              <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">
+                {pendientes} pendientes
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-gray-500 font-medium text-sm">
+          <span>{isExpanded ? 'Ocultar' : 'Ver pedidos'}</span>
+          <span className={`transform transition-transform text-lg ${isExpanded ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </div>
+      </button>
+
+      {/* Contenido expandible */}
+      {isExpanded && (
+        <div className="p-4 border-t border-gray-200 space-y-4">
+          {/* Filtros rápidos por estado */}
+          {pedidos.length > 0 && (
+            <div className="flex flex-wrap gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setFilterStatus('todos')}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                  filterStatus === 'todos' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Todos ({pedidos.length})
+              </button>
+              {entregados > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('entregado')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    filterStatus === 'entregado' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  Entregados ({entregados})
+                </button>
+              )}
+              {parciales > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('entrega_parcial')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    filterStatus === 'entrega_parcial' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                  }`}
+                >
+                  Parciales ({parciales})
+                </button>
+              )}
+              {rechazados > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('rechazado')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    filterStatus === 'rechazado' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'
+                  }`}
+                >
+                  Rechazados ({rechazados})
+                </button>
+              )}
+              {pendientes > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('pendientes')}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    filterStatus === 'pendientes' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  }`}
+                >
+                  Pendientes ({pendientes})
+                </button>
+              )}
+            </div>
+          )}
+
+          {filteredPedidos.length === 0 ? (
+            <p className="text-center text-sm text-gray-400 py-6">
+              No hay pedidos que coincidan con este filtro.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {filteredPedidos.map((pedido: any) => {
+                const isOpen = openOrderIds.has(pedido.id)
+                const items = pedido.items || []
+
+                let totalCalculado = 0
+                items.forEach((item: any) => {
+                  if (item.isBonification) return
+                  const cant = item.deliveredQuantity ?? item.quantity ?? 0
+                  totalCalculado += cant * (item.unitPrice || 0)
+                })
+
+                return (
+                  <div
+                    key={pedido.id}
+                    className="border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
+                  >
+                    {/* Fila del pedido */}
+                    <div
+                      onClick={() => toggleOrder(pedido.id)}
+                      className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer bg-white hover:bg-gray-50/75 select-none"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="pt-0.5">{getStatusBadge(pedido.status)}</div>
+                        <div>
+                          <div className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                            <span>Pedido #{pedido.id}</span>
+                            <span className="text-gray-400 font-normal">·</span>
+                            <span>{pedido.client?.name || 'Cliente sin nombre'}</span>
+                          </div>
+                          {pedido.client?.address && (
+                            <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                              <span>📍</span>
+                              <span className="truncate max-w-md">{pedido.client.address}</span>
+                            </div>
+                          )}
+                          {pedido.notes && (
+                            <div className="text-xs text-amber-700 bg-amber-50/80 px-2 py-0.5 rounded mt-1 border border-amber-200/50 inline-block">
+                              📝 {pedido.notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center">
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">Total</div>
+                          <div className="font-bold text-gray-800 text-sm">
+                            Bs. {totalCalculado.toFixed(2)}
+                          </div>
+                        </div>
+                        <span className={`text-gray-400 text-xs px-2 py-1 rounded bg-gray-100 flex items-center gap-1 font-medium`}>
+                          <span>{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+                          <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Detalle desplegable de items */}
+                    {isOpen && (
+                      <div className="bg-slate-50 border-t border-gray-200 p-3 sm:p-4 text-xs">
+                        <div className="font-medium text-gray-600 mb-2">Detalle de Productos:</div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left">
+                            <thead>
+                              <tr className="text-gray-500 border-b border-gray-200 pb-1">
+                                <th className="pb-1.5 font-medium">Producto</th>
+                                <th className="pb-1.5 font-medium text-center">Pedida</th>
+                                <th className="pb-1.5 font-medium text-center">Entregada</th>
+                                <th className="pb-1.5 font-medium text-center">Devuelta</th>
+                                <th className="pb-1.5 font-medium text-right">Precio U.</th>
+                                <th className="pb-1.5 font-medium text-right">Subtotal</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200/60">
+                              {items.map((it: any, idx: number) => {
+                                const isBoni = Boolean(it.isBonification)
+                                const pedida = it.quantity || 0
+                                const entregada = it.deliveredQuantity !== null && it.deliveredQuantity !== undefined
+                                  ? it.deliveredQuantity
+                                  : pedida
+                                const devuelta = Math.max(0, pedida - entregada)
+                                const unitPrice = it.unitPrice || 0
+                                const subtotal = entregada * unitPrice
+
+                                return (
+                                  <tr key={idx} className="hover:bg-slate-100/60">
+                                    <td className="py-2 font-medium text-gray-800">
+                                      <div className="flex items-center gap-1.5">
+                                        {isBoni && (
+                                          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                                            🎁 BONIF
+                                          </span>
+                                        )}
+                                        <span>{it.productName || 'Producto'}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-2 text-center text-gray-600">
+                                      {pedida} {it.unit || ''}
+                                    </td>
+                                    <td className="py-2 text-center font-bold text-emerald-700">
+                                      {entregada} {it.unit || ''}
+                                    </td>
+                                    <td className="py-2 text-center">
+                                      {devuelta > 0 ? (
+                                        <span className="text-amber-700 font-bold bg-amber-100 px-1.5 py-0.5 rounded">
+                                          {devuelta} {it.unit || ''}
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-400">0</span>
+                                      )}
+                                    </td>
+                                    <td className="py-2 text-right text-gray-600">
+                                      {isBoni ? '—' : `Bs. ${unitPrice.toFixed(2)}`}
+                                    </td>
+                                    <td className="py-2 text-right font-semibold text-gray-800">
+                                      {isBoni ? (
+                                        <span className="text-emerald-700 font-bold">GRATIS</span>
+                                      ) : (
+                                        `Bs. ${subtotal.toFixed(2)}`
+                                      )}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

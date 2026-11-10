@@ -232,6 +232,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final resumen = _report!['resumen'] as Map<String, dynamic>;
     final productosVendidos = _report!['productosVendidos'] as List<dynamic>;
     final stockEnCamioneta = _report!['stockEnCamioneta'] as List<dynamic>;
+    final pedidos = (_report!['pedidos'] as List<dynamic>?) ?? [];
 
     return RefreshIndicator(
       onRefresh: _fetchReport,
@@ -485,6 +486,12 @@ class _ReportScreenState extends State<ReportScreen> {
               ),
 
             const SizedBox(height: 32),
+
+            // ── Detalle de pedidos desplegable ──────────────────────────────
+            if (pedidos.isNotEmpty) ...[
+              _PedidosExpandable(pedidos: pedidos),
+              const SizedBox(height: 32),
+            ],
           ],
         ),
       ),
@@ -515,6 +522,257 @@ class _ReportScreenState extends State<ReportScreen> {
     return '${d.day}/${d.month}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }
+
+class _PedidosExpandable extends StatefulWidget {
+  final List<dynamic> pedidos;
+  const _PedidosExpandable({required this.pedidos});
+
+  @override
+  State<_PedidosExpandable> createState() => _PedidosExpandableState();
+}
+
+class _PedidosExpandableState extends State<_PedidosExpandable> {
+  bool _expanded = false;
+  final Set<int> _openedOrders = {};
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'entregado':       return Colors.green;
+      case 'entrega_parcial': return Colors.orange;
+      case 'rechazado':       return Colors.red;
+      case 'asignado':        return Colors.blue;
+      default:                return Colors.grey;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'entregado':       return '✅ Entregado';
+      case 'entrega_parcial': return '⚠️ Parcial';
+      case 'rechazado':       return '🚫 Rechazado';
+      case 'asignado':        return '🕐 Pendiente';
+      default:                return status;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entregados = widget.pedidos.where((p) => p['status'] == 'entregado').length;
+    final parciales  = widget.pedidos.where((p) => p['status'] == 'entrega_parcial').length;
+    final rechazados = widget.pedidos.where((p) => p['status'] == 'rechazado').length;
+    final pendientes = widget.pedidos.where((p) => p['status'] == 'asignado').length;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Cabecera desplegable
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(Icons.receipt_long, color: Color(0xFF3B82F6), size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Detalle de Pedidos',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 6,
+                          children: [
+                            if (entregados > 0) _badge('$entregados entregados', Colors.green),
+                            if (parciales  > 0) _badge('$parciales parciales',  Colors.orange),
+                            if (rechazados > 0) _badge('$rechazados rechazados', Colors.red),
+                            if (pendientes > 0) _badge('$pendientes pendientes', Colors.blue),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(_expanded ? Icons.expand_less : Icons.expand_more, color: Colors.grey),
+                ],
+              ),
+            ),
+          ),
+
+          // Lista de pedidos (si está expandido)
+          if (_expanded) ...[
+            const Divider(height: 1),
+            ...widget.pedidos.map((pedido) {
+              final orderId  = pedido['id'] as int? ?? 0;
+              final status   = pedido['status'] as String? ?? '';
+              final client   = pedido['client'] as Map<String, dynamic>? ?? {};
+              final items    = (pedido['items'] as List<dynamic>?) ?? [];
+              final isOpen   = _openedOrders.contains(orderId);
+
+              double totalPedido = 0;
+              for (final item in items) {
+                if (item['isBonification'] == true) continue;
+                final delivered = (item['deliveredQuantity'] as num?)?.toInt()
+                    ?? (item['quantity'] as num?)?.toInt() ?? 0;
+                final price = (item['unitPrice'] as num?)?.toDouble() ?? 0.0;
+                totalPedido += delivered * price;
+              }
+
+              return Column(
+                children: [
+                  // Fila del pedido
+                  InkWell(
+                    onTap: () => setState(() => isOpen
+                        ? _openedOrders.remove(orderId)
+                        : _openedOrders.add(orderId)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: _statusColor(status).withValues(alpha: 0.1),
+                            child: Icon(
+                              status == 'entregado'
+                                  ? Icons.check_circle
+                                  : status == 'entrega_parcial'
+                                      ? Icons.warning_amber
+                                      : status == 'rechazado'
+                                          ? Icons.block
+                                          : Icons.pending,
+                              color: _statusColor(status),
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  client['name'] ?? 'Cliente',
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  _statusLabel(status),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: _statusColor(status),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            'Bs. ${totalPedido.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Items del pedido
+                  if (isOpen)
+                    Container(
+                      color: Colors.grey.shade50,
+                      padding: const EdgeInsets.fromLTRB(52, 4, 16, 10),
+                      child: Column(
+                        children: items.map<Widget>((item) {
+                          final isBoni    = item['isBonification'] == true;
+                          final qty       = (item['quantity'] as num?)?.toInt() ?? 0;
+                          final delivered = (item['deliveredQuantity'] as num?)?.toInt() ?? qty;
+                          final devuelto  = qty - delivered;
+                          final price     = (item['unitPrice'] as num?)?.toDouble() ?? 0.0;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3),
+                            child: Row(
+                              children: [
+                                if (isBoni)
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade50,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: Colors.green.shade200),
+                                    ),
+                                    child: const Text('🎁', style: TextStyle(fontSize: 10)),
+                                  ),
+                                Expanded(
+                                  child: Text(
+                                    item['productName'] ?? '',
+                                    style: const TextStyle(fontSize: 12, color: Colors.black87),
+                                  ),
+                                ),
+                                Text(
+                                  isBoni
+                                      ? '${delivered}/${qty} ${item['unit'] ?? ''}'
+                                      : '${delivered}/${qty} · Bs.${(delivered * price).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: devuelto > 0
+                                        ? Colors.orange.shade700
+                                        : Colors.green.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                  const Divider(height: 1, indent: 16),
+                ],
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _badge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
 
 class _StatMiniCard extends StatelessWidget {
   final IconData icon;

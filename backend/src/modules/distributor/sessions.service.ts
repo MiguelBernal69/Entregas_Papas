@@ -209,6 +209,8 @@ export const getSessionReport = async (distributorId: number) => {
             id: o.id,
             status: o.status,
             client: o.client,
+            notes: o.notes,
+            deliveredAt: o.deliveredAt,
             items: o.items.map(i => ({
                 productName: i.product.name,
                 unit: i.product.unit,
