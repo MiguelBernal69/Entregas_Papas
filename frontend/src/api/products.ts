@@ -31,7 +31,18 @@ export const createProductionEntry = async (data: {
   quantity: number
   notes?: string
   date?: string
+  adminPassword?: string
 }) => (await api.post('/products/production', data)).data
 
-export const deleteProductionEntry = async (id: number) =>
-  (await api.delete(`/products/production/${id}`)).data
+export const updateProductionEntry = async (
+  id: number,
+  data: {
+    quantity: number
+    notes?: string
+    date?: string
+    adminPassword: string
+  }
+) => (await api.put(`/products/production/${id}`, data)).data
+
+export const deleteProductionEntry = async (id: number, adminPassword?: string) =>
+  (await api.delete(`/products/production/${id}`, { data: { adminPassword } })).data

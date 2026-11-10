@@ -5,6 +5,7 @@ import {
   getStockBalance,
   getProductionList,
   addProduction,
+  updateProduction,
   removeProduction,
   getOne,
   create,
@@ -24,6 +25,7 @@ router.get('/inventory-stats', authorize('admin'), getInventoryStats)
 router.get('/stock-balance', authorize('admin'), getStockBalance)
 router.get('/production', authorize('admin'), getProductionList)
 router.post('/production', authorize('admin'), addProduction)
+router.put('/production/:id', authorize('admin'), updateProduction)
 router.delete('/production/:id', authorize('admin'), removeProduction)
 router.get('/:id', authorize('admin', 'preventista'), getOne)
 router.post('/', authorize('admin'), create)

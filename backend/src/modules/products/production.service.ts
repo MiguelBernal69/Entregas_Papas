@@ -1,4 +1,23 @@
+import bcrypt from 'bcryptjs'
 import prisma from '../../prisma/client'
+
+/**
+ * Valida que la contraseña provista corresponda al administrador
+ */
+export const verifyAdminPassword = async (userId: number, password?: string) => {
+  if (!password || !password.trim()) {
+    throw new Error('Se requiere la contraseña de administrador para autorizar esta operación')
+  }
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user || user.role !== 'admin') {
+    throw new Error('Solo un usuario administrador puede autorizar esta acción')
+  }
+  const valid = await bcrypt.compare(password, user.password)
+  if (!valid) {
+    throw new Error('Contraseña de administrador incorrecta')
+  }
+  return true
+}
 
 interface CreateProductionInput {
   productId: number
@@ -6,16 +25,24 @@ interface CreateProductionInput {
   notes?: string
   date?: string
   userId?: number
+  adminPassword?: string
 }
 
 /**
- * Registra una nueva entrada de producción / mercadería al almacén
+ * Registra una nueva entrada de producción / mercadería al almacén.
+ * Si la cantidad es negativa (ajuste hacia abajo o corrección), exige contraseña de admin.
  */
 export const createProductionEntry = async (data: CreateProductionInput) => {
-  const { productId, quantity, notes, date, userId } = data
+  const { productId, quantity, notes, date, userId, adminPassword } = data
 
-  if (!productId || !quantity || quantity <= 0) {
-    throw new Error('El producto y una cantidad válida mayor a 0 son obligatorios')
+  if (!productId || quantity === 0 || isNaN(quantity)) {
+    throw new Error('El producto y una cantidad distinta de 0 son obligatorios')
+  }
+
+  // Si la cantidad es negativa (reducción o merma), exige confirmación con contraseña de admin
+  if (quantity < 0) {
+    if (!userId) throw new Error('Usuario no identificado')
+    await verifyAdminPassword(userId, adminPassword)
   }
 
   const product = await prisma.product.findUnique({ where: { id: productId } })
@@ -38,12 +65,60 @@ export const createProductionEntry = async (data: CreateProductionInput) => {
   })
 }
 
+interface UpdateProductionInput {
+  quantity: number
+  notes?: string
+  date?: string
+  adminPassword?: string
+}
+
 /**
- * Elimina una entrada de producción (por ejemplo si hubo error al registrar)
+ * Modifica una entrada de producción existente (ej: si se equivocó y era 95 en vez de 100).
+ * Requiere confirmación con la contraseña de administrador.
  */
-export const deleteProductionEntry = async (id: number) => {
+export const updateProductionEntry = async (
+  id: number,
+  data: UpdateProductionInput,
+  userId: number
+) => {
+  const { quantity, notes, date, adminPassword } = data
+
+  if (quantity === 0 || isNaN(quantity)) {
+    throw new Error('La cantidad no puede ser 0')
+  }
+
+  const existing = await prisma.productionEntry.findUnique({ where: { id } })
+  if (!existing) throw new Error('Entrada de producción no encontrada')
+
+  // Requiere contraseña de admin para autorizar modificación
+  await verifyAdminPassword(userId, adminPassword)
+
+  const entryDate = date ? new Date(`${date}T12:00:00.000-04:00`) : existing.date
+
+  return prisma.productionEntry.update({
+    where: { id },
+    data: {
+      quantity,
+      notes,
+      date: entryDate
+    },
+    include: {
+      product: { select: { id: true, name: true, unit: true, category: true } },
+      creator: { select: { id: true, name: true } }
+    }
+  })
+}
+
+/**
+ * Elimina una entrada de producción. Requiere contraseña de administrador.
+ */
+export const deleteProductionEntry = async (id: number, userId?: number, adminPassword?: string) => {
   const entry = await prisma.productionEntry.findUnique({ where: { id } })
   if (!entry) throw new Error('Entrada de producción no encontrada')
+
+  if (userId) {
+    await verifyAdminPassword(userId, adminPassword)
+  }
 
   return prisma.productionEntry.delete({ where: { id } })
 }

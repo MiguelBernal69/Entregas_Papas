@@ -34,15 +34,35 @@ export const getInventoryStats = async (req: AuthRequest, res: Response) => {
 
 export const addProduction = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, quantity, notes, date } = req.body
+    const { productId, quantity, notes, date, adminPassword } = req.body
     const entry = await prodService.createProductionEntry({
       productId: Number(productId),
       quantity: Number(quantity),
       notes,
       date,
-      userId: req.user?.id
+      userId: req.user?.id,
+      adminPassword
     })
     res.status(201).json(entry)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+export const updateProduction = async (req: AuthRequest, res: Response) => {
+  try {
+    const { quantity, notes, date, adminPassword } = req.body
+    const entry = await prodService.updateProductionEntry(
+      Number(req.params.id),
+      {
+        quantity: Number(quantity),
+        notes,
+        date,
+        adminPassword
+      },
+      req.user!.id
+    )
+    res.json(entry)
   } catch (error: any) {
     res.status(400).json({ message: error.message })
   }
@@ -65,7 +85,8 @@ export const getProductionList = async (req: AuthRequest, res: Response) => {
 
 export const removeProduction = async (req: AuthRequest, res: Response) => {
   try {
-    await prodService.deleteProductionEntry(Number(req.params.id))
+    const adminPassword = (req.body?.adminPassword || req.headers['x-admin-password'] || req.query?.adminPassword) as string | undefined
+    await prodService.deleteProductionEntry(Number(req.params.id), req.user?.id, adminPassword)
     res.json({ message: 'Entrada de producción eliminada correctamente' })
   } catch (error: any) {
     res.status(400).json({ message: error.message })

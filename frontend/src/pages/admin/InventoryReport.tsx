@@ -5,6 +5,7 @@ import {
   getStockBalance,
   getProductionEntries,
   createProductionEntry,
+  updateProductionEntry,
   deleteProductionEntry
 } from '../../api/products'
 
@@ -100,13 +101,24 @@ export default function InventoryReport() {
   const [stockSummary, setStockSummary] = useState<StockSummary | null>(null)
   const [productionHistory, setProductionHistory] = useState<ProductionEntryItem[]>([])
 
-  // Modal para agregar producción
+  // Modal para agregar / editar producción
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingEntry, setEditingEntry] = useState<ProductionEntryItem | null>(null)
+  const [entryType, setEntryType] = useState<'in' | 'out'>('in')
   const [selectedProductId, setSelectedProductId] = useState<number | ''>('')
   const [prodQuantity, setProdQuantity] = useState<number | ''>('')
   const [prodDate, setProdDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [prodNotes, setProdNotes] = useState<string>('')
+  const [adminPassword, setAdminPassword] = useState<string>('')
   const [submittingProd, setSubmittingProd] = useState(false)
+
+  // Modal para eliminar producción de forma segura
+  const [deleteModal, setDeleteModal] = useState<{ show: boolean; entry: ProductionEntryItem | null }>({
+    show: false,
+    entry: null
+  })
+  const [deletePassword, setDeletePassword] = useState('')
+  const [submittingDelete, setSubmittingDelete] = useState(false)
 
   // Calcula las fechas para los presets
   const getDateRangeForPreset = (preset: 'today' | 'yesterday' | 'week' | 'month' | 'all' | 'custom') => {
@@ -214,26 +226,70 @@ export default function InventoryReport() {
     )
   }, [stockBalances, searchTerm])
 
-  // Registrar nueva entrada de producción
+  // Abrir modal en modo crear
+  const handleOpenCreateModal = (productId?: number) => {
+    setEditingEntry(null)
+    setEntryType('in')
+    setSelectedProductId(productId ?? '')
+    setProdQuantity('')
+    setProdDate(new Date().toISOString().slice(0, 10))
+    setProdNotes('')
+    setAdminPassword('')
+    setShowAddModal(true)
+  }
+
+  // Abrir modal en modo editar
+  const handleOpenEditModal = (entry: ProductionEntryItem) => {
+    setEditingEntry(entry)
+    setEntryType(entry.quantity >= 0 ? 'in' : 'out')
+    setSelectedProductId(entry.productId)
+    setProdQuantity(Math.abs(entry.quantity))
+    setProdDate(entry.date.slice(0, 10))
+    setProdNotes(entry.notes || '')
+    setAdminPassword('')
+    setShowAddModal(true)
+  }
+
+  // Guardar (crear o editar) entrada de producción
   const handleSaveProduction = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedProductId || !prodQuantity || Number(prodQuantity) <= 0) {
-      alert('Selecciona un producto e ingresa una cantidad mayor a 0')
+    if (!selectedProductId || !prodQuantity || Number(prodQuantity) === 0) {
+      alert('Selecciona un producto e ingresa una cantidad distinta de 0')
+      return
+    }
+
+    const qty = entryType === 'out' ? -Math.abs(Number(prodQuantity)) : Math.abs(Number(prodQuantity))
+
+    // Si es edición o es ajuste hacia abajo (negativo), se exige contraseña de admin
+    if ((editingEntry || entryType === 'out') && !adminPassword.trim()) {
+      alert('Se requiere la contraseña de administrador para confirmar esta modificación o reducción de inventario')
       return
     }
 
     setSubmittingProd(true)
     try {
-      await createProductionEntry({
-        productId: Number(selectedProductId),
-        quantity: Number(prodQuantity),
-        date: prodDate,
-        notes: prodNotes.trim() || undefined
-      })
+      if (editingEntry) {
+        await updateProductionEntry(editingEntry.id, {
+          quantity: qty,
+          date: prodDate,
+          notes: prodNotes.trim() || undefined,
+          adminPassword
+        })
+      } else {
+        await createProductionEntry({
+          productId: Number(selectedProductId),
+          quantity: qty,
+          date: prodDate,
+          notes: prodNotes.trim() || undefined,
+          adminPassword: entryType === 'out' ? adminPassword : adminPassword || undefined
+        })
+      }
       setShowAddModal(false)
+      setEditingEntry(null)
       setSelectedProductId('')
       setProdQuantity('')
       setProdNotes('')
+      setAdminPassword('')
       fetchData()
     } catch (err: any) {
       alert(err.response?.data?.message || err.message || 'Error al guardar producción')
@@ -242,16 +298,30 @@ export default function InventoryReport() {
     }
   }
 
-  // Eliminar entrada de producción errónea
-  const handleDeleteProduction = async (id: number) => {
-    if (!window.confirm('¿Seguro que deseas eliminar esta entrada de producción? El stock se recalculará automáticamente.')) {
+  // Abrir modal de confirmación con contraseña para eliminar
+  const handleOpenDeleteModal = (entry: ProductionEntryItem) => {
+    setDeleteModal({ show: true, entry })
+    setDeletePassword('')
+  }
+
+  // Confirmar eliminación con contraseña de admin
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.entry) return
+    if (!deletePassword.trim()) {
+      alert('Debes ingresar la contraseña de administrador')
       return
     }
+
+    setSubmittingDelete(true)
     try {
-      await deleteProductionEntry(id)
+      await deleteProductionEntry(deleteModal.entry.id, deletePassword)
+      setDeleteModal({ show: false, entry: null })
+      setDeletePassword('')
       fetchData()
     } catch (err: any) {
-      alert('Error al eliminar entrada: ' + err.message)
+      alert(err.response?.data?.message || err.message || 'Error al eliminar entrada')
+    } finally {
+      setSubmittingDelete(false)
     }
   }
 
@@ -339,7 +409,7 @@ export default function InventoryReport() {
           <div className="flex items-center gap-2 flex-wrap">
             {activeTab === 'produccion' && (
               <button
-                onClick={() => setShowAddModal(true)}
+                onClick={() => handleOpenCreateModal()}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:scale-105"
               >
                 <span className="text-sm">➕</span>
@@ -669,10 +739,7 @@ export default function InventoryReport() {
                             {/* Acción Rápida */}
                             <td className="py-3.5 px-3 text-center no-print">
                               <button
-                                onClick={() => {
-                                  setSelectedProductId(s.product.id)
-                                  setShowAddModal(true)
-                                }}
+                                onClick={() => handleOpenCreateModal(s.product.id)}
                                 className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] px-2.5 py-1 rounded-lg transition-colors"
                               >
                                 + Entrada
@@ -726,9 +793,12 @@ export default function InventoryReport() {
                           <td className="py-2.5 px-3 font-bold text-gray-900">
                             {entry.product.name}
                           </td>
-                          <td className="py-2.5 px-3 text-center font-black text-blue-700">
-                            <span className="bg-blue-50 text-blue-800 px-2 py-0.5 rounded-lg">
-                              +{entry.quantity} {entry.product.unit}
+                          <td className="py-2.5 px-3 text-center font-black">
+                            <span className={`px-2 py-0.5 rounded-lg text-xs font-bold inline-flex items-center gap-1 ${
+                              entry.quantity >= 0 ? 'bg-blue-50 text-blue-800' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            }`}>
+                              <span>{entry.quantity >= 0 ? `+${entry.quantity}` : entry.quantity} {entry.product.unit}</span>
+                              {entry.quantity < 0 && <span className="text-[10px] text-rose-500 font-semibold">(Ajuste)</span>}
                             </span>
                           </td>
                           <td className="py-2.5 px-3 text-gray-500">
@@ -738,12 +808,20 @@ export default function InventoryReport() {
                             {entry.creator?.name || 'Administración'}
                           </td>
                           <td className="py-2.5 px-3 text-right">
-                            <button
-                              onClick={() => handleDeleteProduction(entry.id)}
-                              className="text-rose-500 hover:text-rose-700 text-xs font-bold hover:underline"
-                            >
-                              Eliminar
-                            </button>
+                            <div className="flex items-center justify-end gap-2.5">
+                              <button
+                                onClick={() => handleOpenEditModal(entry)}
+                                className="text-blue-600 hover:text-blue-800 text-xs font-bold hover:underline"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleOpenDeleteModal(entry)}
+                                className="text-rose-500 hover:text-rose-700 text-xs font-bold hover:underline"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -949,16 +1027,23 @@ export default function InventoryReport() {
           </div>
         )}
 
-        {/* ─── MODAL PARA REGISTRAR PRODUCCIÓN / ENTRADA A ALMACÉN ─── */}
+        {/* ─── MODAL PARA REGISTRAR O EDITAR PRODUCCIÓN / ENTRADA A ALMACÉN ─── */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-up border border-gray-100">
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🏭</span>
-                  <h3 className="font-black text-gray-900 text-base">
-                    Registrar Producción / Entrada a Almacén
-                  </h3>
+                  <span className="text-xl">{editingEntry ? '✏️' : '🏭'}</span>
+                  <div>
+                    <h3 className="font-black text-gray-900 text-base leading-tight">
+                      {editingEntry ? 'Modificar Registro de Producción' : 'Registrar Producción / Ajuste'}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      {editingEntry
+                        ? 'Corrige la cantidad de este registro con tu contraseña de admin'
+                        : 'Ingresa nueva producción o descuenta por corrección / merma'}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowAddModal(false)}
@@ -969,45 +1054,82 @@ export default function InventoryReport() {
               </div>
 
               <form onSubmit={handleSaveProduction} className="mt-4 space-y-4">
+                {/* Selector de Tipo (Entrada vs Ajuste/Reducción) */}
+                <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setEntryType('in')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                      entryType === 'in'
+                        ? 'bg-white text-blue-700 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    ➕ Entrada (+) Aumentar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEntryType('out')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                      entryType === 'out'
+                        ? 'bg-rose-50 text-rose-700 shadow-sm border border-rose-200'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    ➖ Ajuste / Reducción (-)
+                  </button>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Seleccionar Producto: *
+                    Producto: *
                   </label>
-                  <select
-                    value={selectedProductId}
-                    onChange={e => setSelectedProductId(e.target.value ? Number(e.target.value) : '')}
-                    required
-                    className="w-full text-xs font-semibold border border-gray-300 rounded-xl p-2.5 bg-white text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
-                  >
-                    <option value="">-- Elige un producto --</option>
-                    {stockBalances.map(s => (
-                      <option key={s.product.id} value={s.product.id}>
-                        {s.product.name} ({s.product.unit}) - Cat: {s.product.category}
-                      </option>
-                    ))}
-                  </select>
+                  {editingEntry ? (
+                    <div className="w-full text-xs font-bold border border-gray-200 rounded-xl p-2.5 bg-gray-50 text-gray-800">
+                      {editingEntry.product.name} ({editingEntry.product.unit})
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedProductId}
+                      onChange={e => setSelectedProductId(e.target.value ? Number(e.target.value) : '')}
+                      required
+                      className="w-full text-xs font-semibold border border-gray-300 rounded-xl p-2.5 bg-white text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                      <option value="">-- Elige un producto --</option>
+                      {stockBalances.map(s => (
+                        <option key={s.product.id} value={s.product.id}>
+                          {s.product.name} ({s.product.unit}) - Cat: {s.product.category}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Cantidad Producida: *
+                      {entryType === 'out' ? 'Cantidad a Descontar: *' : 'Cantidad Producida: *'}
                     </label>
                     <input
                       type="number"
                       min="1"
                       step="1"
                       required
-                      placeholder="Ej. 200"
+                      placeholder={entryType === 'out' ? 'Ej. 5' : 'Ej. 100'}
                       value={prodQuantity}
                       onChange={e => setProdQuantity(e.target.value ? Number(e.target.value) : '')}
                       className="w-full text-xs font-bold border border-gray-300 rounded-xl p-2.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
+                    {entryType === 'out' && (
+                      <span className="text-[10px] text-rose-600 mt-0.5 block font-medium">
+                        Se restará del stock de bodega
+                      </span>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">
-                      Fecha de Producción:
+                      Fecha:
                     </label>
                     <input
                       type="date"
@@ -1020,16 +1142,38 @@ export default function InventoryReport() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">
-                    Nota / Lote (Opcional):
+                    Nota / Motivo de Ajuste (Opcional):
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej. Producción del día, Lote Mañana, etc."
+                    placeholder={entryType === 'out' ? 'Ej. Corrección de conteo, merma, producto dañado' : 'Ej. Producción del día, lote mañana'}
                     value={prodNotes}
                     onChange={e => setProdNotes(e.target.value)}
                     className="w-full text-xs border border-gray-300 rounded-xl p-2.5 bg-white text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
+
+                {/* Confirmación con Contraseña de Administrador (si es edición o ajuste hacia abajo) */}
+                {(editingEntry || entryType === 'out') && (
+                  <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl space-y-2">
+                    <div className="flex items-center gap-1.5 text-amber-900 text-xs font-bold">
+                      <span>🔒 Autorización de Administrador</span>
+                    </div>
+                    <p className="text-[11px] text-amber-700 leading-tight">
+                      {editingEntry
+                        ? 'Para guardar cambios en una entrada existente, ingresa tu contraseña de admin.'
+                        : 'Para descontar o reducir stock, ingresa tu contraseña de admin.'}
+                    </p>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Tu contraseña de usuario admin"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      className="w-full text-xs border border-amber-300 rounded-lg p-2.5 bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none font-semibold"
+                    />
+                  </div>
+                )}
 
                 <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
                   <button
@@ -1042,12 +1186,73 @@ export default function InventoryReport() {
                   <button
                     type="submit"
                     disabled={submittingProd}
-                    className="px-5 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all disabled:opacity-50 flex items-center gap-2"
+                    className={`px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-md transition-all disabled:opacity-50 flex items-center gap-2 ${
+                      entryType === 'out'
+                        ? 'bg-rose-600 hover:bg-rose-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
-                    <span>{submittingProd ? 'Guardando...' : 'Guardar Entrada a Almacén'}</span>
+                    <span>
+                      {submittingProd
+                        ? 'Guardando...'
+                        : editingEntry
+                        ? 'Guardar Modificación'
+                        : entryType === 'out'
+                        ? 'Registrar Reducción (-)'
+                        : 'Guardar Entrada (+)'}
+                    </span>
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL SEGURO PARA ELIMINAR ENTRADA CON CONTRASEÑA ─── */}
+        {deleteModal.show && deleteModal.entry && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 animate-scale-up">
+              <div className="flex items-center gap-2 text-rose-600 mb-2">
+                <span className="text-xl">⚠️</span>
+                <h3 className="font-bold text-base text-gray-900">Eliminar Entrada</h3>
+              </div>
+              <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+                ¿Estás seguro de eliminar el registro de{' '}
+                <strong className="text-gray-900">
+                  {deleteModal.entry.quantity > 0 ? `+${deleteModal.entry.quantity}` : deleteModal.entry.quantity}{' '}
+                  {deleteModal.entry.product.unit}
+                </strong>{' '}
+                de <strong className="text-gray-900">{deleteModal.entry.product.name}</strong>? El stock se recalculará automáticamente.
+              </p>
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Contraseña de Administrador: *
+                </label>
+                <input
+                  type="password"
+                  placeholder="Ingresa tu contraseña"
+                  value={deletePassword}
+                  onChange={e => setDeletePassword(e.target.value)}
+                  className="w-full text-xs border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-rose-500 outline-none"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModal({ show: false, entry: null })}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={submittingDelete || !deletePassword}
+                  onClick={handleConfirmDelete}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white disabled:opacity-50"
+                >
+                  {submittingDelete ? 'Eliminando...' : 'Confirmar Eliminación'}
+                </button>
+              </div>
             </div>
           </div>
         )}
