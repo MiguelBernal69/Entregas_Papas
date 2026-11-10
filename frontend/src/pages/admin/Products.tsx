@@ -165,9 +165,9 @@ export default function AdminProducts() {
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Precio</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Unidad</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Categoría</th>
-                  <th className="text-center px-4 py-3 text-gray-600 font-medium">Inventario</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Estado</th>
                   <th className="text-left px-5 py-3 text-gray-600 font-medium">Acciones</th>
+                  <th className="text-center px-4 py-3 text-gray-600 font-medium">Inventario</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -181,20 +181,6 @@ export default function AdminProducts() {
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryColor[product.category] ?? 'bg-gray-100 text-gray-600'}`}>
                         {product.category}
                       </span>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleInventory(product)}
-                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
-                          product.trackInventory !== false
-                            ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
-                            : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100'
-                        }`}
-                        title="Haz clic para activar o desactivar este producto del reporte de inventario"
-                      >
-                        <span>{product.trackInventory !== false ? '📦 Rastrear' : '🚫 No rastrear'}</span>
-                      </button>
                     </td>
                     <td className="px-5 py-4">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -223,6 +209,20 @@ export default function AdminProducts() {
                         className="text-xs font-medium px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                       >
                         Eliminar
+                      </button>
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleInventory(product)}
+                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
+                          product.trackInventory !== false
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                            : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100'
+                        }`}
+                        title="Haz clic para activar o desactivar este producto del reporte de inventario"
+                      >
+                        <span>{product.trackInventory !== false ? '📦 Rastrear' : '🚫 No rastrear'}</span>
                       </button>
                     </td>
                   </tr>

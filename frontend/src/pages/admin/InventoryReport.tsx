@@ -61,16 +61,6 @@ interface StockProductBalance {
   entradasCount: number
 }
 
-interface StockSummary {
-  totalProductos: number
-  totalProducido: number
-  totalVendidoRegular: number
-  totalEntregadaBonif: number
-  totalDevuelto: number
-  totalEnRuta: number
-  totalStockAlmacen: number
-}
-
 interface ProductionEntryItem {
   id: number
   productId: number
@@ -98,8 +88,9 @@ export default function InventoryReport() {
 
   // Estado Pestaña 2: Producción y Stock
   const [stockBalances, setStockBalances] = useState<StockProductBalance[]>([])
-  const [stockSummary, setStockSummary] = useState<StockSummary | null>(null)
   const [productionHistory, setProductionHistory] = useState<ProductionEntryItem[]>([])
+  const [historyPage, setHistoryPage] = useState(1)
+  const HISTORY_PAGE_SIZE = 10
 
   // Modal para agregar / editar producción
   const [showAddModal, setShowAddModal] = useState(false)
@@ -180,10 +171,9 @@ export default function InventoryReport() {
             endDate: e || undefined,
             category: selectedCategory !== 'all' ? selectedCategory : undefined,
           }),
-          getProductionEntries({ limit: 30 })
+          getProductionEntries({ limit: 200 })
         ])
         setStockBalances(balanceRes.products || [])
-        setStockSummary(balanceRes.summary || null)
         setProductionHistory(prodList || [])
       }
     } catch (error) {
@@ -226,6 +216,12 @@ export default function InventoryReport() {
     )
   }, [stockBalances, searchTerm])
 
+  const totalHistoryPages = Math.ceil(productionHistory.length / HISTORY_PAGE_SIZE) || 1
+  const paginatedHistory = useMemo(() => {
+    const start = (historyPage - 1) * HISTORY_PAGE_SIZE
+    return productionHistory.slice(start, start + HISTORY_PAGE_SIZE)
+  }, [productionHistory, historyPage])
+
   // Abrir modal en modo crear
   const handleOpenCreateModal = (productId?: number) => {
     setEditingEntry(null)
@@ -260,9 +256,9 @@ export default function InventoryReport() {
 
     const qty = entryType === 'out' ? -Math.abs(Number(prodQuantity)) : Math.abs(Number(prodQuantity))
 
-    // Si es edición o es ajuste hacia abajo (negativo), se exige contraseña de admin
-    if ((editingEntry || entryType === 'out') && !adminPassword.trim()) {
-      alert('Se requiere la contraseña de administrador para confirmar esta modificación o reducción de inventario')
+    // Siempre exige contraseña de administrador
+    if (!adminPassword.trim()) {
+      alert('Se requiere la contraseña de administrador para autorizar esta operación en el inventario')
       return
     }
 
@@ -281,7 +277,7 @@ export default function InventoryReport() {
           quantity: qty,
           date: prodDate,
           notes: prodNotes.trim() || undefined,
-          adminPassword: entryType === 'out' ? adminPassword : adminPassword || undefined
+          adminPassword
         })
       }
       setShowAddModal(false)
@@ -546,81 +542,6 @@ export default function InventoryReport() {
         {/* ─── VISTA 1: PRODUCCIÓN Y STOCK EN ALMACÉN (KARDEX EN VIVO) ─── */}
         {activeTab === 'produccion' && (
           <div className="space-y-6">
-            {/* Tarjetas KPI de Stock y Almacén */}
-            {stockSummary && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-blue-100 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0">
-                    🏭
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
-                      Producción Ingresada (+)
-                    </p>
-                    <h3 className="text-xl font-black text-blue-700">
-                      {stockSummary.totalProducido} <span className="text-xs font-semibold text-blue-600">unds</span>
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
-                    📦
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
-                      Salidas por Ventas (-)
-                    </p>
-                    <h3 className="text-xl font-black text-emerald-700">
-                      {stockSummary.totalVendidoRegular + stockSummary.totalEntregadaBonif} <span className="text-xs font-semibold text-emerald-600">unds</span>
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0">
-                    ↩️
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
-                      Devuelto al Almacén (+)
-                    </p>
-                    <h3 className="text-xl font-black text-purple-700">
-                      {stockSummary.totalDevuelto} <span className="text-xs font-semibold text-purple-600">unds</span>
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-amber-100 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
-                    🚚
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
-                      En Ruta (Camionetas)
-                    </p>
-                    <h3 className="text-xl font-black text-amber-700">
-                      {stockSummary.totalEnRuta} <span className="text-xs font-semibold text-amber-600">unds</span>
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-slate-900 to-blue-950 text-white p-4 rounded-2xl shadow-md flex items-center gap-3 col-span-2 md:col-span-1">
-                  <div className="w-11 h-11 rounded-xl bg-white/10 text-white flex items-center justify-center text-xl shrink-0">
-                    🏢
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-blue-200 uppercase tracking-wider truncate">
-                      Stock Real en Almacén
-                    </p>
-                    <h3 className="text-2xl font-black text-white">
-                      {stockSummary.totalStockAlmacen} <span className="text-xs font-normal text-blue-200">unds</span>
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Tabla de Stock por Producto */}
             <div id="inventory-print-section" className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -785,7 +706,7 @@ export default function InventoryReport() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {productionHistory.map(entry => (
+                      {paginatedHistory.map(entry => (
                         <tr key={entry.id} className="hover:bg-gray-50/50">
                           <td className="py-2.5 px-3 font-semibold text-gray-600">
                             {new Date(entry.date).toLocaleDateString()}
@@ -827,6 +748,38 @@ export default function InventoryReport() {
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Controles de Paginación (10 por página) */}
+                  {totalHistoryPages > 1 && (
+                    <div className="p-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
+                      <span>
+                        Mostrando {(historyPage - 1) * HISTORY_PAGE_SIZE + 1} a{' '}
+                        {Math.min(historyPage * HISTORY_PAGE_SIZE, productionHistory.length)} de{' '}
+                        {productionHistory.length} registros
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          disabled={historyPage === 1}
+                          onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                          className="px-3 py-1 rounded-lg border border-gray-200 bg-white font-bold hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          ← Anterior
+                        </button>
+                        <span className="px-2 font-bold text-gray-700">
+                          Página {historyPage} de {totalHistoryPages}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={historyPage === totalHistoryPages}
+                          onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
+                          className="px-3 py-1 rounded-lg border border-gray-200 bg-white font-bold hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Siguiente →
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1153,27 +1106,27 @@ export default function InventoryReport() {
                   />
                 </div>
 
-                {/* Confirmación con Contraseña de Administrador (si es edición o ajuste hacia abajo) */}
-                {(editingEntry || entryType === 'out') && (
-                  <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl space-y-2">
-                    <div className="flex items-center gap-1.5 text-amber-900 text-xs font-bold">
-                      <span>🔒 Autorización de Administrador</span>
-                    </div>
-                    <p className="text-[11px] text-amber-700 leading-tight">
-                      {editingEntry
-                        ? 'Para guardar cambios en una entrada existente, ingresa tu contraseña de admin.'
-                        : 'Para descontar o reducir stock, ingresa tu contraseña de admin.'}
-                    </p>
-                    <input
-                      type="password"
-                      required
-                      placeholder="Tu contraseña de usuario admin"
-                      value={adminPassword}
-                      onChange={e => setAdminPassword(e.target.value)}
-                      className="w-full text-xs border border-amber-300 rounded-lg p-2.5 bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none font-semibold"
-                    />
+                {/* Confirmación con Contraseña de Administrador (siempre obligatoria) */}
+                <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl space-y-2">
+                  <div className="flex items-center gap-1.5 text-amber-900 text-xs font-bold">
+                    <span>🔒 Autorización con Contraseña de Administrador *</span>
                   </div>
-                )}
+                  <p className="text-[11px] text-amber-700 leading-tight">
+                    {editingEntry
+                      ? 'Para guardar cambios en una entrada existente, ingresa tu contraseña de admin.'
+                      : entryType === 'out'
+                      ? 'Para descontar o reducir stock de almacén, ingresa tu contraseña de admin.'
+                      : 'Para registrar un aumento de producción al inventario, ingresa tu contraseña de admin.'}
+                  </p>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Tu contraseña de usuario admin"
+                    value={adminPassword}
+                    onChange={e => setAdminPassword(e.target.value)}
+                    className="w-full text-xs border border-amber-300 rounded-lg p-2.5 bg-white text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none font-semibold"
+                  />
+                </div>
 
                 <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
                   <button

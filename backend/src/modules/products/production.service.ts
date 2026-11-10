@@ -30,7 +30,7 @@ interface CreateProductionInput {
 
 /**
  * Registra una nueva entrada de producción / mercadería al almacén.
- * Si la cantidad es negativa (ajuste hacia abajo o corrección), exige contraseña de admin.
+ * Siempre exige contraseña de admin para autorizar la operación.
  */
 export const createProductionEntry = async (data: CreateProductionInput) => {
   const { productId, quantity, notes, date, userId, adminPassword } = data
@@ -39,11 +39,9 @@ export const createProductionEntry = async (data: CreateProductionInput) => {
     throw new Error('El producto y una cantidad distinta de 0 son obligatorios')
   }
 
-  // Si la cantidad es negativa (reducción o merma), exige confirmación con contraseña de admin
-  if (quantity < 0) {
-    if (!userId) throw new Error('Usuario no identificado')
-    await verifyAdminPassword(userId, adminPassword)
-  }
+  // Siempre exige confirmación con contraseña de admin
+  if (!userId) throw new Error('Usuario no identificado')
+  await verifyAdminPassword(userId, adminPassword)
 
   const product = await prisma.product.findUnique({ where: { id: productId } })
   if (!product) throw new Error('Producto no encontrado')
