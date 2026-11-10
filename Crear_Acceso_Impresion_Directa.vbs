@@ -24,3 +24,4 @@ oLink.Description = "Sistema Distribuidora Lunova con impresion automatica"
 oLink.Save
 
 MsgBox "¡Acceso directo creado con éxito en tu Escritorio!" & vbCrLf & vbCrLf & "Nombre: Distribuidora Lunova (POS)" & vbCrLf & vbCrLf & "Al abrirlo desde tu Escritorio, las boletas se imprimirán de inmediato sin ventanas emergentes.", vbInformation, "Distribuidora Lunova - Impresión Directa"
+
