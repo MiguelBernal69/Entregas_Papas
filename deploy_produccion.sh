@@ -60,9 +60,11 @@ echo "🗄️  [3/7] Aplicando migración de base de datos..."
 echo "   Columnas nuevas con DEFAULT → datos existentes NO se tocan"
 
 PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" << 'MIGRATION_SQL'
--- Migración: add_bonification_discount_category
--- Usa IF NOT EXISTS → idempotente (seguro correr múltiples veces)
+-- 1. Estados de Pedidos y Acciones en ENUMs
+ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'rechazado';
+ALTER TYPE "OrderAction" ADD VALUE IF NOT EXISTS 'rejected';
 
+-- 2. Campos en Product
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Product' AND column_name='category') THEN
     ALTER TABLE "Product" ADD COLUMN "category" TEXT NOT NULL DEFAULT 'Categoría A';
@@ -73,6 +75,16 @@ DO $$ BEGIN
 END $$;
 
 DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Product' AND column_name='trackInventory') THEN
+    ALTER TABLE "Product" ADD COLUMN "trackInventory" BOOLEAN NOT NULL DEFAULT true;
+    RAISE NOTICE '✅ Product.trackInventory agregado';
+  ELSE
+    RAISE NOTICE '⏩ Product.trackInventory ya existe';
+  END IF;
+END $$;
+
+-- 3. Campos en Order
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Order' AND column_name='discount') THEN
     ALTER TABLE "Order" ADD COLUMN "discount" DOUBLE PRECISION NOT NULL DEFAULT 0;
     RAISE NOTICE '✅ Order.discount agregado';
@@ -81,6 +93,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- 4. Campos en OrderItem
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='OrderItem' AND column_name='isBonification') THEN
     ALTER TABLE "OrderItem" ADD COLUMN "isBonification" BOOLEAN NOT NULL DEFAULT false;
@@ -90,10 +103,25 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- 5. Tabla ProductionEntry para Inventario y Producción
+CREATE TABLE IF NOT EXISTS "ProductionEntry" (
+  "id" SERIAL NOT NULL,
+  "productId" INTEGER NOT NULL,
+  "quantity" INTEGER NOT NULL,
+  "notes" TEXT,
+  "createdBy" INTEGER,
+  "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT "ProductionEntry_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "ProductionEntry_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "ProductionEntry_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
 SELECT 'Migración OK' AS resultado;
 MIGRATION_SQL
 
-echo "   ✅ Migración aplicada"
+echo "   ✅ Migración aplicada exitosamente sin afectar datos existentes"
 
 # ── PASO 4: Backend → npm install ─────────────────────────────────
 echo ""
