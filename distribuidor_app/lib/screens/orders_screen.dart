@@ -235,81 +235,20 @@ class _OrdersScreenState extends State<OrdersScreen>
   /// Rechaza un pedido — el cliente no quiso aceptarlo.
   /// Todos los productos vuelven al stock del camión (deliveredQuantity=0).
   Future<void> _reject(Order order) async {
-    // Pedir motivo de rechazo
-    final TextEditingController reasonCtrl = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final reason = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.cancel, color: Colors.red, size: 22),
-            SizedBox(width: 8),
-            Text('Rechazar Pedido', style: TextStyle(fontSize: 17)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'El pedido de ${order.client.name} será marcado como rechazado.\n'
-              'Los productos volverán al stock del camión.',
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonCtrl,
-              decoration: InputDecoration(
-                labelText: 'Motivo de rechazo (obligatorio)',
-                hintText: 'Ej. Cliente no estaba, no quiso aceptar...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-              ),
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.block, size: 16),
-            label: const Text('Confirmar Rechazo'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () {
-              if (reasonCtrl.text.trim().isEmpty) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('Debes ingresar un motivo de rechazo')),
-                );
-                return;
-              }
-              Navigator.pop(ctx, true);
-            },
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (_) => _RejectOrderDialog(order: order),
     );
 
-    if (confirmed != true) {
-      reasonCtrl.dispose();
-      return;
-    }
-
-    final reason = reasonCtrl.text.trim();
-    reasonCtrl.dispose();
+    if (reason == null || reason.isEmpty || !mounted) return;
 
     try {
       final ok = await OrderService.rejectOrder(order.id, notes: reason);
       if (ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: const Text('🚫 Pedido rechazado — productos de vuelta al camión'),
             backgroundColor: Colors.red.shade700,
@@ -322,10 +261,13 @@ class _OrdersScreenState extends State<OrdersScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -1206,5 +1148,101 @@ class _OrderCard extends StatelessWidget {
     if (!history) return 'Pedido #$orderId';
     if (partial) return 'PARCIAL';
     return 'ENTREGADO';
+  }
+}
+
+class _RejectOrderDialog extends StatefulWidget {
+  final Order order;
+  const _RejectOrderDialog({required this.order});
+
+  @override
+  State<_RejectOrderDialog> createState() => _RejectOrderDialogState();
+}
+
+class _RejectOrderDialogState extends State<_RejectOrderDialog> {
+  late final TextEditingController _reasonCtrl;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _reasonCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final text = _reasonCtrl.text.trim();
+    if (text.isEmpty) {
+      setState(() {
+        _errorText = 'Debes ingresar un motivo de rechazo';
+      });
+      return;
+    }
+    Navigator.of(context).pop(text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.cancel, color: Colors.red, size: 22),
+          SizedBox(width: 8),
+          Text('Rechazar Pedido', style: TextStyle(fontSize: 17)),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'El pedido de ${widget.order.client.name} será marcado como rechazado.\n'
+            'Los productos volverán al stock del camión.',
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _reasonCtrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Motivo de rechazo (obligatorio)',
+              hintText: 'Ej. Cliente no estaba, no quiso aceptar...',
+              errorText: _errorText,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              filled: true,
+              fillColor: Colors.grey.shade50,
+            ),
+            maxLines: 2,
+            onChanged: (_) {
+              if (_errorText != null) {
+                setState(() => _errorText = null);
+              }
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(null),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.block, size: 16),
+          label: const Text('Confirmar Rechazo'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: _submit,
+        ),
+      ],
+    );
   }
 }
