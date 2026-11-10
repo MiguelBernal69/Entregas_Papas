@@ -55,8 +55,15 @@ export const getSessionReport = async (distributorId: number) => {
         where: {
             distributorId,
             OR: [
+                // Pedidos actualmente asignados (en camioneta, pendientes de entregar)
+                // Sin filtro de fecha: solo los que siguen en estado 'asignado' son los de hoy
                 { status: 'asignado' },
-                { status: 'rechazado' },  // rechazado: vuelven al stock del camión
+                // Pedidos rechazados DURANTE esta sesión (filtrado por fecha de cierre/rechazo)
+                {
+                    status: 'rechazado',
+                    deliveredAt: { gte: session.openedAt }
+                },
+                // Pedidos entregados/parciales durante esta sesión
                 {
                     status: { in: ['entregado', 'entrega_parcial'] },
                     deliveredAt: { gte: session.openedAt }
