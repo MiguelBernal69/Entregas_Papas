@@ -19,7 +19,7 @@ End If
 
 Set oLink = oWS.CreateShortcut(shortcutPath)
 oLink.TargetPath = targetChrome
-oLink.Arguments = "--kiosk-printing --app=http://178.105.45.6/admin/orders"
+oLink.Arguments = "--kiosk-printing --user-data-dir=""C:\ChromePOS"" --app=http://178.105.45.6/admin/orders"
 oLink.Description = "Sistema Distribuidora Lunova con impresion automatica"
 oLink.Save
 
